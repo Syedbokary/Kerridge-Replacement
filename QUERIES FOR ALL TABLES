@@ -1,0 +1,106 @@
+
+-- Creating New DataBase- Newapplication--
+CREATE DATABASE Newapplication;
+
+--Viewing the Schemas--
+Use Newapplication;
+Select name
+FROM sys.schemas
+
+USE Newapplication
+
+-- Creating Table Incident Defect Categories--
+Create Table I_Defect_Cats(
+cat_id Varchar(5) PRIMARY KEY,
+cat_description VARCHAR(MAX))
+
+---Creating Table Incident Locations--
+
+Create Table I_LOCATIONS(
+Location_ID VARCHAR(5) PRIMARY KEY,
+Location_Description VARCHAR(MAX))
+
+--Creating Table Incident Charge Tyes--
+
+CREATE TABLE I_Charge_Types(
+Charge_ID VARCHAR(5) PRIMARY KEY,
+Charge_Description VARCHAR(MAX))
+
+--Creating Table Contact Methods--
+
+CREATE TABLE Contact_Methods(
+Contact_Method_ID INT PRIMARY KEY,
+Contact_Method_Description VARCHAR(MAX))
+
+--Creating Table Status--
+
+CREATE TABLE I_Status(
+Status_ID CHAR(3) PRIMARY KEY,
+Status_Description VARCHAR(MAX))
+
+--Creating Table Incident Headder
+
+Create Table Incident_Headder(
+I_Number INT PRIMARY KEY,
+Created_BY VARCHAR(MAX),
+Defect_occurred DATETIME,
+Fleet_No VARCHAR(10),
+Customer_id VARCHAR(15),
+Contact_Method_ID INT, FOREIGN KEY(Contact_Method_ID) REFERENCES Contact_Methods(Contact_Method_ID),
+Contact_Name CHAR(15),
+Contact_Tel VARCHAR(24),
+Contact_Email VARCHAR(50),
+Driver_Name CHAR(50),
+Driver_Tel VARCHAR(24),
+Cat_ID VARCHAR(5), FOREIGN KEY(Cat_ID) REFERENCES I_Defect_Cats(Cat_ID),
+Location_ID VARCHAR(5), FOREIGN KEY(Location_ID) REFERENCES I_Locations(Location_ID),
+Charge_ID VARCHAR(5), FOREIGN KEY(Charge_ID) REFERENCES I_Charge_Types(Charge_ID),
+Status_ID CHAR(3), FOREIGN KEY(Status_ID) REFERENCES I_Status(Status_ID),
+Registration_NO CHAR(10),
+Customer_PO CHAR(10),
+Customer_Contract_NO CHAR(10),
+Defect_Loc_Address VARCHAR(MAX),
+Defect_Loc_PostCode VARCHAR(10),
+Reported_Defect VARCHAR(MAX),
+Attendance_Deferred BIT,
+Deferred_To DATETIME,
+Customer_Defect_NO CHAR(50))
+
+
+--Creating Table Incident Events--
+
+CREATE TABLE Incident_Events(
+I_Number INT, FOREIGN KEY(I_Number) REFERENCES Incident_Headder(I_Number),
+E_Number INT PRIMARY KEY,
+E_Created TIMESTAMP,
+Event_Type_ID INT, FOREIGN KEY(Event_Type_ID) REFERENCES Event_Types(Event_Type_ID),
+Event_Text VARCHAR(MAX),
+Next_Event_ID INT,
+Next_Event_DT DATETIME)
+
+--Creating Table Event Types--
+
+CREATE TABLE Event_Types(
+
+Event_Type_ID INT PRIMARY KEY,
+Event_Description CHAR(50),
+Next_Event_ID INT,
+Default_Advance_Mins INT)
+
+
+--Creating Table Purchase Order Headder--
+
+CREATE TABLE Purchase_Order_Headder(
+PO_Number INT PRIMARY KEY,
+Odometer INT ,
+PO_Created TIMESTAMP,
+Created_BY CHAR(10),
+Supplier_NO CHAR(10),
+Fleet_NO CHAR(10),
+Customer_PO CHAR(10),
+Kofax_Scan_NO CHAR(10),
+Igloo_Invoice_No CHAR(10))
+
+--Dropping the Duplicate Table
+Drop Table dbo.STATUS
+
