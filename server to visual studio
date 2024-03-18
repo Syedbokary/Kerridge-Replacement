@@ -1,0 +1,20 @@
+import pyodbc
+
+conn_str = (
+        "DRIVER={ODBC Driver 17 for SQL Server};"
+        "SERVER=DESKTOP-NSDQ3JC;"
+        "DATABASE=books;"
+        "uid=syedb;"
+        "password=1704;"
+        "Trusted_Connection=yes;"
+)
+conn = pyodbc.connect(conn_str)
+cursor = conn.cursor()
+cursor.execute("SELECT * FROM sys.tables")
+tables = cursor.fetchall()
+    #cursor.execute("SELECT WORK_ORDER.TYPE,WORK_ORDER.STATUS, WORK_ORDER.BASE_ID, WORK_ORDER.LOT_ID FROM WORK_ORDER")
+
+for row in cursor.columns(table='test'):
+    print (row.column_name)
+    for field in row:
+        print (field)
