@@ -18,3 +18,14 @@ for row in cursor.columns(table='test'):
     print (row.column_name)
     for field in row:
         print (field)
+
+---INSERT VALUES INTO THE CODE---
+
+def insert(id,title,author,Year,ISBN):
+    conn = pyodbc.connect(conn_str)
+    cur=conn.cursor()
+    cur.execute("INSERT INTO book VALUES(?,?,?,?,?)",(id,title,author,Year,ISBN))
+    conn.commit()
+    conn.close()
+
+insert(2,"syed ameen","ancde",18899,99897)
