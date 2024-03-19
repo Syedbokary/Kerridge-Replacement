@@ -60,8 +60,18 @@ def search(TITLE="",AUTHOR="",YEAR="",ISBN=""):
     conn.close()
     return rows
 
+-- Deleting a particular data
+
+def delete(ID):
+    conn = pyodbc.connect(conn_str)
+    cur=conn.cursor()
+    cur.execute("DELETE FROM BOOK WHERE ID=?",(ID,))
+    conn.commit()
+    conn.close()
+
 ---Calling the above functions
 insert("syed ameen","ancde",18899,99897) 
 print(view())
 print(search(author="kkshhd"))
+delete(3)
 
