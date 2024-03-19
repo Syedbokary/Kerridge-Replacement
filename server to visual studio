@@ -29,3 +29,14 @@ def insert(id,title,author,Year,ISBN):
     conn.close()
 
 insert(2,"syed ameen","ancde",18899,99897)
+
+--Insert Values into the code by autogenerating id(Where created table has id IDENTITY(1,1) PRIMARY KEY)
+
+def insert(TITLE,AUTHOR,YEAR,ISBN):
+    conn = pyodbc.connect(conn_str)
+    cur=conn.cursor()
+    cur.execute("INSERT INTO BOOK VALUES(?,?,?,?)",(TITLE,AUTHOR,YEAR,ISBN))
+    conn.commit()
+    conn.close()
+
+insert("syed ameen","ancde",18899,99897) 
