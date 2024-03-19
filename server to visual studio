@@ -40,4 +40,28 @@ def insert(TITLE,AUTHOR,YEAR,ISBN):
     conn.commit()
     conn.close()
 
+----View all the data 
+def view():
+    conn = pyodbc.connect(conn_str)
+    cur=conn.cursor()
+    cur.execute("Select * FROM BOOK")
+    rows= cur.fetchall()
+    conn.commit()
+    conn.close()
+    return rows
+
+---Search for a particular data 
+def search(TITLE="",AUTHOR="",YEAR="",ISBN=""):
+    conn = pyodbc.connect(conn_str)
+    cur=conn.cursor()
+    cur.execute("SELECT * FROM BOOK WHERE TITLE=? OR AUTHOR=? OR YEAR=? OR ISBN=?",(TITLE,AUTHOR,YEAR,ISBN))
+    rows=cur.fetchall()
+    conn.commit()
+    conn.close()
+    return rows
+
+---Calling the above functions
 insert("syed ameen","ancde",18899,99897) 
+print(view())
+print(search(author="kkshhd"))
+
