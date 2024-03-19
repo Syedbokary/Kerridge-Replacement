@@ -69,9 +69,22 @@ def delete(ID):
     conn.commit()
     conn.close()
 
+--Update a particular row 
+
+def update(ID,TITLE,AUTHOR,YEAR,ISBN):
+    conn = pyodbc.connect(conn_str)
+    cur=conn.cursor()
+    cur.execute("UPDATE BOOK SET TITLE=?, AUTHOR=?, YEAR=? ,ISBN=? WHERE ID=?",(TITLE, AUTHOR, YEAR, ISBN,ID))
+    conn.commit()
+    conn.close()
+
+
 ---Calling the above functions
 insert("syed ameen","ancde",18899,99897) 
+delete(3)
+update(4,"SURESH RAINA","ALL ROUNDER",34563,8988484)
+update(4,"all rounder","suresh raina",354554,998855)
 print(view())
 print(search(author="kkshhd"))
-delete(3)
+
 
