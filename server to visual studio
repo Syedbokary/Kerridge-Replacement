@@ -1,3 +1,4 @@
+---Building connection between server and visual studio code
 import pyodbc
 
 conn_str = (
