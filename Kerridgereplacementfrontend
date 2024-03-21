@@ -1,0 +1,114 @@
+import tkinter as tk
+from tkinter import Menu, messagebox
+from PIL import Image, ImageTk
+
+class KerridgeReplacement:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Kerridge Replacement Application")
+        self.root.geometry("800x800")
+
+        # Create a menu bar
+        menubar = Menu(self.root)
+        self.root.config(menu=menubar)
+
+        # File menu
+        file_menu = Menu(menubar, tearoff=0)
+        file_menu.add_command(label="New", command=self.new_file)
+        file_menu.add_command(label="Open", command=self.open_file)
+        file_menu.add_command(label="Save", command=self.save_file)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.exit_program)
+        menubar.add_cascade(label="File", menu=file_menu)
+
+        # Filter menu
+        filter_menu = Menu(menubar, tearoff=0)
+        filter_menu.add_command(label="Filter 1", command=self.filter_1)
+        filter_menu.add_command(label="Filter 2", command=self.filter_2)
+        filter_menu.add_command(label="Filter 3", command=self.filter_3)
+        menubar.add_cascade(label="Filter", menu=filter_menu)
+
+        # Tools menu
+        tools_menu = Menu(menubar, tearoff=0)
+        tools_menu.add_command(label="Tool 1", command=self.tool_1)
+        tools_menu.add_command(label="Tool 2", command=self.tool_2)
+        menubar.add_cascade(label="Tools", menu=tools_menu)
+
+        # Help menu
+        help_menu = Menu(menubar, tearoff=0)
+        help_menu.add_command(label="About", command=self.show_about)
+        menubar.add_cascade(label="Help", menu=help_menu)
+
+        # Add icons within a box
+        self.add_icon_box()
+
+    def add_icon_box(self):
+        # Create a container (Frame) for the icons with a border
+        icon_box = tk.Frame(self.root, relief=tk.RIDGE, borderwidth=2)
+        icon_box.pack(side=tk.TOP, padx=10, pady=10, anchor="nw")  # Start from left corner
+
+        # You can add icons below menus using PhotoImage or other methods.
+        # For demonstration purposes, let's create 13 small image icons.
+        image_paths = ["icon1.png", "icon2.png", "icon3.png", "icon4.png", "icon5.png",
+                       "icon6.png", "icon7.png", "icon8.png", "icon9.png", "icon10.png",
+                       "icon11.png", "icon12.png", "icon13.png"]
+
+        for path in image_paths:
+            image = Image.open(path)
+            image = image.resize((20, 20), Image.LANCZOS)  # Change to Image.LANCZOS if preferred
+            photo = ImageTk.PhotoImage(image)
+            icon_button = tk.Button(icon_box, image=photo, command=lambda p=path: self.icon_clicked(p))
+            icon_button.image = photo
+            icon_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+    def icon_clicked(self, path):
+        # Perform backend logic based on the clicked icon
+        print("Icon clicked:", path)
+
+    # File Menu Functions
+    def new_file(self):
+        # Implement your new file logic here
+        pass
+
+    def open_file(self):
+        # Implement your open file logic here
+        pass
+
+    def save_file(self):
+        # Implement your save file logic here
+        pass
+
+    def exit_program(self):
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.root.destroy()
+
+    # Filter Menu Functions
+    def filter_1(self):
+        # Implement your filter 1 logic here
+        pass
+
+    def filter_2(self):
+        # Implement your filter 2 logic here
+        pass
+
+    def filter_3(self):
+        # Implement your filter 3 logic here
+        pass
+
+    # Tools Menu Functions
+    def tool_1(self):
+        # Implement your tool 1 logic here
+        pass
+
+    def tool_2(self):
+        # Implement your tool 2 logic here
+        pass
+
+    # Help Menu Functions
+    def show_about(self):
+        messagebox.showinfo("About", "Kerridge Replacement Application")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = KerridgeReplacement(root)
+    root.mainloop()
