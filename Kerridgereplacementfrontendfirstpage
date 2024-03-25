@@ -1,0 +1,277 @@
+import tkinter as tk
+from tkinter import Menu, messagebox,Entry
+from tkinter import Frame, LabelFrame,Label,Checkbutton,Button,HORIZONTAL,VERTICAL,BOTTOM,RIGHT,X,Y,BOTH
+from PIL import Image, ImageTk
+from tkinter import ttk
+from tkcalendar import DateEntry
+
+
+class KerridgeReplacement:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Kerridge Replacement Application")
+        self.root.geometry("800x600")
+
+        # Create a menu bar
+        menubar = Menu(self.root)
+        self.root.config(menu=menubar)
+
+        # File menu
+        file_menu = Menu(menubar, tearoff=0)
+        file_menu.add_command(label="New", command=self.new_file)
+        file_menu.add_command(label="Open", command=self.open_file)
+        file_menu.add_command(label="Save", command=self.save_file)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.exit_program)
+        menubar.add_cascade(label="File", menu=file_menu)
+
+        # Filter menu
+        filter_menu = Menu(menubar, tearoff=0)
+        filter_menu.add_command(label="Filter 1", command=self.filter_1)
+        filter_menu.add_command(label="Filter 2", command=self.filter_2)
+        filter_menu.add_command(label="Filter 3", command=self.filter_3)
+        menubar.add_cascade(label="Filter", menu=filter_menu)
+
+        # Tools menu
+        tools_menu = Menu(menubar, tearoff=0)
+        tools_menu.add_command(label="Tool 1", command=self.tool_1)
+        tools_menu.add_command(label="Tool 2", command=self.tool_2)
+        menubar.add_cascade(label="Tools", menu=tools_menu)
+
+        # Help menu
+        help_menu = Menu(menubar, tearoff=0)
+        help_menu.add_command(label="About", command=self.show_about)
+        menubar.add_cascade(label="Help", menu=help_menu)
+
+        # Add icons within a box
+        self.add_icon_box()
+
+        # Add a DataFrame below the icons
+        self.add_data_frame()
+
+        
+
+    def add_icon_box(self):
+        # Create a container (Frame) for the icons with a border
+        icon_box = tk.Frame(self.root, relief=tk.RIDGE, borderwidth=3)
+        icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
+
+        # You can add icons below menus using PhotoImage or other methods.
+        # For demonstration purposes, let's create 13 small image icons.
+        image_paths = ["icon1.png", "icon2.png", "icon3.png", "icon4.png", "icon5.png",
+                       "icon6.png", "icon7.png", "icon8.png", "icon9.png", "icon10.png",
+                       "icon11.png", "icon12.png", "icon13.png"]
+
+        for path in image_paths:
+            image = Image.open(path)
+            image = image.resize((15,15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
+            photo = ImageTk.PhotoImage(image)
+            icon_button = tk.Button(icon_box, image=photo, command=lambda p=path: self.icon_clicked(p))
+            icon_button.image = photo
+            icon_button.pack(side=tk.LEFT, padx=5, pady=2)  # Reduce pady value
+
+    def add_data_frame(self):
+        # Create a DataFrame below the icons
+        dataframe = LabelFrame(self.root, bd=3, relief=tk.RIDGE,text="Filter forwards")
+        dataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+        dataframe.place(x=0, y=40, width=780, height=100) 
+
+        #================Legend frame================================#
+
+        Legendframe= LabelFrame(self.root, relief=tk.RIDGE, text="Legend")
+        Legendframe.place(x=0,y=140,width=780,height=60)
+
+        #=================Details Frame===============================#
+
+        Detailsframe= LabelFrame(self.root, relief=tk.RIDGE,text="Details")
+        Detailsframe.place(x=0,y=200,width=780,height=400)
+
+       #===================Creating Lables and Text Fields=============================#
+        
+        lb1 = Label(dataframe, text="Registration", padx=10)
+        lb1.grid(row=0, column=0)
+        text1 = Entry(dataframe, width=18)
+        text1.grid(row=0, column=1)
+
+        lb2 = Label(dataframe, text="Customer", padx=10)
+        lb2.grid(row=0, column=2)
+        text2 = Entry(dataframe, width=30)
+        text2.grid(row=0, column=3)
+    
+        lb3 = Label(dataframe, text="Owner", padx=5)
+        lb3.grid(row=0, column=4)
+        text3 = Entry(dataframe, width=13)
+        text3.grid(row=0, column=5)
+
+        lb4 = Label(dataframe, text="Creator", padx=5)
+        lb4.grid(row=0, column=6)
+        text4 = Entry(dataframe, width=13)
+        text4.grid(row=0, column=7)
+
+        # Incident Type
+        lb5 = Label(dataframe, text="Incident Type", padx=5)
+        lb5.grid(row=1, column=0)
+        text5 = Entry(dataframe, width=18)
+        text5.grid(row=1, column=1)
+
+        # Incident date
+        lb6 = Label(dataframe, text="Incident date", padx=5)
+        lb6.grid(row=1, column=2)
+        text6 = DateEntry(dataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+        text6.grid(row=1, column=3)
+
+        #status
+        lb7=Label(dataframe,text="Status",padx=5)
+        lb7.grid(row=1, column=4)
+        text7= Entry(dataframe,width=3)
+        text7.grid(row=1,column=5,padx=5,pady=5)
+        text8= Entry(dataframe,width=3)
+        text8.grid(row=1,column=6,padx=5,pady=5)
+        text9= Entry(dataframe,width=3)
+        text9.grid(row=1,column=7,padx=5,pady=5)
+        text10= Entry(dataframe,width=3)
+        text10.grid(row=1,column=8,padx=5,pady=5)
+
+        #closed
+
+        text11= Checkbutton(dataframe,width=2)
+        text11.grid(row=2,column=0)
+        lb7=Label(dataframe,text="Closed")
+        lb7.grid(row=2, column=1,)
+
+        #Locations
+
+        lb8= Label(dataframe,text="Locations")
+        lb8.grid(row=2,column=2)
+        text12=Entry(dataframe,width=8)
+        text12.grid(row=2,column=3)
+        text13=Entry(dataframe,width=8)
+        text13.grid(row=2,column=4)
+        text14=Entry(dataframe,width=8)
+        text14.grid(row=2,column=5)
+
+    #Creating Buttons in the legend frame
+        #OverdueButton
+        btnoverdue=Button(Legendframe,text="Overdue",fg="White",bg="red",width=14,height=1,padx=2,pady=6)
+        btnoverdue.grid(row=0,column=0)
+        #halfhour Button
+        bthalfhour=Button(Legendframe,text="1/2 Hour",fg="White",bg="Fuchsia",width=14,height=1,padx=2,pady=6)
+        bthalfhour.grid(row=0,column=1)
+        #Overonehour Button
+        btnonehour=Button(Legendframe,text="1 Hour",fg="White",bg="Dark Green",width=14,height=1,padx=2,pady=6)
+        btnonehour.grid(row=0,column=2)
+        #overfourhours button
+        btnfourhours=Button(Legendframe,text="4 Hours",fg="White",bg="Black",width=14,height=1,padx=2,pady=6)
+        btnfourhours.grid(row=0,column=3)
+        #Oneday Button
+        btnOneday=Button(Legendframe,text="1 day",fg="White",width=14,bg="Green",height=1,padx=2,pady=6)
+        btnOneday.grid(row=0,column=4)
+        #Overoneday Button
+        btnOverOneday=Button(Legendframe,text="Over 1 day",fg="White",bg="Blue",width=14,height=1,padx=2,pady=6)
+        btnOverOneday.grid(row=0,column=5)
+        #Closed Button
+        btnClosed=Button(Legendframe,text="Closed",fg="White",bg="Dark Grey",width=14,height=1,padx=2,pady=6)
+        btnClosed.grid(row=0,column=6)
+        
+        #==================================Table==================================================#
+        #==================Scrollbar==================#
+        scrollbar_x=ttk.Scrollbar(Detailsframe,orient= HORIZONTAL)
+        scrollbar_y=ttk.Scrollbar(Detailsframe,orient=VERTICAL)
+        self.root.Kerride_table= ttk.Treeview(Detailsframe,column=("Incident Date","Customer","Location",
+                                         "Registration","Incident No", "Type", "Status","Owner","Due Date","Time"),xscrollcommand= scrollbar_y.set,yscrollcommand= scrollbar_x.set)
+        scrollbar_x.pack(side=BOTTOM,fill=X)
+        scrollbar_y.pack(side=RIGHT,fill=Y)
+
+        scrollbar_x=ttk.Scrollbar(command=self.root.Kerride_table.xview)
+        scrollbar_y=ttk.Scrollbar(command=self.root.Kerride_table.yview)
+
+        self.root.Kerride_table.heading("Incident Date", text="Incident Date")
+        self.root.Kerride_table.heading("Customer", text="Customer")
+        self.root.Kerride_table.heading("Location", text="Location")
+        self.root.Kerride_table.heading("Registration", text="Registration")
+        self.root.Kerride_table.heading("Incident No", text="Incident no")
+        self.root.Kerride_table.heading("Type", text="Type")
+        self.root.Kerride_table.heading("Status", text="Status")
+        self.root.Kerride_table.heading("Owner", text="Owner")
+        self.root.Kerride_table.heading("Due Date", text="Due Date")
+        self.root.Kerride_table.heading("Time", text="Time")
+
+        self.root.Kerride_table["show"]="headings"
+        self.root.Kerride_table.pack(fill=BOTH, expand=1)
+        
+        self.root.Kerride_table.column("Incident Date", width=90)
+        self.root.Kerride_table.column("Customer", width=110)
+        self.root.Kerride_table.column("Location", width=70)
+        self.root.Kerride_table.column("Registration", width=90)
+        self.root.Kerride_table.column("Incident No", width=70)
+        self.root.Kerride_table.column("Type", width=60)
+        self.root.Kerride_table.column("Status", width=70)
+        self.root.Kerride_table.column("Owner", width=60)
+        self.root.Kerride_table.column("Due Date", width=90)
+        self.root.Kerride_table.column("Time", width=50)
+
+        style = ttk.Style()
+        style.theme_use("default")
+        style.configure("Treeview", background="white", foreground="black", rowheight=25, fieldbackground="white")
+        style.map("Treeview", background=[("selected", "lightblue")])
+        style.layout("Treeview.Item", [('Treeitem.padding', {'sticky': 'nswe', 'children': [('Treeitem.indicator', {'side': 'left', 'sticky': ''}), ('Treeitem.image', {'side': 'left', 'sticky': ''}), ('Treeitem.text', {'side': 'left', 'sticky': 'we'})]})])
+        style.configure("Treeview.Heading", background="lightgray", foreground="black", rowheight=25)
+
+        # Add lines in between rows and columns
+        style.layout("Treeview", [('Treeview.treearea', {'sticky': 'nswe'})])  # Remove the cell border
+        style.layout("Treeview.Item", [('Treeitem.padding', {'sticky': 'nswe', 'children': [('Treeitem.label', {'sticky': 'nswe'})]})])  # Set padding for each cell
+        style.layout("Treeview.Row", [])  # Remove row border
+        
+
+    def icon_clicked(self, path):
+        # Perform backend logic based on the clicked icon
+        print("Icon clicked:", path)
+
+    # File Menu Functions
+    def new_file(self):
+        # Implement your new file logic here
+        pass
+
+    def open_file(self):
+        # Implement your open file logic here
+        pass
+
+    def save_file(self):
+        # Implement your save file logic here
+        pass
+
+    def exit_program(self):
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.root.destroy()
+
+    # Filter Menu Functions
+    def filter_1(self):
+        # Implement your filter 1 logic here
+        pass
+
+    def filter_2(self):
+        # Implement your filter 2 logic here
+        pass
+
+    def filter_3(self):
+        # Implement your filter 3 logic here
+        pass
+
+    # Tools Menu Functions
+    def tool_1(self):
+        # Implement your tool 1 logic here
+        pass
+
+    def tool_2(self):
+        # Implement your tool 2 logic here
+        pass
+
+    # Help Menu Functions
+    def show_about(self):
+        messagebox.showinfo("About", "Kerridge Replacement Application")
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = KerridgeReplacement(root)
+    root.mainloop()
