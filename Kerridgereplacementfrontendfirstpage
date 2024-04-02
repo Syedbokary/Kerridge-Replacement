@@ -826,6 +826,157 @@ class KerridgeReplacement:
      NextSchevententry= Entry(Maindataframe,width=10)
      NextSchevententry.grid(row=2,column=3,sticky='w')
 
+     #Creating a new dataframe below Main dataframe
+
+     Agreementframe= Frame(self.Maintenance_Control,bd=3, relief=tk.RIDGE)
+     Agreementframe.pack(side=tk.TOP,padx=8,pady=3, anchor='nw')
+     Agreementframe.place(x=0,y=120,width=780,height=40)
+
+     #Create Label and entry for Agreement inside the dataframe
+     
+     Agreement= Label(Agreementframe,text="Agreement:")
+     Agreement.grid(row=0,column=0,padx=5,pady=5)
+     Agreemententry= Entry(Agreementframe,width=30)
+     Agreemententry.grid(row=0,column=1,padx=5,pady=5)
+
+     #Create Label and entry for Customer
+     Customer= Label(Agreementframe,text="Customer:")
+     Customer.grid(row=0,column=2,padx=5,pady=5)
+     Customerentry= Entry(Agreementframe,width=50)
+     Customerentry.grid(row=0, column=3, padx=5, pady=5)
+
+     #Creating a new dataframe below Agreement 
+
+     self.Approvalframe= Frame(self.Maintenance_Control,bd=3, relief=tk.RIDGE)
+     self.Approvalframe.pack(side=tk.TOP,padx=8,pady=3, anchor='nw')
+     self.Approvalframe.place(x=0,y=170,width=780,height=180)
+     
+     #Creating frame for the 3 buttons 
+     self.Approval_Issue = Frame(self.Approvalframe)
+     self.Invoice_Details = Frame(self.Approvalframe)
+     self.Miscc= Frame(self.Approvalframe)
+
+     # Function to show approval page
+     def show_Approval():
+        self.Approval_Issue.pack(fill="both", expand=True)
+        self.Invoice_Details.pack_forget()
+        self.Miscc.pack_forget()
+
+    # Function to show approval page
+     def show_Invoice_Details():
+      self.Maintenance_Control.pack_forget()
+      self.Invoice_Details.pack(fill="both", expand=True)
+      self.Miscc.pack_forget()
+    
+    #Function to show Misc Page 
+     def show_Miscc():
+      self.Maintenance_Control.pack_forget()
+      self.Invoice_Details.pack_forget()
+      self.Miscc.pack(fill="both",expand=True)
+
+
+      #Creating Buttons Frame for second pagE
+     Buttonframe= Frame(self.Approvalframe, relief=tk.RIDGE)
+     Buttonframe.place(x=0,y=8,width=780,height=30)
+
+    # Create buttons
+     Approval_button = tk.Button(Buttonframe, text="Approval Issue", command=show_Approval)
+     Approval_button.pack(side=tk.LEFT, padx=1, pady=2)
+
+     Invoice_details_button = tk.Button(Buttonframe, text="Invoice Details", command=show_Invoice_Details)
+     Invoice_details_button.pack(side=tk.LEFT, padx=1, pady=2)
+
+     Miscc_button = tk.Button(Buttonframe, text="Misc", command=show_Miscc)
+     Miscc_button.pack(side=tk.LEFT, padx=1, pady=2)
+     
+     #Inserting Label and entries inside the Approval button
+     
+     #Creating a dataframe inside the approval button
+     Repairerdataframe= Frame(self.Approval_Issue,bd=3,relief=tk.RIDGE)
+     Repairerdataframe.pack(side=tk.TOP,padx=8,pady=3,anchor='nw')
+     Repairerdataframe.place(x=0,y=40,width=765,height=130)
+     
+     #Creating a label and combobox entry for Repairer 
+     Repairernames= ["abcd","shhshs""hhsjjs"]
+     Repairer= Label(Repairerdataframe, text="Repairer:")
+     Repairer.grid(row=0,column=0,padx=5,pady=5)
+     Repairerentry= ttk.Combobox(Repairerdataframe,values=Repairernames,width=20)
+     Repairerentry.grid(row=0,column=1,sticky="w",padx=5,pady=5)
+
+      
+     #Creating a label and combobox entry for Account
+     Accountnumbers= ["AB5677","MO908""HJ666"]
+     Account= Label(Repairerdataframe, text="Account:")
+     Account.grid(row=0,column=2,padx=5,pady=5)
+     Accountentry= ttk.Combobox(Repairerdataframe,values=Accountnumbers,width=20)
+     Accountentry.grid(row=0,column=3,sticky="w",padx=5,pady=5)
+
+     #Creating a Label and Entry for Suplier
+     Supplierr= Label(Repairerdataframe, text="Supplier:")
+     Supplierr.grid(row=0,column=4,padx=5,pady=4)
+     Supplierrentry= Entry(Repairerdataframe, width=41)
+     Supplierrentry.grid(row=0,column=5,sticky="w",padx=5,pady=3)
+
+     #Creating a Label and Entry for Approval
+     Approval= Label(Repairerdataframe,text="Approval:")
+     Approval.grid(row=1,column=0,padx=5,pady=5)
+     Approvalentry= Entry(Repairerdataframe,width= 20)
+     Approvalentry.grid(row=1,column=1,padx=5,pady=5,sticky="w")
+
+     #Creating a Label and Entry for Issued:
+     Issued = Label(Repairerdataframe, text="Issued:")
+     Issued.grid(row=1, column=2,padx=5,pady=5)
+     Issuedentry= DateEntry(Repairerdataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     Issuedentry.grid(row=1, column=3,padx=5,pady=5,sticky='w')
+
+     #Creating a Label and Entry for Odometer
+     Odometer= Label(Repairerdataframe,text="Odometer:")
+     Odometer.grid(row=2,column=0,padx=5,pady=5)
+     Odometerentry= Entry(Repairerdataframe,width= 20)
+     Odometerentry.grid(row=2,column=1,padx=5,pady=5,sticky="w")
+
+     #Creating a Label and Entry for Repaired:
+     Repaired = Label(Repairerdataframe, text="Repaired:")
+     Repaired.grid(row=2, column=2,padx=5,pady=5)
+     Repairedentry= DateEntry(Repairerdataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     Repairedentry.grid(row=2, column=3,padx=5,pady=5,sticky='w')
+
+
+     #Creating Table below the Approval Dataframe
+
+     Table= Frame(self.Maintenance_Control, bd=3,relief=tk.RIDGE)
+     Table.place(x=0,y=350,width=780,height=200)
+
+     self.Table_tree = ttk.Treeview(Table, columns=("Reason", "Qty", "Value", "VAT Value", "Total", "Session", "Repair Description", "Rech Value"),show="headings")
+     self.Table_tree.pack(fill="both", expand=True)
+
+     self.Table_tree.heading("Reason", text="Reason")
+     self.Table_tree.heading("Qty", text="Qty")
+     self.Table_tree.heading("Value", text="Value")
+     self.Table_tree.heading("VAT Value", text="VAT Value")
+     self.Table_tree.heading("Total",text="Total")
+     self.Table_tree.heading("Session", text="Session")
+     self.Table_tree.heading("Repair Description", text="Repair Description")
+     self.Table_tree.heading("Rech Value", text="Rech Value")
+    
+     self.Table_tree.column("Reason", width=60)
+     self.Table_tree.column("Qty", width=60)
+     self.Table_tree.column("Value", width=60)
+     self.Table_tree.column("VAT Value", width=60)
+     self.Table_tree.column("Total", width=60)
+     self.Table_tree.column("Session", width=60)
+     self.Table_tree.column("Repair Description", width=200)
+     self.Table_tree.column("Rech Value", width=60)
+     
+
+
+
+
+
+
+
+
+
 
 
 
