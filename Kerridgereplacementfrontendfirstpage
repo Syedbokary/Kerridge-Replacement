@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import Menu, messagebox,Entry
+from tkinter import Menu, messagebox,Entry,Text
 from tkinter import Frame, LabelFrame,Label,Checkbutton,Button,HORIZONTAL,VERTICAL,BOTTOM,RIGHT,X,Y,BOTH
 from PIL import Image, ImageTk
 from tkinter import ttk 
@@ -49,9 +49,8 @@ class KerridgeReplacement:
         # Add a DataFrame below the icons
         self.add_data_frame()
 
-        self.icon_buttons = []  # To keep track of icon buttons in the second page
-
-
+        # Maintanence components for third page 
+        #self.maintanence_components()
         
     #Creating the top 13 icons with images
     def add_icon_box(self):
@@ -63,11 +62,11 @@ class KerridgeReplacement:
         # For demonstration purposes, let's create 13 small image icons.
         image_paths = ["icon1.png", "icon2.png", "icon3.png", "icon4.png"]
     
-        for idx, path in enumerate(image_paths, start=1):
+        for ida, path in enumerate(image_paths, start=1):
             image = Image.open(path)
             image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
             photo = ImageTk.PhotoImage(image)
-            icon_button = tk.Button(icon_box, image=photo, command=lambda index=idx: self.open_icon_window(index))
+            icon_button = tk.Button(icon_box, image=photo, command=lambda index=ida: self.open_icon_window(index))
             icon_button.image = photo
             icon_button.pack(side=tk.LEFT, padx=5, pady=2)  # Reduce pady value
 
@@ -265,6 +264,8 @@ class KerridgeReplacement:
     def open_icon_window(self, index):
         if index == 2:
             self.open_icon1_window()
+        if index==3:
+            self.open_Purchase_order()
         elif index == 1:
             self.close_the_window()
         # Add more conditions for other icons as needed
@@ -317,14 +318,14 @@ class KerridgeReplacement:
     # You can add icons below menus using PhotoImage or other methods.
     # For demonstration purposes, let's create 13 small image icons.
      image_paths = ["icon14.png", "icon15.png", "icon16.png", "icon17.png"]
-     for idx, path in enumerate(image_paths, start=1):
+     for idb, path in enumerate(image_paths, start=1):
          image = Image.open(path)
          image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
          photo = ImageTk.PhotoImage(image)
-         icon_button = tk.Button(icon_box, image=photo, command=lambda index=idx: self.open_icon_window(index))
+         icon_button = tk.Button(icon_box, image=photo, command=lambda index=idb: self.open_icon_windowsecond(index))
          icon_button.image = photo
          icon_button.pack(side=tk.LEFT, padx=5, pady=2)
-
+    
     
     # Create frames for each page
          self.main_page = Frame(self.icon1_window)
@@ -459,10 +460,10 @@ class KerridgeReplacement:
      Incident_details.place(x=0,y=220,width=780,height=250)
 
      #Creating a label and entry field for location
-     Location= Label(Incident_details, text="Location:", padx=10, pady=10)
-     Location.grid(row=0, column=0)
-     Locationentry= Entry(Incident_details,width=70)
-     Locationentry.grid(row=0,column=1,ipady= 20,pady=5)
+     Location= Label(Incident_details, text="Location:")
+     Location.grid(row=0, column=0,pady=(0,25),sticky='w')
+     locaentry= Text(Incident_details,width=50, height='3',wrap='word')
+     locaentry.grid(row=0,column=1,sticky='w')
 
      #Creating a label and Entry for Number
 
@@ -521,9 +522,10 @@ class KerridgeReplacement:
 
      #Creating a Label and Entry for Fault Description
      Fault= Label(Incident_details, text="Fault Desription:")
-     Fault.grid(row=3,column=0)
-     Faultentry= Entry(Incident_details,width=70)
-     Faultentry.grid(row=3,column=1,ipady= 15)
+     Fault.grid(row=3, column=0, pady=(0,25),sticky='w')
+     Faultentry= Text(Incident_details,width=50, height='3',wrap='word')
+     Faultentry.grid(row=3,column=1,sticky='w')
+     
 
      #Creating a Lable and Entry for Status
 
@@ -578,20 +580,57 @@ class KerridgeReplacement:
      faxentry.grid(row=1,column=1,padx=5)
 
 
-
-     
-
-
-
-
-      
-
     # Events page components
-     events_label = Label(self.events_page, text="Events Page")
-     events_label.pack()
-     events_entry = Entry(self.events_page)
-     events_entry.pack()
+     EventsFrame= LabelFrame(self.events_page, relief=tk.RIDGE,text="Events")
+     EventsFrame.place(x=0,y=30,width=780,height=500)
+    
+     
+     self.events_tree = ttk.Treeview(EventsFrame, columns=("Created", "Time1", "By1", "Event Type", "Event Action", "Notes", "Last Updated", "Time2","By2", "Follow-Up", "Time3","By3", "Action"),show="headings")
+     self.events_tree.pack(fill="both", expand=True)
 
+     self.events_tree.heading("Created", text="Created")
+     self.events_tree.heading("Time1", text="Time1")
+     self.events_tree.heading("By1", text="By1")
+     self.events_tree.heading("Event Type", text="Event Type")
+     self.events_tree.heading("Event Action", text="Event Action")
+     self.events_tree.heading("Notes", text="Notes")
+     self.events_tree.heading("Last Updated", text="Last Updated")
+     self.events_tree.heading("Time2", text="Time2")
+     self.events_tree.heading("By2",text="By2")
+     self.events_tree.heading("Follow-Up", text="Follow-Up")
+     self.events_tree.heading("Time3", text="Time3")
+     self.events_tree.heading("By3",text="By3")
+     self.events_tree.heading("Action", text="Action")
+
+     self.events_tree.column("Created", width=90)
+     self.events_tree.column("Time1", width=70)
+     self.events_tree.column("By1", width=60)
+     self.events_tree.column("Event Type", width=80)
+     self.events_tree.column("Event Action", width=80)
+     self.events_tree.column("Notes", width=200)
+     self.events_tree.column("Last Updated", width=90)
+     self.events_tree.column("Time2", width=70)
+     self.events_tree.column("By2",width=60)
+     self.events_tree.column("Follow-Up", width= 70)
+     self.events_tree.column("Time3",width= 70)
+     self.events_tree.column("By3",width= 60)
+     self.events_tree.column("Action",width= 70)
+
+     # Simulate adding some data to the tree
+     for i in range(10):
+      self.events_tree.insert("", "end", values=[f"Item {i}"] * 13)
+
+    
+     #Simulate adding some data to the tree
+     self.scrollbar_y = ttk.Scrollbar(EventsFrame, orient="vertical", command=self.events_tree.yview)
+     self.scrollbar_y.pack(side="right", fill="y")
+     self.events_tree.configure(yscrollcommand=self.scrollbar_y.set)
+
+     self.scrollbar_x = ttk.Scrollbar(EventsFrame, orient="horizontal", command=self.events_tree.xview)
+     self.scrollbar_x.pack(side="bottom", fill="x")
+     self.events_tree.configure(xscrollcommand=self.scrollbar_x.set)
+     
+     
     # Misc page components
      misc_label = Label(self.misc_page, text="Miscellaneous Page")
      misc_label.pack()
@@ -673,7 +712,145 @@ class KerridgeReplacement:
     # Help Menu Functions
     def show_about(self):
         messagebox.showinfo("About", "Kerridge Replacement Application")
+
+    def open_icon_windowsecond(self,index):
+        if index == 2:
+            self.open_next_window()
+        elif index == 1:
+            self.close_the_second_window()
     
+    def open_next_window(self):
+        pass
+    def close_the_second_window(self):
+        self.icon1_window.destroy()
+
+
+
+#==================================End of Second page except closing the window command================#
+    
+# Starting the third page which is the Purchase order form 
+    def open_Purchase_order(self):
+     self.purchase_order= tk.Toplevel(self.root)
+     self.purchase_order.title("Maintainence Control")
+     self.purchase_order.geometry("800x600")  # Adjust the width and height as needed
+
+     icon_box = tk.Frame(self.purchase_order, relief=tk.RIDGE, borderwidth=3)
+     icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
+
+   
+     image_paths = ["icon 18.png", "icon 19.png"]
+     for idc, path in enumerate(image_paths, start=1):
+         image = Image.open(path)
+         image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
+         photo = ImageTk.PhotoImage(image)
+         icon_button = tk.Button(icon_box, image=photo, command=lambda index=idc: self.open_icon_windowthird(index))
+         icon_button.image = photo
+         icon_button.pack(side=tk.LEFT, padx=5, pady=2)
+     
+     # Create frames for each page
+         self.Maintenance_Control = Frame(self.purchase_order)
+         self.History = Frame(self.purchase_order)
+
+    # Function to show main page
+     def show_maintainence():
+        self.Maintenance_Control.pack(fill="both", expand=True)
+        self.History.pack_forget()
+
+    # Function to show events page
+     def show_History():
+      self.Maintenance_Control.pack_forget()
+      self.History.pack(fill="both", expand=True)
+
+      #Creating Buttons Frame for second pagE
+     Buttonframe= Frame(self.purchase_order, relief=tk.RIDGE)
+     Buttonframe.place(x=0,y=27,width=780,height=40)
+
+    # Create buttons
+     maintain_button = tk.Button(Buttonframe, text="Maintenance Control", command=show_maintainence)
+     maintain_button.pack(side=tk.LEFT, padx=1, pady=2)
+
+     hist_button = tk.Button(Buttonframe, text="History", command=show_History)
+     hist_button.pack(side=tk.LEFT, padx=1, pady=2)
+     
+     #Defining the maintainence components in the third page 
+  
+     Maindataframe= Frame(self.Maintenance_Control,bd=3, relief=tk.RIDGE)
+     Maindataframe.pack(side=tk.TOP,padx=8,pady=3, anchor='nw')
+     Maindataframe.place(x=0,y=29,width=780,height=85)
+
+     #Creating Label and Entry for Reg no 
+     Reg_no= Label(Maindataframe,text="Reg_no:")
+     Reg_no.grid(row=0,column=0)
+     Reg_no_entry = Entry(Maindataframe, width=30)
+     Reg_no_entry.grid(row=0, column=1)
+
+     #Creating Label and Entry for Vehicle 
+     Vehicle_main= Label(Maindataframe,text= "Vehicle:")
+     Vehicle_main.grid(row=0,column=2)
+     Vehicle_main_entry= Entry(Maindataframe,width=35)
+     Vehicle_main_entry.grid(row=0,column=3,sticky='w')
+
+     #Creating Label and Entry for Next Scheduled event
+     NextSchevent= Label(Maindataframe,text= "Next sched event:")
+     NextSchevent.grid(row=0,column=4)
+     NextSchevententry= Entry(Maindataframe,width=20)
+     NextSchevententry.grid(row=0,column=5,sticky='w')
+
+     #Creating Label and Entry for Reg date
+     Reg_Date = Label(Maindataframe, text="Reg Date:")
+     Reg_Date.grid(row=1, column=0,padx=5,pady=4)
+     Reg_Date_Entry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     Reg_Date_Entry.grid(row=1, column=1,sticky='w')
+
+     #Creating Label and Entry for RFL 
+     RFL = Label(Maindataframe, text="RFL:")
+     RFL.grid(row=1, column=2,padx=5,pady=4)
+     RFL_Entry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     RFL_Entry.grid(row=1, column=3,sticky='w')
+
+     #Creating Label and Entry for MOT
+     MOT = Label(Maindataframe, text="MOT:")
+     MOT.grid(row=1, column=4,padx=5,pady=4)
+     MOT_entry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     MOT_entry.grid(row=1, column=5,sticky='w')
+
+     #Creating Label and Entry for Last Serviced
+     LastServiced = Label(Maindataframe, text="Last Serviced:")
+     LastServiced.grid(row=2, column=0)
+     LastServicedentry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     LastServicedentry.grid(row=2, column=1,sticky='w')
+
+     #Creating Label and Entry for at:
+     NextSchevent= Label(Maindataframe,text= "at :")
+     NextSchevent.grid(row=2,column=2)
+     NextSchevententry= Entry(Maindataframe,width=10)
+     NextSchevententry.grid(row=2,column=3,sticky='w')
+
+
+
+
+     
+         
+
+
+
+    
+
+    # Giving the functionalities for the icons such as exit and save 
+    def open_icon_windowthird(self,index):
+        if index == 1:
+            self.close_the_third_window()
+        elif index == 2:
+            self.save_the_details()    
+
+    def close_the_third_window(self):
+        self.purchase_order.destroy()  
+    def save_the_details():
+        pass
+
+
+
+
     #This closes the first window and exits the application.
     def close_the_window(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
