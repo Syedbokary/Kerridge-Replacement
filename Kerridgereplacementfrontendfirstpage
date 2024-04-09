@@ -4,6 +4,7 @@ from tkinter import Frame, LabelFrame,Label,Checkbutton,Button,HORIZONTAL,VERTIC
 from PIL import Image, ImageTk
 from tkinter import ttk 
 from tkcalendar import DateEntry
+import KBACKEND
 
 
 class KerridgeReplacement:
@@ -12,36 +13,6 @@ class KerridgeReplacement:
         self.root.title("Kerridge Replacement Application")
         self.root.geometry("800x600")
 
-        # Create a menu bar
-        menubar = Menu(self.root)
-        self.root.config(menu=menubar)
-
-        # File menu
-        file_menu = Menu(menubar, tearoff=0)
-        file_menu.add_command(label="New", command=self.new_file)
-        file_menu.add_command(label="Open", command=self.open_file)
-        file_menu.add_command(label="Save", command=self.save_file)
-        file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=self.exit_program)
-        menubar.add_cascade(label="File", menu=file_menu)
-
-        # Filter menu
-        filter_menu = Menu(menubar, tearoff=0)
-        filter_menu.add_command(label="Filter 1", command=self.filter_1)
-        filter_menu.add_command(label="Filter 2", command=self.filter_2)
-        filter_menu.add_command(label="Filter 3", command=self.filter_3)
-        menubar.add_cascade(label="Filter", menu=filter_menu)
-
-        # Tools menu
-        tools_menu = Menu(menubar, tearoff=0)
-        tools_menu.add_command(label="Tool 1", command=self.tool_1)
-        tools_menu.add_command(label="Tool 2", command=self.tool_2)
-        menubar.add_cascade(label="Tools", menu=tools_menu)
-
-        # Help menu
-        help_menu = Menu(menubar, tearoff=0)
-        help_menu.add_command(label="About", command=self.show_about)
-        menubar.add_cascade(label="Help", menu=help_menu)
 
         # Add icons within a box
         self.add_icon_box()
@@ -216,101 +187,56 @@ class KerridgeReplacement:
         style.layout("Treeview.Row", [])  # Remove row border
     
 
-    # Implement the logics for all the file, filter, tools, help 
-    # File Menu Functions
-    def new_file(self):
-        # Implement your new file logic here
-        pass
-
-    def open_file(self):
-        # Implement your open file logic here
-        pass
-
-    def save_file(self):
-        # Implement your save file logic here
-        pass
-
-    def exit_program(self):
-        if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            self.root.destroy()
-
-    # Filter Menu Functions
-    def filter_1(self):
-        # Implement your filter 1 logic here
-        pass
-
-    def filter_2(self):
-        # Implement your filter 2 logic here
-        pass
-
-    def filter_3(self):
-        # Implement your filter 3 logic here
-        pass
-
-    # Tools Menu Functions
-    def tool_1(self):
-        # Implement your tool 1 logic here
-        pass
-
-    def tool_2(self):
-        # Implement your tool 2 logic here
-        pass
-
-    # Help Menu Functions
-    def show_about(self):
-        messagebox.showinfo("About", "Kerridge Replacement Application")
-    
     #opening an another window from first page icons 
     def open_icon_window(self, index):
         if index == 2:
-            self.open_icon1_window()
+            self.open_registration_window()
         if index==3:
             self.open_Purchase_order()
         elif index == 1:
             self.close_the_window()
         # Add more conditions for other icons as needed
     
-    #=======================Second page which is icon_1 window starts=====================#
-    def open_icon1_window(self):
+    #=======================Second page which is icon_2 window starts=====================#
+    #Creating a registration window
+    def open_registration_window(self):
+     self.registration_window = tk.Toplevel(self.root)
+     self.registration_window.title("Find Customer")
+     self.registration_window.geometry("300x100")
+
+    # Create label and entry field for registration number
+     label = Label(self.registration_window, text="Enter Registration No:")
+     label.grid(row=0, column=0)
+
+     self.entry = Entry(self.registration_window)
+     self.entry.grid(row=0, column=1)
+
+        # Create buttons
+     ok_button = Button(self.registration_window, text="OK", command= self.populate_registration)
+     ok_button.grid(row=1, column=0)
+
+     cancel_button = Button(self.registration_window, text="Cancel", command=self.registration_window.destroy)
+     cancel_button.grid(row=1, column=1)
+    
+    #Making the entered registration number to populate in my registration number field in incident form
+    def populate_registration(self):
+        reg_no=self.entry.get()
+        if reg_no:
+         self.registration_window.destroy()  
+         # Store the registration number into the database using the function from KBackend.py 
+         KBACKEND.store_registration(reg_no) 
+         # Open the self.icon1_window (Incident Detail Form) with the registration number
+         self.open_icon1_window(reg_no)
+        else:
+          messagebox.showwarning("Warning","Please enter a registration number.")
+
+    def open_icon1_window(self, reg_no):
+
      self.icon1_window= tk.Toplevel(self.root)
      self.icon1_window.title("Incident Detail Form")
      self.icon1_window.geometry("800x600")  # Adjust the width and height as needed
-
-     menubarinci = tk.Menu(self.icon1_window)
-     self.icon1_window.config(menu=menubarinci)
-     # File menu
-     file_menu = tk.Menu(menubarinci, tearoff=0)
-     file_menu.add_command(label="New", command=self.new_file)
-     file_menu.add_command(label="Open", command=self.open_file)
-     file_menu.add_command(label="Save", command=self.save_file)
-     file_menu.add_separator()
-     file_menu.add_command(label="Exit", command=self.icon1_window.destroy)
-     menubarinci.add_cascade(label="File", menu=file_menu)
-
-     # Example: Create events menu
-     events_menu = tk.Menu(menubarinci, tearoff=0)
-     events_menu.add_command(label="Event 1", command=self.event_1)
-     events_menu.add_command(label="Event 2", command=self.event_2)
-     menubarinci.add_cascade(label="Events", menu=events_menu)
-
-    # Example: Create tools menu
-     tools_menu = tk.Menu(menubarinci, tearoff=0)
-     tools_menu.add_command(label="Tool 1", command=self.tool_1)
-     tools_menu.add_command(label="Tool 2", command=self.tool_2)
-     menubarinci.add_cascade(label="Tools", menu=tools_menu)
-
-    # Example: Create review menu
-     review_menu = tk.Menu(menubarinci, tearoff=0)
-     review_menu = tk.Menu(self.root)
-     review_menu.add_command(label="Review 1", command=self.review_1)
-     review_menu.add_command(label="Review 2", command=self.review_2)
-     menubarinci.add_cascade(label="Review", menu=review_menu)
-
-    # Help menu
-     help_menu = tk.Menu(menubarinci, tearoff=0)
-     help_menu.add_command(label="About", command=self.show_about)
-     menubarinci.add_cascade(label="Help", menu=help_menu)
      
+
     #Create a container (Frame) for the icons with a border
      icon_box = tk.Frame(self.icon1_window, relief=tk.RIDGE, borderwidth=3)
      icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
@@ -336,19 +262,14 @@ class KerridgeReplacement:
      def show_main_page():
         self.main_page.pack(fill="both", expand=True)
         self.events_page.pack_forget()
-        self.misc_page.pack_forget()
 
     # Function to show events page
      def show_events_page():
       self.main_page.pack_forget()
       self.events_page.pack(fill="both", expand=True)
-      self.misc_page.pack_forget()
 
-    # Function to show misc page
-     def show_misc_page():
-      self.main_page.pack_forget()
-      self.events_page.pack_forget()
-      self.misc_page.pack(fill="both", expand=True)
+    
+     show_main_page()
 
       #Creating Buttons Frame for second pagE
      Buttonframe= Frame(self.icon1_window, relief=tk.RIDGE,)
@@ -361,9 +282,6 @@ class KerridgeReplacement:
      events_button = tk.Button(Buttonframe, text="EVENTS", command=show_events_page)
      events_button.pack(side=tk.LEFT, padx=1, pady=2)
 
-     misc_button = tk.Button(Buttonframe, text="MISC", command=show_misc_page)
-     misc_button.pack(side=tk.LEFT, padx=1, pady=2)
-
     # Main page components
      #First Data Frame for Vehicle Details
      dataframe = LabelFrame(self.main_page, bd=3, relief=tk.RIDGE,text="Vehicle Details")
@@ -371,13 +289,12 @@ class KerridgeReplacement:
      dataframe.place(x=0, y=29, width=780, height=85) 
 
      # Assuming you have a list of registration numbers
-     registration_numbers = ["ABC123", "DEF456", "GHI789", "JKL012"]
-
      Reg_no = Label(dataframe, text="Registration No:")
      Reg_no.grid(row=0, column=0)
 
-    # Create a Combobox widget and pass the list of registration numbers as options
-     text1 = ttk.Combobox(dataframe, values=registration_numbers, width=15)
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     text1 = Entry(dataframe,width=15)
+     text1.insert(0, reg_no)
      text1.grid(row=0, column=1)
      
      #Creating an Entry for page 2
@@ -580,6 +497,8 @@ class KerridgeReplacement:
      faxentry.grid(row=1,column=1,padx=5)
 
 
+
+
     # Events page components
      EventsFrame= LabelFrame(self.events_page, relief=tk.RIDGE,text="Events")
      EventsFrame.place(x=0,y=30,width=780,height=500)
@@ -631,93 +550,150 @@ class KerridgeReplacement:
      self.events_tree.configure(xscrollcommand=self.scrollbar_x.set)
      
      
-    # Misc page components
-     misc_label = Label(self.misc_page, text="Miscellaneous Page")
-     misc_label.pack()
-     misc_entry = Entry(self.misc_page)
-     misc_entry.pack()
+    #Creating Event list for the third icon
+    def create_event_list(self):
+     self.icon3_window= tk.Toplevel(self.root)
+     self.icon3_window.title("Event Detail Form")
+     self.icon3_window.geometry("800x600") 
+
+     Incident_Event= Frame(self.icon3_window, bd=3, relief=tk.RIDGE)
+     Incident_Event.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Incident_Event.place(x=0,y=30,width=600,height=100)
      
+     #Creating Label and Entry for Event Type, Action required inside Incident Event frame
+     Event_types= ["abcd","shhshs""hhsjjs"]
+     Event_type= Label(Incident_Event, text="Event type:")
+     Event_type.grid(row=0,column=0,padx=5,pady=5)
+     Event_type_entry= ttk.Combobox(Incident_Event,values=Event_types,width=20)
+     Event_type_entry.grid(row=0,column=1,sticky="w",padx=5,pady=5)
+     Event_another_entry= Entry(Incident_Event,width=50)
+     Event_another_entry.grid(row=0,column=2,sticky="w")
 
-    def open_main_form(self):
-     print("MAIN button clicked.")
-        # Zoom the clicked button
-     self.zoom_button("MAIN")
-         
-    def open_events_form(self):
-        # Define the behavior when the "EVENTS" button is clicked
-        # Open the events form
-        print("EVENTS button clicked.")
-        # Zoom the clicked button
-        self.zoom_button("EVENTS")
+     Actions= ["abcd","shhshs""hhsjjs"]
+     Action_required= Label(Incident_Event, text="Action required:")
+     Action_required.grid(row=1,column=0,padx=5,pady=5)
+     Action_required_entry= ttk.Combobox(Incident_Event,values=Actions,width=20)
+     Action_required_entry.grid(row=1,column=1,sticky="w",padx=5,pady=5)
+     Action_required_another_entry= Entry(Incident_Event,width=50)
+     Action_required_another_entry.grid(row=1,column=2,sticky="w")
 
-    def open_misc_form(self):
-        # Define the behavior when the "MISC" button is clicked
-        # Open the misc form
-        print("MISC button clicked.")
-        # Zoom the clicked button
-        self.zoom_button("MISC")
+     Created= LabelFrame(self.icon3_window,bd=3, relief=tk.RIDGE,text="Created")
+     Created.pack(side=tk.TOP, padx=8, pady=3, anchor="w")
+     Created.place(x=610,y=30,width=180,height=120)
+     #Creating Date, Time and ID INSIDE THE CREATED DATAFRAME
+     Date_created = Label(Created, text="Date:")
+     Date_created.grid(row=0, column=0,padx=5,pady=4)
+     Date_created_Entry= DateEntry(Created, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     Date_created_Entry.grid(row=0, column=1,sticky='w')
+     #Time
+     Time_created= Label(Created,text="Time:")
+     Time_created.grid(row=1,column=0)
+     Time_created_entry= Entry(Created,width=9)
+     Time_created_entry.grid(row=1,column=1,sticky="w")
+     #id
+     ID= Label(Created,text="ID:")
+     ID.grid(row=2,column=0)
+     ID_entry= Entry(Created,width=15)
+     ID_entry.grid(row=2,column=1,sticky="w")
 
-     
-    def zoom_button(self, button_name):
-        # Reset all buttons to default size
-        for button in self.icon_buttons:
-            button.config(width=7)
-        # Find the button by name and zoom it
-        for button in self.icon_buttons:
-            if button.cget("text") == button_name:
-                button.config(width=10)
-    
 
-    def new_file(self):
-        # Implement your new file logic here
+     Event_text=Frame(self.icon3_window,bd=3,relief=tk.RIDGE)
+     Event_text.pack(side=tk.TOP, padx=8, pady=3, anchor="w")
+     Event_text.place(x=0,y=130,width=600,height=200)
+     #Creating a label and entry field for Event text inside Event text frame 
+     Event_details= Label(Event_text, text="Event_text:")
+     Event_details.grid(row=0, column=0,sticky='w')
+     Event_details_entry= Text(Event_text,width=50, height='10',wrap='word')
+     Event_details_entry.grid(row=0,column=1,sticky='w',padx=5,pady=5)
+
+
+
+     Last_amended= LabelFrame(self.icon3_window,bd=3, relief=tk.RIDGE,text="Last Amended")
+     Last_amended.pack(side=tk.TOP, padx=8, pady=3, anchor="w")
+     Last_amended.place(x=610,y=150,width=180,height=120)
+     #Creating Date, Time and ID INSIDE THE Last Amended DATAFRAME
+     Date_amended = Label(Last_amended, text="Date:")
+     Date_amended.grid(row=0, column=0,padx=5,pady=4)
+     Date_amended_Entry= DateEntry(Last_amended, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     Date_amended_Entry.grid(row=0, column=1,sticky='w')
+     #Time
+     Time_amended= Label(Last_amended,text="Time:")
+     Time_amended.grid(row=1,column=0)
+     Time_amended_entry= Entry(Last_amended,width=9)
+     Time_amended_entry.grid(row=1,column=1,sticky="w")
+     #id
+     IDlast= Label(Last_amended,text="ID:")
+     IDlast.grid(row=2,column=0)
+     ID_last_entry= Entry(Last_amended,width=15)
+     ID_last_entry.grid(row=2,column=1,sticky="w")
+
+
+     Next_event= LabelFrame(self.icon3_window,bd=3,relief=tk.RIDGE,text="Next Event")
+     Next_event.pack(side=tk.TOP, padx=8,pady=3,anchor="w")
+     Next_event.place(x=40, y=330, width=500,height= 180)
+     #Creating Date, Time and ID,Type INSIDE THE Next Event Dataframe
+     Date_nextevent = Label(Next_event, text="Date:")
+     Date_nextevent.grid(row=0, column=0,padx=5,pady=4)
+     Date_nextevent_Entry= DateEntry(Next_event, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     Date_nextevent_Entry.grid(row=0, column=1,sticky='w')
+     #Time
+     Time_nextevent= Label(Next_event,text="Time:")
+     Time_nextevent.grid(row=1,column=0,padx=5,pady=5)
+     Time_nextevent_entry= Entry(Next_event,width=9)
+     Time_nextevent_entry.grid(row=1,column=1,sticky="w",padx=5,pady=5)
+     #id
+     ids= ["abcd","shhshs""hhsjjs"]
+     id_nextevent= Label(Next_event, text="ID:")
+     id_nextevent.grid(row=2,column=0,padx=5,pady=5)
+     id_nextevent_entry= ttk.Combobox(Next_event,values=ids,width=20)
+     id_nextevent_entry.grid(row=2,column=1,sticky="w",padx=5,pady=5)
+     id_another_entry= Entry(Next_event,width=40)
+     id_another_entry.grid(row=2,column=2,sticky="w")
+
+     Typess= ["abcd","shhshs""hhsjjs"]
+     Type_nextevent= Label(Next_event, text="Type:")
+     Type_nextevent.grid(row=3,column=0,padx=5,pady=5)
+     Type_nextevent_entry= ttk.Combobox(Next_event,values=Typess,width=20)
+     Type_nextevent_entry.grid(row=3,column=1,sticky="w",padx=5,pady=5)
+     Type_another_entry= Entry(Next_event,width=40)
+     Type_another_entry.grid(row=3,column=2,sticky="w")
+
+     #defining functionalities for icons in the event details page 
+     icon_box = tk.Frame(self.icon3_window, relief=tk.RIDGE, borderwidth=3)
+     icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
+
+    # You can add icons below menus using PhotoImage or other methods.
+    # For demonstration purposes, let's create 13 small image icons.
+     images = ["icon 21.png", "icon 22.png"]
+     for idd, path in enumerate(images, start=1):
+         image = Image.open(path)
+         image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
+         photo = ImageTk.PhotoImage(image)
+         icon_button = tk.Button(icon_box, image=photo, command=lambda index=idd: self.event_functionality(index))
+         icon_button.image = photo
+         icon_button.pack(side=tk.LEFT, padx=5, pady=2)
+
+    def event_functionality(self,index):
+        if index == 1:
+            self.exit()
+        elif index == 2:
+            self.save()
+    def exit(self):
+         self.icon3_window.destroy()
+    def save(self):
         pass
+        
+        
 
-    def open_file(self):
-        # Implement your open file logic here
-        pass
 
-    def save_file(self):
-        # Implement your save file logic here
-        pass
-
-    def exit_program(self):
-        if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            self.root.destroy()
-
-    # Filter Menu Functions
-    def event_1(self):
-        # Implement your filter 1 logic here
-        pass
-
-    def event_2(self):
-        # Implement your filter 2 logic here
-        pass
-
-    # Tools Menu Functions
-    def tool_1(self):
-        # Implement your tool 1 logic here
-        pass
-
-    def tool_2(self):
-        # Implement your tool 2 logic here
-        pass
-
-    # Help Menu Functions
-    def review_1(self):
-        # Implement your review 1 logic here
-        pass
-    def review_2(self):
-        # Implement your review 2 logic here
-        pass
-    # Help Menu Functions
-    def show_about(self):
-        messagebox.showinfo("About", "Kerridge Replacement Application")
-
+    #defining functionalities for the icons in the second page 
     def open_icon_windowsecond(self,index):
         if index == 2:
             self.open_next_window()
         elif index == 1:
             self.close_the_second_window()
+        elif index==3:
+            self.create_event_list() 
     
     def open_next_window(self):
         pass
@@ -760,6 +736,8 @@ class KerridgeReplacement:
      def show_History():
       self.Maintenance_Control.pack_forget()
       self.History.pack(fill="both", expand=True)
+
+     show_maintainence()
 
       #Creating Buttons Frame for second pagE
      Buttonframe= Frame(self.purchase_order, relief=tk.RIDGE)
@@ -873,7 +851,8 @@ class KerridgeReplacement:
       self.Maintenance_Control.pack_forget()
       self.Invoice_Details.pack_forget()
       self.Miscc.pack(fill="both",expand=True)
-
+     
+     show_Approval()
 
       #Creating Buttons Frame for second pagE
      Buttonframe= Frame(self.Approvalframe, relief=tk.RIDGE)
@@ -992,13 +971,12 @@ class KerridgeReplacement:
         if index == 1:
             self.close_the_third_window()
         elif index == 2:
-            self.save_the_details()    
-
+            self.save_the_details()   
+        
     def close_the_third_window(self):
         self.purchase_order.destroy()  
     def save_the_details():
         pass
-
 
 
 
