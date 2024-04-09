@@ -1,0 +1,21 @@
+import pyodbc
+
+conn_str = (
+        "DRIVER={ODBC Driver 17 for SQL Server};"
+        "SERVER=PO301135\\SQLEXPRESS;"
+        "DATABASE=Kerridge_Replacement;"
+        "uid=ManagerPST;"
+        "password=s847cn27;"
+        "Trusted_Connection=yes;"
+) 
+conn = pyodbc.connect(conn_str)
+print("Connection Successful")
+
+def store_registration(reg_no):
+    conn = pyodbc.connect(conn_str)
+    cur=conn.cursor()
+    cur.execute("INSERT INTO Incident_Headder(Registration_NO) Values(?)",reg_no)
+    conn.commit()
+    cur.close()
+
+
