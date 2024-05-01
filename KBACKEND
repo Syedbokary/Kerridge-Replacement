@@ -1,21 +1,357 @@
 import pyodbc
+import pandas as pd
+from tkinter import messagebox
 
-conn_str = (
+conn_str1 = (
         "DRIVER={ODBC Driver 17 for SQL Server};"
         "SERVER=PO301135\\SQLEXPRESS;"
-        "DATABASE=Kerridge_Replacement;"
+       "DATABASE=Kerridge;"
         "uid=ManagerPST;"
         "password=s847cn27;"
         "Trusted_Connection=yes;"
 ) 
-conn = pyodbc.connect(conn_str)
+conn = pyodbc.connect(conn_str1)
 print("Connection Successful")
 
-def store_registration(reg_no):
-    conn = pyodbc.connect(conn_str)
-    cur=conn.cursor()
-    cur.execute("INSERT INTO Incident_Headder(Registration_NO) Values(?)",reg_no)
-    conn.commit()
+conn_str2=(
+        "DRIVER={ODBC Driver 17 for SQL Server};"
+        "SERVER=S0SQL05\\STAT;"
+        "DATABASE=IGLOO_UK;"
+       "uid=ExcelUK_user;"
+        "pwd=m_UArLN$;"
+        )
+#print(conn_str2)
+conn2= pyodbc.connect(conn_str2)
+print("Connection Successful")
+
+
+import datetime
+
+def store_registration(reg_no, driver_name,created,combined_datetime,contact_method,contactname,
+                       contacttel,contactemail,drivertel,Defect_loc,faultdesc,Cat,lol,charge,status,odo,
+                       attendance,combined_deferred,what3,close,fleet,custid,contractno,locat,defectno):
+    # Connect to the database
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    try:
+        # Check if a record with the same Registration_No already exists
+        cur.execute("SELECT COUNT(*) FROM Incident_Headder WHERE Registration_No = ?", (reg_no,))
+        record_count = cur.fetchone()[0]
+
+        if record_count > 0:
+            # If a record exists, update it
+            cur.execute("""UPDATE Incident_Headder 
+                        SET 
+                        Driver_Name = ? ,
+                        Created_BY=?,
+                        Fleet_No=?,
+                        Customer_ID=?,
+                        Contact_Method_ID=?,
+                        Contact_Name=?,
+                        Contact_Tel=?,
+                        Contact_Email=?,
+                        Driver_Tel=?,
+                        Cat_ID=?,
+                        Location_ID=?,
+                        Charge_ID=?,
+                        Defect_Loc_Address=?,
+                        Reported_Defect=?,
+                        Attendance_Deferred=?,
+                        Deferred_To=?,
+                        Customer_Defect_NO=?,
+                        Status_ID=?,
+                        Customer_Contract_NO=?,
+                        Depot_No=?
+                        WHERE Registration_No = ?""", 
+                        (driver_name,created,fleet, custid,contact_method,contactname,contacttel,
+                         contactemail,drivertel,Cat,lol,charge,Defect_loc,faultdesc,attendance,combined_deferred,
+                         defectno,status,contractno,locat,reg_no))
+            print("Record updated successfully")
+        else:
+            # If no record exists, insert a new one
+            # Get the current date and time
+            current_datetime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            # Insert the new record
+            cur.execute("""INSERT INTO Incident_Headder(I_Number, I_Created,Created_BY,Defect_occurred, Driver_Name, Registration_No, Contact_Method_ID,Contact_Name,
+                        Contact_Tel, Contact_Email,Driver_Tel,Defect_Loc_Address,Reported_Defect,Cat_ID,Location_ID,
+                        Charge_ID,Status_ID,Odometer,Attendance_Deferred,Deferred_To,Defect_loc_W3W,CLOSED,Fleet_No,Customer_ID,
+                        Customer_Contract_NO,Depot_No,Customer_Defect_NO
+
+                        ) 
+                        VALUES (?, ?, ?, ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", 
+                        (generate_new_i_number(), current_datetime,created,combined_datetime,driver_name, 
+                         reg_no,contact_method,contactname,contacttel,contactemail,drivertel,Defect_loc,faultdesc,
+                         Cat,lol,charge,status,odo,attendance,combined_deferred,what3,close,fleet,custid,contractno,locat,defectno))
+            print("Record inserted successfully")
+
+        # Commit the transaction
+        conn.commit()
+
+    except Exception as e:
+        print("Error:", e)
+        conn.rollback()  # Rollback the transaction in case of error
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def generate_new_i_number():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("SELECT MAX(I_Number) FROM Incident_Headder")
+    max_i_number = cur.fetchone()[0] or 0  # If there are no existing records, set max_i_number to 0
     cur.close()
+    conn.close()
+    return max_i_number + 1
+
+
+def retrieve_all_incidents():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    try:
+        # Execute a SELECT query to retrieve all incidents
+        cur.execute("SELECT * FROM Incident_Headder ORDER BY I_Number DESC")
+        # Fetch all rows of the result set
+        rows = cur.fetchall()
+
+        # Convert the rows into a list of dictionaries
+        incidents = []
+        for row in rows:
+            incident = {
+                "Incident Date": row[3],
+                "Registration": row[22],
+                "Incident No": row[0],
+                "Status": row[21],
+                "Category":row[12],
+                "Location":row[13],
+                "Charge":row[14],
+                "Customer":row[5],
+                "Locationn":row[24]
+                # Add other columns as needed
+            }
+            incidents.append(incident)
+
+        return incidents
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+
+def retrieve_last_incident():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    conn2=pyodbc.connect(conn_str2)
+    cur2=conn2.cursor
+
+    try:
+        # Execute a SELECT query to retrieve the last incident
+        cur.execute("SELECT TOP 1 * FROM Incident_Headder ORDER BY I_Number DESC")
+        # Fetch the last row of the result set
+        row = cur.fetchone()
+
+        if row:
+            # Convert the row into a dictionary
+            incident = {
+                "Incident Date": row[3],
+                "Registration": row[22],
+                "Incident No": row[0],
+                "Status": row[21],
+                "Category":row[12],
+                "Location":row[13],
+                "Charge":row[14],
+                "Customer":row[5],
+                "Locationn":row[24]
+                # Add other columns as needed
+            }
+            return [incident]  # Return as a list of dictionaries
+
+        else:
+            print("No incidents found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+
+#conn=pyodbc.connect(conn_str2)
+#cur = conn.cursor()
+#cur.execute("Select TOP 1 * FROM dbo.PARC")
+#rows=cur.fetchall()
+#for row in rows:
+    print(row)
+#cur.close()
+#conn.close()
+
+def fetch_details_from_database(reg_no):
+    conn = pyodbc.connect(conn_str2)
+    cur = conn.cursor()
+        # Define the SQL query to fetch details based on the registration number
+    query = """SELECT dbo.POSITION_COURANTE.PARC_ID AS FLEET_NO,
+	IMMAT AS REG,
+	MARQUE+' '+CODE_MODELE+' '+CODE_TYPEMODELE as MAKE_MOD,
+	MISSION_NO_CONTRAT AS CONTRACT_NO, 
+	CONTRAT_VAR.ID_FICHE AS CUSTOMER_NO,
+	dbo.CLIENT_FICHE.NOM_SOC AS CUSTOMER_NAME,
+	CODE_AGENCE_LOCAL AS PF_DEPOT,
+	dbo.CLIENT_ADRESSE.VILLE as CUSTOMER_DEPOT
+  FROM [IGLOO_UK].[dbo].[POSITION_COURANTE]
+  	  INNER JOIN dbo.CONTRAT_VAR ON POSITION_COURANTE.MISSION_NO_CONTRAT=CONTRAT_VAR.NO_CONTRAT
+	  INNER JOIN dbo.CLIENT_FICHE ON CONTRAT_VAR.ID_FICHE=dbo.CLIENT_FICHE.ID_FICHE
+	  INNER JOIN dbo.PARC ON dbo.POSITION_COURANTE.PARC_ID=dbo.PARC.PARC_ID
+	  INNER JOIN dbo.PARC_CGRISE ON dbo.PARC.PARC_ID = dbo.PARC_CGRISE.PARC_ID
+	  INNER JOIN dbo.CLIENT_ADRESSE ON dbo.CONTRAT_VAR.ID_FICHE = dbo.CLIENT_ADRESSE.ID_FICHE AND dbo.CONTRAT_VAR.CLIENT_ADREXP = dbo.CLIENT_ADRESSE.ID_ADRESSE
+  WHERE dbo.PARC_CGRISE.[IMMAT] =?"""
+    cur.execute(query, (reg_no,))
+    result = cur.fetchone()
+
+    # Close cursor and database connection
+    cur.close()
+
+    return result
+
+
+
+
+def fetch_locations_and_descriptions():
+    conn = pyodbc.connect(conn_str2)
+    cur = conn.cursor()
+    cur.execute("""SELECT TOP (1000) CODE_AGENCE as PF_DEPOT_CODE, NOM_AGENCE as PF_DEPOT_NAME
+                FROM [IGLOO_UK].[dbo].[AGENCE]
+                WHERE CODE_PAYS <> 'FRA' AND GESTION = 1
+                ORDER BY CODE_AGENCE""")
+    rows = cur.fetchall()
+    return rows
+
+def fetch_supplier_details():
+    conn = pyodbc.connect(conn_str2)
+    cur = conn.cursor()
+    cur.execute("""Select T_AUXILIAIRE as Supplier_NO,T_LIBELLE as Supplier_Name, T_TELEPHONE as Tel
+                FROM [C_MODEL_UK].[dbo].[TIERS]
+                WHERE T_AUXILIAIRE like 'SU%' AND T_TABLE7 = 'ACTIVE'
+                ORDER BY T_LIBELLE""")
+    rows=cur.fetchall()
+    return rows
+    
+def retrieve_incident_details(registration_number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+        # Execute a SELECT query to retrieve the last incident
+        cur.execute("SELECT * FROM Incident_Headder WHERE Registration_NO =?", (registration_number,))      # Fetch the last row of the result set
+        row = cur.fetchone()
+
+        if row:
+            # Convert the row into a dictionary
+            incident_details = {
+              # "Incident Date": row[3],
+                "Registration": row[22],
+                "Driver_name":row[10],
+                "Driver_phone":row[11],
+                "Cat":row[12],
+                "Loca":row[13],
+                "Charge":row[14],
+                "Contact_id":row[6],
+                "Contact_name":row[7],
+                "Contact_tel":row[8],
+                "Contact_Email":row[9],
+                "Defect_Address":row[15],
+                "Defectdesc": row[17],
+                "Cust_defect":row[20],
+                "Incident No": row[0],
+                "Date":row[3],
+                "Createdby":row[2],
+                "Odometer":row[27],
+                "Status": row[21],
+                "Closed":row[26],
+                "Attendance":row[18],
+                "Deferred":row[19],
+                "Whatwords":row[25],
+                #"Category":row[12],
+                #"Location":row[13],
+                #"Charge":row[14],
+                "Customer":row[5],
+                #"Locationn":row[24]
+                # Add other columns as needed
+            }
+            return incident_details  # Return as a list of dictionaries
+
+        else:
+            print("No incidents found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetch_additional_details(registration_number):
+    conn = pyodbc.connect(conn_str2)
+    cur = conn.cursor()
+    try:
+        query = """SELECT  IMMAT AS REG,
+	    dbo.PARC.PARC_ID as FLEET_NO,
+	    MARQUE+' '+CODE_MODELE+' '+CODE_TYPEMODELE as MAKE_MOD,
+	    dbo.CONTRAT_VAR.NO_CONTRAT AS CONTRACT_NO, 
+	    CONTRAT_VAR.ID_FICHE AS CUSTOMER_NO,
+	    dbo.CLIENT_FICHE.NOM_SOC AS CUSTOMER_NAME,
+	    dbo.CONTRAT_VAR.CODE_AGENCE AS PF_DEPOT,
+	    dbo.CLIENT_ADRESSE.VILLE as CUSTOMER_DEPOT
+        FROM [IGLOO_UK].[dbo].[CONTRAT_VAR]
+        JOIN dbo.PARC_CGRISE ON dbo.CONTRAT_VAR.PARC_ID = dbo.PARC_CGRISE.PARC_ID
+        JOIN dbo.PARC ON dbo.PARC.PARC_ID = dbo.PARC_CGRISE.PARC_ID
+        JOIN dbo.CLIENT_ADRESSE ON dbo.CONTRAT_VAR.ID_FICHE = dbo.CLIENT_ADRESSE.ID_FICHE AND dbo.CONTRAT_VAR.CLIENT_ADRFACT = dbo.CLIENT_ADRESSE.ID_ADRESSE
+        JOIN dbo.CLIENT_FICHE ON CONTRAT_VAR.ID_FICHE=dbo.CLIENT_FICHE.ID_FICHE
+        WHERE dbo.PARC_CGRISE.IMMAT =?"""
+        cur.execute(query, (registration_number))
+        row= cur.fetchone()
+        if row:
+            # Convert the row into a dictionary
+         additional_details={
+            "fleet_no":row[1],
+            "Make_Mod":row[2],
+            "Contract_No":row[3],
+            "Customer_No":row[4],
+            "Customer_Name":row[5],
+            "PF_Depot":row[6],
+            "Customer_Depot":row[7]
+        }
+         return additional_details
+        else:
+            print("No details in the database.")
+            return None
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+    
+    
+
+
+
+
+
 
 
