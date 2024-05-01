@@ -1,65 +1,1743 @@
-from tkinter import *
-
-window= Tk()
-
-#Creating Labels for the app
-l1= Label(window, text="title")
-l1.grid(row=0, column=0)
-
-l1= Label(window, text="Author")
-l1.grid(row=0, column=2)
-
-l1= Label(window, text="Year")
-l1.grid(row=1, column=0)
-
-l1= Label(window, text="ISBN")
-l1.grid(row=1, column=2)
-
-#Creating Text Fields for the App
-title_text= StringVar()
-e1= Entry(window, textvariable=title_text)
-e1.grid(row=0, column=1)
-
-author_text= StringVar()
-e2= Entry(window, textvariable=author_text)
-e2.grid(row=0, column=3)
-
-year_text= StringVar()
-e3= Entry(window, textvariable=year_text)
-e3.grid(row=1, column=1)
-
-isbn_text= StringVar()
-e4= Entry(window, textvariable=isbn_text) 
-e4.grid(row=1, column=3)
-
-#Creating List Box and Scroll Bar for the App
-list1=Listbox(window, height=6, width=35)
-list1.grid(row=2, column=0, rowspan=6, columnspan=2)
-
-sb1= Scrollbar(window)
-sb1.grid(row=2, column=2, rowspan=6)
-
-list1.configure(yscrollcommand=sb1.set)
-sb1.configure(command=list1.yview)
-
-#Creating Buttons
-b1= Button(window, text= "Viewall", width=12)
-b1.grid(row=2, column=3)
-
-b1= Button(window, text= "Search Entry", width=12)
-b1.grid(row=3, column=3)
-
-b1= Button(window, text= "Add Entry", width=12)
-b1.grid(row=4, column=3 )
-
-b1= Button(window, text= "Update Selected", width=12)
-b1.grid(row=5, column=3)
-
-b1= Button(window, text= "Delete", width=12)
-b1.grid(row=6, column=3)
-
-b1= Button(window, text= "Close", width=12)
-b1.grid(row=7, column=3)
+import tkinter as tk
+from tkinter import LEFT, messagebox,Entry,Text
+from tkinter import Frame, LabelFrame,Label,Checkbutton,Button,HORIZONTAL,VERTICAL,BOTTOM,RIGHT,X,Y,BOTH
+from PIL import Image, ImageTk
+from tkinter import ttk 
+from tkcalendar import DateEntry
+import datetime
+import KBACKEND
 
 
-window.mainloop()
+    
+class KerridgeReplacement:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Kerridge Replacement Application")
+        self.root.geometry("800x600")
+        
+
+         
+        # Add icons within a box
+        self.add_icon_box()
+
+        # Add a DataFrame below the icons
+        self.add_data_frame()
+
+        
+
+        
+        
+         
+       
+    #Creating the top 13 icons with images
+    def add_icon_box(self):
+        # Create a container (Frame) for the icons with a border
+        icon_box = tk.Frame(self.root, relief=tk.RIDGE, borderwidth=3)
+        icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
+
+        # You can add icons below menus using PhotoImage or other methods.
+        # For demonstration purposes, let's create 13 small image icons.
+        image_paths = ["icon1.png", "icon2.png", "icon3.png", "icon4.png"]
+    
+        for ida, path in enumerate(image_paths, start=1):
+            image = Image.open(path)
+            image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
+            photo = ImageTk.PhotoImage(image)
+            icon_button = tk.Button(icon_box, image=photo, command=lambda index=ida: self.open_icon_window(index))
+            icon_button.image = photo
+            icon_button.pack(side=tk.LEFT, padx=5, pady=2)  # Reduce pady value
+    
+        
+    #Creating all the dataframes for the first page 
+    def add_data_frame(self):
+        # Create a DataFrame below the icons
+        dataframe = LabelFrame(self.root, bd=3, relief=tk.RIDGE,text="Filter forwards")
+        dataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+        dataframe.place(x=0, y=40, width=780, height=100) 
+
+        #================Legend frame================================#
+
+        Legendframe= LabelFrame(self.root, relief=tk.RIDGE, text="Legend")
+        Legendframe.place(x=0,y=140,width=780,height=60)
+
+        #=================Details Frame===============================#
+
+        Detailsframe= LabelFrame(self.root, relief=tk.RIDGE,text="Details")
+        Detailsframe.place(x=0,y=200,width=780,height=400)
+
+       #===================Creating Lables and Text Fields=============================#
+        
+        lb1 = Label(dataframe, text="Registration", padx=10)
+        lb1.grid(row=0, column=0)
+        self.Regtext1 = Entry(dataframe, width=18)
+        self.Regtext1.grid(row=0, column=1)
+
+        lb2 = Label(dataframe, text="Customer", padx=10)
+        lb2.grid(row=0, column=2)
+        self.text2 = Entry(dataframe, width=30)
+        self.text2.grid(row=0, column=3)
+    
+        lb3 = Label(dataframe, text="Owner", padx=5)
+        lb3.grid(row=0, column=4)
+        self.text3 = Entry(dataframe, width=13)
+        self.text3.grid(row=0, column=5)
+
+        lb4 = Label(dataframe, text="Creator", padx=5)
+        lb4.grid(row=0, column=6)
+        self.text4 = Entry(dataframe, width=13)
+        self.text4.grid(row=0, column=7)
+
+        # Incident Type
+        lb5 = Label(dataframe, text="Incident Type", padx=5)
+        lb5.grid(row=1, column=0)
+        self.text5 = Entry(dataframe, width=18)
+        self.text5.grid(row=1, column=1)
+
+        # Incident date
+        lb6 = Label(dataframe, text="Incident date", padx=5)
+        lb6.grid(row=1, column=2)
+        self.text6 = DateEntry(dataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+        self.text6.grid(row=1, column=3)
+
+        #status
+        lb7=Label(dataframe,text="Status",padx=5)
+        lb7.grid(row=1, column=4)
+        self.text7= Entry(dataframe,width=13)
+        self.text7.grid(row=1,column=5,padx=5,pady=5)
+        
+
+        #closed
+
+        text11= Checkbutton(dataframe,width=2)
+        text11.grid(row=1,column=6)
+        self.lb8=Label(dataframe,text="Closed")
+        self.lb8.grid(row=1, column=7,)
+
+        #Locations
+
+        lb8= Label(dataframe,text="Locations")
+        lb8.grid(row=2,column=0)
+        self.text12=Entry(dataframe,width=18)
+        self.text12.grid(row=2,column=1)
+        
+
+        #Creating Buttons in the legend frame
+        #OverdueButton
+        btnoverdue=Button(Legendframe,text="Overdue",fg="White",bg="red",width=14,height=1,padx=2,pady=6)
+        btnoverdue.grid(row=0,column=0)
+        #halfhour Button
+        bthalfhour=Button(Legendframe,text="1/2 Hour",fg="White",bg="Fuchsia",width=14,height=1,padx=2,pady=6)
+        bthalfhour.grid(row=0,column=1)
+        #Overonehour Button
+        btnonehour=Button(Legendframe,text="1 Hour",fg="White",bg="Dark Green",width=14,height=1,padx=2,pady=6)
+        btnonehour.grid(row=0,column=2)
+        #overfourhours button
+        btnfourhours=Button(Legendframe,text="4 Hours",fg="White",bg="Black",width=14,height=1,padx=2,pady=6)
+        btnfourhours.grid(row=0,column=3)
+        #Oneday Button
+        btnOneday=Button(Legendframe,text="1 day",fg="White",width=14,bg="Green",height=1,padx=2,pady=6)
+        btnOneday.grid(row=0,column=4)
+        #Overoneday Button
+        btnOverOneday=Button(Legendframe,text="Over 1 day",fg="White",bg="Blue",width=14,height=1,padx=2,pady=6)
+        btnOverOneday.grid(row=0,column=5)
+        #Closed Button
+        btnClosed=Button(Legendframe,text="Closed",fg="White",bg="Dark Grey",width=14,height=1,padx=2,pady=6)
+        btnClosed.grid(row=0,column=6)
+        
+        #==================================Table==================================================#
+        #==================Scrollbar==================#
+        
+        # Create the scrollbars
+       # Create the scrollbars
+        scrollbar_x = ttk.Scrollbar(Detailsframe, orient=HORIZONTAL)
+        scrollbar_y = ttk.Scrollbar(Detailsframe, orient=VERTICAL)
+
+        # Create the Treeview widget
+        self.root.Kerride_table = ttk.Treeview(Detailsframe, column=("Incident Date", "Customer", "Location",
+                                                            "Registration", "Incident No", "Cat", "Loca", 
+                                                            "Char", "Status", "Owner", "Due Date", "Time"),
+                                       xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set,selectmode="browse")
+
+        # Configure the Treeview widget to use the scrollbar commands
+        self.root.Kerride_table.configure(xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set)
+
+        # Attach the scrollbar commands to the scrollbar widgets
+        scrollbar_x.config(command=self.root.Kerride_table.xview)
+        scrollbar_y.config(command=self.root.Kerride_table.yview)
+
+        # Set column headings
+        self.root.Kerride_table.heading("Incident Date", text="Incident Date")
+        self.root.Kerride_table.heading("Customer", text="Customer")
+        self.root.Kerride_table.heading("Location", text="Location")
+        self.root.Kerride_table.heading("Registration", text="Registration")
+        self.root.Kerride_table.heading("Incident No", text="Incident no")
+        self.root.Kerride_table.heading("Cat", text="Cat")
+        self.root.Kerride_table.heading("Loca", text="Loca")
+        self.root.Kerride_table.heading("Char", text="Char")
+        self.root.Kerride_table.heading("Status", text="Status")
+        self.root.Kerride_table.heading("Owner", text="Owner")
+        self.root.Kerride_table.heading("Due Date", text="Due Date")
+        self.root.Kerride_table.heading("Time", text="Time")
+
+        # Set Treeview to display column headings only
+        self.root.Kerride_table["show"] = "headings"
+
+        # Set column widths
+        self.root.Kerride_table.column("Incident Date", width=90)
+        self.root.Kerride_table.column("Customer", width=110)
+        self.root.Kerride_table.column("Location", width=70)
+        self.root.Kerride_table.column("Registration", width=70)
+        self.root.Kerride_table.column("Incident No", width=63)
+        self.root.Kerride_table.column("Cat", width=38)
+        self.root.Kerride_table.column("Loca", width=38)
+        self.root.Kerride_table.column("Char", width=38)
+        self.root.Kerride_table.column("Status", width=45)
+        self.root.Kerride_table.column("Owner", width=60)
+        self.root.Kerride_table.column("Due Date", width=85)
+        self.root.Kerride_table.column("Time", width=60)
+        
+        # Pack the scrollbars
+        scrollbar_y.pack(side=RIGHT, fill=Y)
+        scrollbar_x.pack(side=BOTTOM, fill=X)
+        # Pack the Treeview widget
+        self.root.Kerride_table.pack(side=LEFT, fill=BOTH, expand=True)
+
+        # Bind the function to the Treeview widget after table creation
+        self.root.Kerride_table.bind("<ButtonRelease-1>", self.change_row_color)
+
+        
+        #scrollbar_y.pack(side=RIGHT, fill=Y)
+        #scrollbar_x.pack(side=BOTTOM, fill=X)
+
+
+
+        #style = ttk.Style()
+        #style.theme_use("default")
+        #style.configure("Treeview", background="white", foreground="black", rowheight=25, fieldbackground="white")
+       # style.map("Treeview", background=[("selected", "lightblue")])
+        #style.layout("Treeview.Item", [('Treeitem.padding', {'sticky': 'nswe', 'children': [('Treeitem.indicator', {'side': 'left', 'sticky': ''}), ('Treeitem.image', {'side': 'left', 'sticky': ''}), ('Treeitem.text', {'side': 'left', 'sticky': 'we'})]})])
+        #style.configure("Treeview.Heading", background="lightgray", foreground="black", rowheight=25)
+
+         #Add lines in between rows and columns
+        #style.layout("Treeview", [('Treeview.treearea', {'sticky': 'nswe'})])  # Remove the cell border
+        #style.layout("Treeview.Item", [('Treeitem.padding', {'sticky': 'nswe', 'children': [('Treeitem.label', {'sticky': 'nswe'})]})])  # Set padding for each cell
+        #style.layout("Treeview.Row", [])  # Remove row border
+    
+        self.populate_kerride_table()
+    
+
+        
+    
+
+    #opening an another window from first page icons 
+    def open_icon_window(self, index):
+        if index == 2:
+            self.open_registration_window()
+        if index==3:
+            self.open_Purchase_order()
+        elif index == 1:
+            self.close_the_window()
+        # Add more conditions for other icons as needed
+    
+    #=======================Second page which is icon_2 window starts=====================#
+    #Creating a registration window
+    def open_registration_window(self):
+     self.registration_window = tk.Toplevel(self.root)
+     self.registration_window.title("Find Customer")
+     self.registration_window.geometry("300x100")
+
+    # Create label and entry field for registration number
+     label = Label(self.registration_window, text="Enter Registration No:")
+     label.grid(row=0, column=0)
+
+     self.entry = Entry(self.registration_window)
+     self.entry.grid(row=0, column=1)
+
+        # Create buttons
+     ok_button = Button(self.registration_window, text="OK", command= self.populate_registration)
+     ok_button.grid(row=1, column=0)
+
+     cancel_button = Button(self.registration_window, text="Cancel", command=self.registration_window.destroy)
+     cancel_button.grid(row=1, column=1)
+    
+    #Making the entered registration number to populate in my registration number field in incident form
+    def populate_registration(self):
+        reg_no=self.entry.get()
+        if reg_no:
+         result = KBACKEND.fetch_details_from_database(reg_no)
+        if result:
+            self.registration_window.destroy()
+            self.open_icon1_window(reg_no)  
+        # Populate Entry widgets with fetched details
+            self.text1.delete(0, tk.END)
+            self.text2.delete(0,tk.END)
+            self.Fleet_entry.delete(0, tk.END)
+            self.Customer_Identry.delete(0, tk.END)
+            self.Cust_Name_Entry.delete(0, tk.END)
+            self.Contract_No_Entry.delete(0, tk.END)
+            self.location_1.delete(0, tk.END)
+            self.Depotentry.delete(0, tk.END)
+
+            self.text1.insert(0, reg_no)
+            self.Fleet_entry.insert(0, result[0])
+            self.text2.insert(0,result[2])
+            self.Customer_Identry.insert(0, result[4])
+            self.Cust_Name_Entry.insert(0,result[5]) 
+            self.Contract_No_Entry.insert(0,result[3])
+            self.location_1.insert(0,result[6])
+            self.Depotentry.insert(0,result[7])
+
+        else:
+            messagebox.showwarning("Warning", "Invalid registration number.")
+        #else:
+            #messagebox.showwarning("Warning", "Please enter a registration number.")
+
+    
+    def open_icon1_window(self, reg_no):
+
+     self.icon1_window= tk.Toplevel(self.root)
+     self.icon1_window.title("Incident Detail Form")
+     self.icon1_window.geometry("800x600")  # Adjust the width and height as needed
+     
+
+    #Create a container (Frame) for the icons with a border
+     icon_box = tk.Frame(self.icon1_window, relief=tk.RIDGE, borderwidth=3)
+     icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
+
+    # You can add icons below menus using PhotoImage or other methods.
+    # For demonstration purposes, let's create 13 small image icons.
+     image_paths = ["icon14.png", "icon15.png", "icon16.png", "icon17.png"]
+     for idb, path in enumerate(image_paths, start=1):
+         image = Image.open(path)
+         image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
+         photo = ImageTk.PhotoImage(image)
+         icon_button = tk.Button(icon_box, image=photo, command=lambda index=idb: self.open_icon_windowsecond(index))
+         icon_button.image = photo
+         icon_button.pack(side=tk.LEFT, padx=5, pady=2)
+    
+    
+    # Create frames for each page
+         self.main_page = Frame(self.icon1_window)
+         self.events_page = Frame(self.icon1_window)
+         self.misc_page = Frame(self.icon1_window)
+
+    # Function to show main page
+     def show_main_page():
+        self.main_page.pack(fill="both", expand=True)
+        self.events_page.pack_forget()
+
+    # Function to show events page
+     def show_events_page():
+      self.main_page.pack_forget()
+      self.events_page.pack(fill="both", expand=True)
+
+    
+     show_main_page()
+
+      #Creating Buttons Frame for second pagE
+     Buttonframe= Frame(self.icon1_window, relief=tk.RIDGE,)
+     Buttonframe.place(x=0,y=27,width=780,height=40)
+
+    # Create buttons
+     main_button = tk.Button(Buttonframe, text="MAIN", command=show_main_page)
+     main_button.pack(side=tk.LEFT, padx=1, pady=2)
+
+     events_button = tk.Button(Buttonframe, text="EVENTS", command=show_events_page)
+     events_button.pack(side=tk.LEFT, padx=1, pady=2)
+
+    # Main page components
+     #First Data Frame for Vehicle Details
+     dataframe = LabelFrame(self.main_page, bd=3, relief=tk.RIDGE,text="Vehicle Details")
+     dataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     dataframe.place(x=0, y=29, width=780, height=100) 
+
+     # Assuming you have a list of registration numbers
+     Reg_no = Label(dataframe, text="Registration No:")
+     Reg_no.grid(row=0, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.text1 = Entry(dataframe,width=15)
+     self.text1.insert(0, reg_no)
+     self.text1.grid(row=0, column=1)
+     
+     #Creating an Entry for page 2
+     self.text2 = Entry(dataframe, width=30)
+     self.text2.grid(row=0, column=2,padx=70)
+     
+     #Creating a Label and Entry for Driver name:
+
+     lb3 = Label(dataframe, text="Driver name:")
+     lb3.grid(row=0, column=3)
+     self.Driverentry = Entry(dataframe, width=18)
+     self.Driverentry.grid(row=0, column=4)
+
+     #Creating a Label and Entry for Fleet No:
+     Fleet_No=Label(dataframe, text="Fleet No:")
+     Fleet_No.grid(row=1, column=0,pady=6)
+     self.Fleet_entry=Entry(dataframe,width=15)
+     self.Fleet_entry.grid(row=1,column=1)
+
+     #Creating a Label and Entry for Vehicle loaded:
+
+     lb3 = Label(dataframe, text="Vehicle loaded:")
+     lb3.grid(row=2, column=0)
+     Vehicle_loaded=Checkbutton(dataframe,width=2)
+     Vehicle_loaded.grid(row=2,column=1)
+
+     #Creating another Entry for page 2
+     text2 = Entry(dataframe, width=30)
+     text2.grid(row=1, column=2,padx=80)
+
+     #Creating a Label and Entry for Driver Phone:
+
+     lb3 = Label(dataframe, text="Phone:")
+     lb3.grid(row=1, column=3)
+     self.Driverphone = Entry(dataframe, width=18)
+     self.Driverphone.grid(row=1, column=4)
+    
+     #Second Data Frame for Customer and Company Details 
+     Customer= LabelFrame(self.main_page, bd=3, relief=tk.RIDGE,text="Customer/Company Details")
+     Customer.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Customer.place(x=0,y=130,width=780,height=100)
+
+     #Creating Label for ID and entry
+     Customer_Id = Label(Customer, text="Customer_ID:", padx=3, pady=3)
+     Customer_Id.grid(row=0, column=0)
+     self.Customer_Identry= Entry(Customer, width=16)
+     self.Customer_Identry.grid(row=0, column=1)
+
+     #Creating Label for Cust_Name and entry
+     Cust_Name = Label(Customer, text="Name:", padx=3, pady=3)
+     Cust_Name.grid(row=0, column=2)
+     self.Cust_Name_Entry= Entry(Customer, width=16)
+     self.Cust_Name_Entry.grid(row=0, column=3)
+     
+     #Creating Label for Contract_No and Entry
+     
+     Contract_No = Label(Customer, text="Contract_No:", padx=3, pady=3)
+     Contract_No.grid(row=0, column=4)
+     self.Contract_No_Entry= Entry(Customer, width=16)
+     self.Contract_No_Entry.grid(row=0, column=5)
+     
+      #Creating Label for Contact_Tel and Entry
+
+     Contact_Tel = Label(Customer, text="Contact_Tel:", padx=3, pady=3)
+     Contact_Tel.grid(row=0, column=6)
+     self.Contact_Tel_Entry= Entry(Customer, width=16)
+     self.Contact_Tel_Entry.grid(row=0, column=7)
+
+    #Creating Label for Contact_Email and Entry
+
+     Contact_Email = Label(Customer, text="Contact_Email:", padx=3, pady=3)
+     Contact_Email.grid(row=1, column=0)
+     self.Contact_Email_Entry= Entry(Customer, width=16)
+     self.Contact_Email_Entry.grid(row=1, column=1)
+
+      #Creating Label for Contact_Email and Entry
+
+     Contact_Name_Label=Label(Customer, text="Contact_Name:", padx=3, pady=3)
+     Contact_Name_Label.grid(row=1, column=2)
+     self.Contact_Name_Entry= Entry(Customer, width=16)
+     self.Contact_Name_Entry.grid(row=1, column=3)
+
+     #Creating Label for Customer_Defect_No and Entry
+
+     Customer_DefNO=Label(Customer, text="Cust_Def_No:", padx=3, pady=3)
+     Customer_DefNO.grid(row=1, column=4)
+     self.Customer_defno_Entry= Entry(Customer, width=16)
+     self.Customer_defno_Entry.grid(row=1, column=5)
+
+      #Creating Label for Order_No and Entry
+
+     Order_No=Label(Customer, text="Order No:", padx=3, pady=3)
+     Order_No.grid(row=1, column=6)
+     self.Order_No_Entry= Entry(Customer, width=16)
+     self.Order_No_Entry.grid(row=1, column=7)
+
+     #Creating Label for Contact_Method_ID AND Entry
+     Contact_Method_Id=Label(Customer,text="Contact_Method_ID",padx=3,pady=3)
+     Contact_Method_Id.grid(row=2,column=0)
+     self.Contact_Method_Entry=Entry(Customer,width=16)
+     self.Contact_Method_Entry.grid(row=2,column=1)
+
+     #Creating Label for Depot
+     Depot=Label(Customer,text="Depot",padx=3,pady=3)
+     Depot.grid(row=2,column=2)
+     self.Depotentry=Entry(Customer,width=16)
+     self.Depotentry.grid(row=2,column=3)
+
+     #Creating a frame for incident details 
+      
+     Incident_details= LabelFrame(self.main_page, bd=3, relief=tk.RIDGE,text="Incident Details")
+     Incident_details.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Incident_details.place(x=0,y=230,width=780,height=275)
+
+     #Creating a label and entry field for location
+     Location= Label(Incident_details, text="Location:")
+     Location.grid(row=0, column=0,pady=(0,25),sticky='w')
+     self.locaentry= Text(Incident_details,width=40, height='3',wrap='word')
+     self.locaentry.grid(row=0,column=1,columnspan=2,sticky='w')
+
+     #Creating a label and Entry for Number
+
+     Number= Label(Incident_details,text="Number:")
+     Number.grid(row=0,column=3,padx=5)
+     self.Numberentry=Entry(Incident_details,width=15)
+     gen_number=KBACKEND.generate_new_i_number()
+     self.Numberentry.insert(0, gen_number)
+     self.Numberentry.grid(row=0,column=4)
+     
+     #Creating Label and Entry for Date
+     Date = Label(Incident_details, text="Date", padx=5)
+     Date.grid(row=1, column=3,padx=20,pady=4)
+     self.datee= DateEntry(Incident_details, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.datee.grid(row=1, column=4,sticky='w')
+
+     #Creating Label and Entry for Time 
+
+     Created_by = Label(Incident_details, text="Created_By", padx=5)
+     Created_by.grid(row=2, column=3)
+     self.Time= Entry(Incident_details, width=10)
+     self.Time.grid(row=2, column=4,sticky='w')
+
+
+     #Creating Label and Entry for Odometer
+
+     Odo= Label(Incident_details, text="Odometer", padx=5)
+     Odo.grid(row=3, column=3)
+     self.Odo= Entry(Incident_details, width=13)
+     self.Odo.grid(row=3, column=4,sticky='w')
+
+     #Creating Lable and Entry for Location:
+     # Define the label
+     Locations= ["014","015"]
+     self.Loca = tk.Label(Incident_details, text="Location:", padx=5)
+     self.Loca.grid(row=4, column=3)
+
+    # Define locaentry
+     # Fetch data from the database using backend function
+     rows = KBACKEND.fetch_locations_and_descriptions()
+     self.locations = [row[0] for row in rows]  # First column values for dropdown
+
+        # Define loca label
+     self.loca_label = tk.Label(Incident_details, text="Location:", padx=5)
+     self.loca_label.grid(row=4, column=3)
+
+        # Define loca combobox
+     self.location_1 = ttk.Combobox(Incident_details, values=self.locations, width=15)
+     self.location_1.grid(row=4, column=4, sticky='w')
+     self.location_1.bind("<<ComboboxSelected>>", self.populate_location_description)
+
+        # Define loca entry
+     self.location_2 = tk.Entry(Incident_details, width=15)
+     self.location_2.grid(row=5, column=4, sticky='w', columnspan=4)
+
+
+
+     #Creating a Lable and Entry for Type
+
+     Category= ['B', 'F', 'L', 'T','V']
+     Loc=['O','R']
+     Charge=['N','R','W']
+
+     Type= Label(Incident_details, text="Type:")
+     Type.grid(row=1,column=0,padx=5,pady=6)
+     self.CatEntry= ttk.Combobox(Incident_details, values=Category, width=13)
+     self.CatEntry.grid(row=1, column=1, pady=4, sticky='w') 
+
+     self.LolEntry=ttk.Combobox(Incident_details,values=Loc,width=13)
+     self.LolEntry.grid(row=1,column=2,pady=4,sticky='w')
+     
+     self.Chargeentry=ttk.Combobox(Incident_details,values=Charge,width=13)
+     self.Chargeentry.grid(row=2,column=1,pady=4,sticky='w')
+     #Creating a Label and Entry for Fault Description
+     Fault= Label(Incident_details, text="Fault Desription:")
+     Fault.grid(row=3, column=0, pady=(0,25),sticky='w')
+     self.Faultentry= Text(Incident_details,width=40, height='3',wrap='word')
+     self.Faultentry.grid(row=3,column=1,sticky='w')
+     
+
+     #Creating a Lable and Entry for Status
+
+     Status= ["A","C","D","M","O","X"]
+     Statusdesc=["Awaiting Deployment","Completed","Depot Managed Incident","Centrally Managed/ VOR","Out of Hours Team"]
+     Statuss= Label(Incident_details, text="Status:")
+     Statuss.grid(row=4,column=0,padx=2)
+     self.StatussEntry= ttk.Combobox(Incident_details, values=Status, width=3)
+     self.StatussEntry.grid(row=4, column=1, padx=2, sticky='w')
+     self.new_entry = ttk.Combobox(Incident_details,values=Statusdesc,width=10)
+     self.new_entry.grid(row=5, column=1, padx=2,  sticky='w')
+
+     #Creating Label and Entry for closed
+     Closedlabel=Label(Incident_details,text="Closed")
+     Closedlabel.grid(row=6, column=3)
+     self.closed_var = tk.BooleanVar()
+     self.Closed = tk.Checkbutton(Incident_details, variable=self.closed_var)
+     self.Closed.grid(row=6,column=4,sticky='w')
+
+     #Creating Label and Entry for Attendance Deferred
+     
+
+     Attendance_Def= Label(Incident_details, text="Attendance_Deferred")
+     Attendance_Def.grid(row=6,column=0)
+     self.attendance_var=tk.BooleanVar()
+     self.AttendanceEntry= ttk.Checkbutton(Incident_details, variable=self.attendance_var)
+     self.AttendanceEntry.grid(row=6, column=1, sticky='w')
+     
+     Deff = Label(Incident_details, text='Deferred To')
+     Deff.grid(row=7, column=0, padx=2, sticky='w')
+     self.Deferred_To = DateEntry(Incident_details, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Deferred_To.grid(row=7, column=1, padx=2, sticky='w')
+
+     whatwords = Label(Incident_details, text='Defect_loc_W3W')
+     whatwords.grid(row=7, column=2, padx=2, sticky='w')
+     self.whatwordsentry = Entry(Incident_details, width=30)
+     self.whatwordsentry.grid(row=7, column=3, padx=2, sticky='w',columnspan=2)  # Set columnspan to 2
+
+
+
+   
+    #Creating Frame for Supplier details
+     Supplier_details=LabelFrame(self.main_page,bd=3,relief=tk.RIDGE,text="Supplier Details")
+     Supplier_details.pack(side=tk.TOP,padx=8,pady=3, anchor="nw")
+     Supplier_details.place(x=0,y=503,width=780,height=60)
+
+     #Creating label and Entry for Name:
+     sup=KBACKEND.fetch_supplier_details()
+     self.supplier = [row[1] for row in sup]
+
+     Namesup= Label(Supplier_details, text="Supplier No:")
+     Namesup.grid(row=0,column=0,padx=5)
+     self.nameentry= ttk.Entry(Supplier_details,width=30)
+     self.nameentry.grid(row=0,column=1,padx=5)
+     
+      #Creating label and Entry for Contat:
+     Contactsup= Label(Supplier_details, text="Supplier Name:")
+     Contactsup.grid(row=0,column=2,padx=5,pady=5)
+     self.Contactentry= ttk.Combobox(Supplier_details,values=self.supplier,width=30)
+     self.Contactentry.grid(row=0,column=3,padx=5,pady=5)
+     self.Contactentry.bind("<<ComboboxSelected>>", self.populate_supplier_details)
+
+     #Creating Label and Entry for phone 
+
+     Phonesup= Label(Supplier_details, text="Phone:")
+     Phonesup.grid(row=0,column=4,padx=5)
+     self.Phoneentry= ttk.Entry(Supplier_details,width=20)
+     self.Phoneentry.grid(row=0,column=5,padx=5)
+     
+    # Events page components
+     EventsFrame= LabelFrame(self.events_page, relief=tk.RIDGE,text="Events")
+     EventsFrame.place(x=0,y=30,width=780,height=500)
+    
+     
+     self.events_tree = ttk.Treeview(EventsFrame, columns=("Created", "Time1", "By1", "Event Type", "Event Action", "Notes", "Last Updated", "Time2","By2", "Follow-Up", "Time3","By3", "Action"),show="headings")
+     self.events_tree.pack(fill="both", expand=True)
+
+     self.events_tree.heading("Created", text="Created")
+     self.events_tree.heading("Time1", text="Time1")
+     self.events_tree.heading("By1", text="By1")
+     self.events_tree.heading("Event Type", text="Event Type")
+     self.events_tree.heading("Event Action", text="Event Action")
+     self.events_tree.heading("Notes", text="Notes")
+     self.events_tree.heading("Last Updated", text="Last Updated")
+     self.events_tree.heading("Time2", text="Time2")
+     self.events_tree.heading("By2",text="By2")
+     self.events_tree.heading("Follow-Up", text="Follow-Up")
+     self.events_tree.heading("Time3", text="Time3")
+     self.events_tree.heading("By3",text="By3")
+     self.events_tree.heading("Action", text="Action")
+
+     self.events_tree.column("Created", width=90)
+     self.events_tree.column("Time1", width=70)
+     self.events_tree.column("By1", width=60)
+     self.events_tree.column("Event Type", width=80)
+     self.events_tree.column("Event Action", width=80)
+     self.events_tree.column("Notes", width=200)
+     self.events_tree.column("Last Updated", width=90)
+     self.events_tree.column("Time2", width=70)
+     self.events_tree.column("By2",width=60)
+     self.events_tree.column("Follow-Up", width= 70)
+     self.events_tree.column("Time3",width= 70)
+     self.events_tree.column("By3",width= 60)
+     self.events_tree.column("Action",width= 70)
+
+     # Simulate adding some data to the tree
+     for i in range(10):
+      self.events_tree.insert("", "end", values=[f"Item {i}"] * 13)
+
+    
+     #Simulate adding some data to the tree
+     self.scrollbar_y = ttk.Scrollbar(EventsFrame, orient="vertical", command=self.events_tree.yview)
+     self.scrollbar_y.pack(side="right", fill="y")
+     self.events_tree.configure(yscrollcommand=self.scrollbar_y.set)
+
+     self.scrollbar_x = ttk.Scrollbar(EventsFrame, orient="horizontal", command=self.events_tree.xview)
+     self.scrollbar_x.pack(side="bottom", fill="x")
+     self.events_tree.configure(xscrollcommand=self.scrollbar_x.set)
+     
+     
+    #Creating Event list for the third icon
+    def create_event_list(self):
+     self.icon3_window= tk.Toplevel(self.root)
+     self.icon3_window.title("Event Detail Form")
+     self.icon3_window.geometry("800x600") 
+
+     Incident_Event= Frame(self.icon3_window, bd=3, relief=tk.RIDGE)
+     Incident_Event.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Incident_Event.place(x=0,y=30,width=600,height=100)
+     
+     #Creating Label and Entry for Event Type, Action required inside Incident Event frame
+     Event_types= ["abcd","shhshs""hhsjjs"]
+     Event_type= Label(Incident_Event, text="Event type:")
+     Event_type.grid(row=0,column=0,padx=5,pady=5)
+     Event_type_entry= ttk.Combobox(Incident_Event,values=Event_types,width=20)
+     Event_type_entry.grid(row=0,column=1,sticky="w",padx=5,pady=5)
+     Event_another_entry= Entry(Incident_Event,width=50)
+     Event_another_entry.grid(row=0,column=2,sticky="w")
+
+     Actions= ["abcd","shhshs""hhsjjs"]
+     Action_required= Label(Incident_Event, text="Action required:")
+     Action_required.grid(row=1,column=0,padx=5,pady=5)
+     Action_required_entry= ttk.Combobox(Incident_Event,values=Actions,width=20)
+     Action_required_entry.grid(row=1,column=1,sticky="w",padx=5,pady=5)
+     Action_required_another_entry= Entry(Incident_Event,width=50)
+     Action_required_another_entry.grid(row=1,column=2,sticky="w")
+
+     Created= LabelFrame(self.icon3_window,bd=3, relief=tk.RIDGE,text="Created")
+     Created.pack(side=tk.TOP, padx=8, pady=3, anchor="w")
+     Created.place(x=610,y=30,width=180,height=120)
+     #Creating Date, Time and ID INSIDE THE CREATED DATAFRAME
+     Date_created = Label(Created, text="Date:")
+     Date_created.grid(row=0, column=0,padx=5,pady=4)
+     Date_created_Entry= DateEntry(Created, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     Date_created_Entry.grid(row=0, column=1,sticky='w')
+     #Time
+     Time_created= Label(Created,text="Time:")
+     Time_created.grid(row=1,column=0)
+     Time_created_entry= Entry(Created,width=9)
+     Time_created_entry.grid(row=1,column=1,sticky="w")
+     #id
+     ID= Label(Created,text="ID:")
+     ID.grid(row=2,column=0)
+     ID_entry= Entry(Created,width=15)
+     ID_entry.grid(row=2,column=1,sticky="w")
+
+
+     Event_text=Frame(self.icon3_window,bd=3,relief=tk.RIDGE)
+     Event_text.pack(side=tk.TOP, padx=8, pady=3, anchor="w")
+     Event_text.place(x=0,y=130,width=600,height=200)
+     #Creating a label and entry field for Event text inside Event text frame 
+     Event_details= Label(Event_text, text="Event_text:")
+     Event_details.grid(row=0, column=0,sticky='w')
+     Event_details_entry= Text(Event_text,width=50, height='10',wrap='word')
+     Event_details_entry.grid(row=0,column=1,sticky='w',padx=5,pady=5)
+
+
+
+     Last_amended= LabelFrame(self.icon3_window,bd=3, relief=tk.RIDGE,text="Last Amended")
+     Last_amended.pack(side=tk.TOP, padx=8, pady=3, anchor="w")
+     Last_amended.place(x=610,y=150,width=180,height=120)
+     #Creating Date, Time and ID INSIDE THE Last Amended DATAFRAME
+     Date_amended = Label(Last_amended, text="Date:")
+     Date_amended.grid(row=0, column=0,padx=5,pady=4)
+     Date_amended_Entry= DateEntry(Last_amended, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     Date_amended_Entry.grid(row=0, column=1,sticky='w')
+     #Time
+     Time_amended= Label(Last_amended,text="Time:")
+     Time_amended.grid(row=1,column=0)
+     Time_amended_entry= Entry(Last_amended,width=9)
+     Time_amended_entry.grid(row=1,column=1,sticky="w")
+     #id
+     IDlast= Label(Last_amended,text="ID:")
+     IDlast.grid(row=2,column=0)
+     ID_last_entry= Entry(Last_amended,width=15)
+     ID_last_entry.grid(row=2,column=1,sticky="w")
+
+
+     Next_event= LabelFrame(self.icon3_window,bd=3,relief=tk.RIDGE,text="Next Event")
+     Next_event.pack(side=tk.TOP, padx=8,pady=3,anchor="w")
+     Next_event.place(x=40, y=330, width=500,height= 180)
+     #Creating Date, Time and ID,Type INSIDE THE Next Event Dataframe
+     Date_nextevent = Label(Next_event, text="Date:")
+     Date_nextevent.grid(row=0, column=0,padx=5,pady=4)
+     Date_nextevent_Entry= DateEntry(Next_event, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     Date_nextevent_Entry.grid(row=0, column=1,sticky='w')
+     #Time
+     Time_nextevent= Label(Next_event,text="Time:")
+     Time_nextevent.grid(row=1,column=0,padx=5,pady=5)
+     Time_nextevent_entry= Entry(Next_event,width=9)
+     Time_nextevent_entry.grid(row=1,column=1,sticky="w",padx=5,pady=5)
+     #id
+     ids= ["abcd","shhshs""hhsjjs"]
+     id_nextevent= Label(Next_event, text="ID:")
+     id_nextevent.grid(row=2,column=0,padx=5,pady=5)
+     id_nextevent_entry= ttk.Combobox(Next_event,values=ids,width=20)
+     id_nextevent_entry.grid(row=2,column=1,sticky="w",padx=5,pady=5)
+     id_another_entry= Entry(Next_event,width=40)
+     id_another_entry.grid(row=2,column=2,sticky="w")
+
+     Typess= ["abcd","shhshs""hhsjjs"]
+     Type_nextevent= Label(Next_event, text="Type:")
+     Type_nextevent.grid(row=3,column=0,padx=5,pady=5)
+     Type_nextevent_entry= ttk.Combobox(Next_event,values=Typess,width=20)
+     Type_nextevent_entry.grid(row=3,column=1,sticky="w",padx=5,pady=5)
+     Type_another_entry= Entry(Next_event,width=40)
+     Type_another_entry.grid(row=3,column=2,sticky="w")
+
+     #defining functionalities for icons in the event details page 
+     icon_box = tk.Frame(self.icon3_window, relief=tk.RIDGE, borderwidth=3)
+     icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
+
+    # You can add icons below menus using PhotoImage or other methods.
+    # For demonstration purposes, let's create 13 small image icons.
+     images = ["icon 21.png", "icon 22.png"]
+     for idd, path in enumerate(images, start=1):
+         image = Image.open(path)
+         image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
+         photo = ImageTk.PhotoImage(image)
+         icon_button = tk.Button(icon_box, image=photo, command=lambda index=idd: self.event_functionality(index))
+         icon_button.image = photo
+         icon_button.pack(side=tk.LEFT, padx=5, pady=2)
+
+    def event_functionality(self,index):
+        if index == 1:
+            self.exit()
+        elif index == 2:
+            self.save()
+    def exit(self):
+         self.icon3_window.destroy()
+    def save(self):
+        pass
+        
+        
+
+
+    #defining functionalities for the icons in the second page 
+    def open_icon_windowsecond(self,index):
+        if index == 2:
+            self.open_next_window()
+        elif index == 1:
+            self.close_the_second_window()
+        elif index==3:
+            self.create_event_list() 
+    
+     
+        
+        
+    # Define a function to populate Kerride_table with all incidents from the database
+    def populate_kerride_table(self):
+    # Clear existing data from Kerride_table
+     self.root.Kerride_table.delete(*self.root.Kerride_table.get_children())
+
+    # Retrieve all incidents from the database
+     all_incidents = KBACKEND.retrieve_all_incidents()
+
+     if all_incidents:
+        for incident in all_incidents:
+        # Retrieve attribute values for each incident
+         incident_date = incident.get("Incident Date")
+         registration = incident.get("Registration")
+         Customer=incident.get("Customer")
+         I_no=incident.get("Incident No")
+         Status=incident.get("Status")
+         Cat=incident.get("Category")
+         loc=incident.get("Location")
+         Char=incident.get("Charge")
+         location=incident.get("Locationn")
+         # Insert the incident into Kerride_table
+         self.root.Kerride_table.insert("", "end", values=(incident_date,Customer,location,registration,I_no,Cat,loc,Char,Status ))
+     
+     return all_incidents
+    
+    #else:
+    #print("No incidents found in the database.")
+
+  
+    
+        
+
+    
+
+
+    
+    
+    def open_next_window(self):
+     reg_no = self.text1.get()
+     driver_name = self.Driverentry.get()
+     drivertel=self.Driverphone.get()
+     created= self.Time.get()
+     # Getting the selected date from the DateEntry widget
+     selected_date = self.datee.get_date()
+    
+    # Getting the current time
+     current_time = datetime.datetime.now().time()
+    
+    # Combining selected date and current time into a datetime object
+     combined_datetime = datetime.datetime.combine(selected_date, current_time)
+    
+     contact_method= self.Contact_Method_Entry.get()
+     contactname=self.Contact_Name_Entry.get()
+     contacttel=self.Contact_Tel_Entry.get()
+     contactemail=self.Contact_Email_Entry.get()
+     Defect_loc= self.locaentry.get("1.0", tk.END)
+     faultdesc=self.Faultentry.get("1.0", tk.END)
+     Cat=self.CatEntry.get()
+     lol=self.LolEntry.get()
+     charge=self.Chargeentry.get()
+     status=self.StatussEntry.get()
+     odo= self.Odo.get()
+     attendance=self.attendance_var.get()
+
+     Deferred_date = self.datee.get_date()
+    
+    # Getting the current time
+     current_timee = datetime.datetime.now().time()
+    
+    # Combining selected date and current time into a datetime object
+     combined_deferred = datetime.datetime.combine(Deferred_date, current_timee)
+
+     what3=self.whatwordsentry.get()
+
+     close= self.closed_var.get()
+
+     fleet= self.Fleet_entry.get()
+
+     makemodel=self.text2.get()
+     
+     custid=self.Customer_Identry.get()
+     custname=self.Cust_Name_Entry.get()
+     contractno=self.Contract_No_Entry.get()
+     locat= self.location_1.get()
+     depo= self.Depotentry.get()
+     defectno=self.Customer_defno_Entry.get()
+
+
+
+
+
+
+     KBACKEND.store_registration(reg_no, driver_name,created,combined_datetime,contact_method,contactname,
+                                 contacttel,contactemail,drivertel,Defect_loc,faultdesc,Cat,lol,charge,status,odo,
+                                 attendance,combined_deferred,what3,close,fleet,custid,contractno,locat,defectno)
+    
+
+
+     last_incident = KBACKEND.retrieve_last_incident()
+
+     # Clear existing data from Kerride_table
+     self.root.Kerride_table.delete(*self.root.Kerride_table.get_children())
+     
+     if last_incident:
+        for incidents in last_incident:
+        # Retrieve attribute values for each incident
+         incident_date = incidents.get("Incident Date")
+         Customer=incidents.get("Customer")
+         registration = incidents.get("Registration")
+         I_no=incidents.get("Incident No")
+         Status=incidents.get("Status")
+         Category=incidents.get("Category")
+         loca=incidents.get("Location")
+         Charg=incidents.get("Charge")
+         Locat= incidents.get("Locationn")
+        # Insert the incident into Kerride_table
+         self.root.Kerride_table.insert("", "end", values=(incident_date, Customer, Locat, registration,I_no,Category,loca,Charg,Status))
+     self.populate_kerride_table()
+        
+
+    def populate_location_description(self, event=None):
+        selected_location = self.location_1.get()
+        rows = KBACKEND.fetch_locations_and_descriptions()
+        for row in rows:
+            if row[0] == selected_location:
+                self.location_2.delete(0, tk.END)
+                self.location_2.insert(0, row[1])
+                break
+    def populate_supplier_details(self,event=None):
+        selected_supplier= self.Contactentry.get()
+        rows=KBACKEND.fetch_supplier_details()
+        for row in rows:
+           if row[1]==selected_supplier:
+              self.nameentry.delete(0,tk.END)
+              self.Phoneentry.delete(0,tk.END)
+              self.nameentry.insert(0,row[0])
+              self.Phoneentry.insert(0,row[2])
+    
+ 
+
+     
+
+    
+        
+            
+    def close_the_second_window(self):
+        self.icon1_window.destroy()
+
+
+
+#==================================End of Second page except closing the window command================#
+    
+# Starting the third page which is the Purchase order form 
+    def open_Purchase_order(self):
+     self.purchase_order= tk.Toplevel(self.root)
+     self.purchase_order.title("Maintainence Control")
+     self.purchase_order.geometry("800x600")  # Adjust the width and height as needed
+
+     icon_box = tk.Frame(self.purchase_order, relief=tk.RIDGE, borderwidth=3)
+     icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
+
+   
+     image_paths = ["icon 18.png", "icon 19.png"]
+     for idc, path in enumerate(image_paths, start=1):
+         image = Image.open(path)
+         image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
+         photo = ImageTk.PhotoImage(image)
+         icon_button = tk.Button(icon_box, image=photo, command=lambda index=idc: self.open_icon_windowthird(index))
+         icon_button.image = photo
+         icon_button.pack(side=tk.LEFT, padx=5, pady=2)
+     
+     # Create frames for each page
+         self.Maintenance_Control = Frame(self.purchase_order)
+         self.History = Frame(self.purchase_order)
+
+    # Function to show main page
+     def show_maintainence():
+        self.Maintenance_Control.pack(fill="both", expand=True)
+        self.History.pack_forget()
+
+    # Function to show events page
+     def show_History():
+      self.Maintenance_Control.pack_forget()
+      self.History.pack(fill="both", expand=True)
+
+     show_maintainence()
+
+      #Creating Buttons Frame for second pagE
+     Buttonframe= Frame(self.purchase_order, relief=tk.RIDGE)
+     Buttonframe.place(x=0,y=27,width=780,height=40)
+
+    # Create buttons
+     maintain_button = tk.Button(Buttonframe, text="Maintenance Control", command=show_maintainence)
+     maintain_button.pack(side=tk.LEFT, padx=1, pady=2)
+
+     hist_button = tk.Button(Buttonframe, text="History", command=show_History)
+     hist_button.pack(side=tk.LEFT, padx=1, pady=2)
+     
+     #Defining the maintainence components in the third page 
+  
+     Maindataframe= Frame(self.Maintenance_Control,bd=3, relief=tk.RIDGE)
+     Maindataframe.pack(side=tk.TOP,padx=8,pady=3, anchor='nw')
+     Maindataframe.place(x=0,y=29,width=780,height=85)
+
+     #Creating Label and Entry for Reg no 
+     Reg_no= Label(Maindataframe,text="Reg_no:")
+     Reg_no.grid(row=0,column=0)
+     Reg_no_entry = Entry(Maindataframe, width=30)
+     Reg_no_entry.grid(row=0, column=1)
+
+     #Creating Label and Entry for Vehicle 
+     Vehicle_main= Label(Maindataframe,text= "Vehicle:")
+     Vehicle_main.grid(row=0,column=2)
+     Vehicle_main_entry= Entry(Maindataframe,width=35)
+     Vehicle_main_entry.grid(row=0,column=3,sticky='w')
+
+     #Creating Label and Entry for Next Scheduled event
+     NextSchevent= Label(Maindataframe,text= "Next sched event:")
+     NextSchevent.grid(row=0,column=4)
+     NextSchevententry= Entry(Maindataframe,width=20)
+     NextSchevententry.grid(row=0,column=5,sticky='w')
+
+     #Creating Label and Entry for Reg date
+     Reg_Date = Label(Maindataframe, text="Reg Date:")
+     Reg_Date.grid(row=1, column=0,padx=5,pady=4)
+     Reg_Date_Entry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     Reg_Date_Entry.grid(row=1, column=1,sticky='w')
+
+     #Creating Label and Entry for RFL 
+     RFL = Label(Maindataframe, text="RFL:")
+     RFL.grid(row=1, column=2,padx=5,pady=4)
+     RFL_Entry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     RFL_Entry.grid(row=1, column=3,sticky='w')
+
+     #Creating Label and Entry for MOT
+     MOT = Label(Maindataframe, text="MOT:")
+     MOT.grid(row=1, column=4,padx=5,pady=4)
+     MOT_entry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     MOT_entry.grid(row=1, column=5,sticky='w')
+
+     #Creating Label and Entry for Last Serviced
+     LastServiced = Label(Maindataframe, text="Last Serviced:")
+     LastServiced.grid(row=2, column=0)
+     LastServicedentry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     LastServicedentry.grid(row=2, column=1,sticky='w')
+
+     #Creating Label and Entry for at:
+     NextSchevent= Label(Maindataframe,text= "at :")
+     NextSchevent.grid(row=2,column=2)
+     NextSchevententry= Entry(Maindataframe,width=10)
+     NextSchevententry.grid(row=2,column=3,sticky='w')
+
+     #Creating a new dataframe below Main dataframe
+
+     Agreementframe= Frame(self.Maintenance_Control,bd=3, relief=tk.RIDGE)
+     Agreementframe.pack(side=tk.TOP,padx=8,pady=3, anchor='nw')
+     Agreementframe.place(x=0,y=120,width=780,height=40)
+
+     #Create Label and entry for Agreement inside the dataframe
+     
+     Agreement= Label(Agreementframe,text="Agreement:")
+     Agreement.grid(row=0,column=0,padx=5,pady=5)
+     Agreemententry= Entry(Agreementframe,width=30)
+     Agreemententry.grid(row=0,column=1,padx=5,pady=5)
+
+     #Create Label and entry for Customer
+     Customer= Label(Agreementframe,text="Customer:")
+     Customer.grid(row=0,column=2,padx=5,pady=5)
+     Customerentry= Entry(Agreementframe,width=50)
+     Customerentry.grid(row=0, column=3, padx=5, pady=5)
+
+     #Creating a new dataframe below Agreement 
+
+     self.Approvalframe= Frame(self.Maintenance_Control,bd=3, relief=tk.RIDGE)
+     self.Approvalframe.pack(side=tk.TOP,padx=8,pady=3, anchor='nw')
+     self.Approvalframe.place(x=0,y=170,width=780,height=180)
+     
+     #Creating frame for the 3 buttons 
+     self.Approval_Issue = Frame(self.Approvalframe)
+     self.Invoice_Details = Frame(self.Approvalframe)
+     self.Miscc= Frame(self.Approvalframe)
+
+     # Function to show approval page
+     def show_Approval():
+        self.Approval_Issue.pack(fill="both", expand=True)
+        self.Invoice_Details.pack_forget()
+        self.Miscc.pack_forget()
+
+    # Function to show approval page
+     def show_Invoice_Details():
+      self.Maintenance_Control.pack_forget()
+      self.Invoice_Details.pack(fill="both", expand=True)
+      self.Miscc.pack_forget()
+    
+    #Function to show Misc Page 
+     def show_Miscc():
+      self.Maintenance_Control.pack_forget()
+      self.Invoice_Details.pack_forget()
+      self.Miscc.pack(fill="both",expand=True)
+     
+     show_Approval()
+
+      #Creating Buttons Frame for second pagE
+     Buttonframe= Frame(self.Approvalframe, relief=tk.RIDGE)
+     Buttonframe.place(x=0,y=8,width=780,height=30)
+
+    # Create buttons
+     Approval_button = tk.Button(Buttonframe, text="Approval Issue", command=show_Approval)
+     Approval_button.pack(side=tk.LEFT, padx=1, pady=2)
+
+     Invoice_details_button = tk.Button(Buttonframe, text="Invoice Details", command=show_Invoice_Details)
+     Invoice_details_button.pack(side=tk.LEFT, padx=1, pady=2)
+
+     Miscc_button = tk.Button(Buttonframe, text="Misc", command=show_Miscc)
+     Miscc_button.pack(side=tk.LEFT, padx=1, pady=2)
+     
+     #Inserting Label and entries inside the Approval button
+     
+     #Creating a dataframe inside the approval button
+     Repairerdataframe= Frame(self.Approval_Issue,bd=3,relief=tk.RIDGE)
+     Repairerdataframe.pack(side=tk.TOP,padx=8,pady=3,anchor='nw')
+     Repairerdataframe.place(x=0,y=40,width=765,height=130)
+     
+     #Creating a label and combobox entry for Repairer 
+     Repairernames= ["abcd","shhshs""hhsjjs"]
+     Repairer= Label(Repairerdataframe, text="Repairer:")
+     Repairer.grid(row=0,column=0,padx=5,pady=5)
+     Repairerentry= ttk.Combobox(Repairerdataframe,values=Repairernames,width=20)
+     Repairerentry.grid(row=0,column=1,sticky="w",padx=5,pady=5)
+
+      
+     #Creating a label and combobox entry for Account
+     Accountnumbers= ["AB5677","MO908""HJ666"]
+     Account= Label(Repairerdataframe, text="Account:")
+     Account.grid(row=0,column=2,padx=5,pady=5)
+     Accountentry= ttk.Combobox(Repairerdataframe,values=Accountnumbers,width=20)
+     Accountentry.grid(row=0,column=3,sticky="w",padx=5,pady=5)
+
+     #Creating a Label and Entry for Suplier
+     Supplierr= Label(Repairerdataframe, text="Supplier:")
+     Supplierr.grid(row=0,column=4,padx=5,pady=4)
+     Supplierrentry= Entry(Repairerdataframe, width=41)
+     Supplierrentry.grid(row=0,column=5,sticky="w",padx=5,pady=3)
+
+     #Creating a Label and Entry for Approval
+     Approval= Label(Repairerdataframe,text="Approval:")
+     Approval.grid(row=1,column=0,padx=5,pady=5)
+     Approvalentry= Entry(Repairerdataframe,width= 20)
+     Approvalentry.grid(row=1,column=1,padx=5,pady=5,sticky="w")
+
+     #Creating a Label and Entry for Issued:
+     Issued = Label(Repairerdataframe, text="Issued:")
+     Issued.grid(row=1, column=2,padx=5,pady=5)
+     Issuedentry= DateEntry(Repairerdataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     Issuedentry.grid(row=1, column=3,padx=5,pady=5,sticky='w')
+
+     #Creating a Label and Entry for Odometer
+     Odometer= Label(Repairerdataframe,text="Odometer:")
+     Odometer.grid(row=2,column=0,padx=5,pady=5)
+     Odometerentry= Entry(Repairerdataframe,width= 20)
+     Odometerentry.grid(row=2,column=1,padx=5,pady=5,sticky="w")
+
+     #Creating a Label and Entry for Repaired:
+     Repaired = Label(Repairerdataframe, text="Repaired:")
+     Repaired.grid(row=2, column=2,padx=5,pady=5)
+     Repairedentry= DateEntry(Repairerdataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     Repairedentry.grid(row=2, column=3,padx=5,pady=5,sticky='w')
+
+
+     #Creating Table below the Approval Dataframe
+
+     Table= Frame(self.Maintenance_Control, bd=3,relief=tk.RIDGE)
+     Table.place(x=0,y=350,width=780,height=200)
+
+     self.Table_tree = ttk.Treeview(Table, columns=("Reason", "Qty", "Value", "VAT Value", "Total", "Session", "Repair Description", "Rech Value"),show="headings")
+     self.Table_tree.pack(fill="both", expand=True)
+
+     self.Table_tree.heading("Reason", text="Reason")
+     self.Table_tree.heading("Qty", text="Qty")
+     self.Table_tree.heading("Value", text="Value")
+     self.Table_tree.heading("VAT Value", text="VAT Value")
+     self.Table_tree.heading("Total",text="Total")
+     self.Table_tree.heading("Session", text="Session")
+     self.Table_tree.heading("Repair Description", text="Repair Description")
+     self.Table_tree.heading("Rech Value", text="Rech Value")
+    
+     self.Table_tree.column("Reason", width=60)
+     self.Table_tree.column("Qty", width=60)
+     self.Table_tree.column("Value", width=60)
+     self.Table_tree.column("VAT Value", width=60)
+     self.Table_tree.column("Total", width=60)
+     self.Table_tree.column("Session", width=60)
+     self.Table_tree.column("Repair Description", width=200)
+     self.Table_tree.column("Rech Value", width=60)
+
+     ##########Incident listing in the front page########################
+    ########### This clicks the data with a blue colour ###############
+    def change_row_color(self, event):
+     # Get the clicked row
+     item = self.root.Kerride_table.identify_row(event.y)
+     print("Clicked on item:", item)
+    
+     # Select the clicked row and configure tag for color
+     self.root.Kerride_table.selection_set(item)
+     print("Selected item:", self.root.Kerride_table.selection())
+     self.root.Kerride_table.tag_configure("selected", background="lightblue")
+    
+     # Set focus to the clicked row
+     self.root.Kerride_table.focus(item)
+    
+     # Print a message to indicate that the function is called
+     print("Clicked on a row.")
+    
+     # Extract the registration number from the clicked row
+     registration_number = self.root.Kerride_table.item(item, "values")[3]  # Assuming registration number is the first column
+    
+     # Retrieve incident details based on the registration number
+     incident_details = KBACKEND.retrieve_incident_details(registration_number)
+     additional_details=KBACKEND.fetch_additional_details(registration_number)
+
+     if incident_details and additional_details:
+        # Open the form window and populate it with incident details
+        self.open_icon1_window_with_clicked_row_data(registration_number, incident_details,additional_details)
+     else:
+        print("No incident details found for the selected registration number.")
+
+    ############ After the data is click this opens the incident page for that particular data########
+    def open_icon1_window_with_clicked_row_data(self, reg_no, incident_details,additional_details):
+     # Create a new window for the form
+     self.form_window = tk.Toplevel(self.root)
+     self. form_window.title("Incident Detail Form")
+     self.form_window.geometry("800x600") 
+
+     #Create a container (Frame) for the icons with a border
+     icon_box = tk.Frame(self.form_window, relief=tk.RIDGE, borderwidth=3)
+     icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw") 
+
+     # You can add icons below menus using PhotoImage or other methods.
+    # For demonstration purposes, let's create 13 small image icons.
+     image_paths = ["icon23.png", "icon24.png", "icon25.png", "icon26.png"]
+     for idin, path in enumerate(image_paths, start=1):
+         image = Image.open(path)
+         image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
+         photo = ImageTk.PhotoImage(image)
+         icon_button = tk.Button(icon_box, image=photo, command=lambda index=idin: self.open_incident_window(index))
+         icon_button.image = photo
+         icon_button.pack(side=tk.LEFT, padx=5, pady=2)
+    
+    # Create frames for each page
+         self.mainn_page = Frame(self.form_window)
+         self.eventss_page = Frame(self.form_window)
+         self.miscc_page = Frame(self.form_window)
+
+    # Function to show main page
+     def show_mainn_page():
+        self.mainn_page.pack(fill="both", expand=True)
+        self.eventss_page.pack_forget()
+
+    # Function to show events page
+     def show_eventss_page():
+      self.mainn_page.pack_forget()
+      self.eventss_page.pack(fill="both", expand=True)
+
+    
+     show_mainn_page()
+
+      #Creating Buttons Frame for second pagE
+     Buttonframe= Frame(self.form_window, relief=tk.RIDGE,)
+     Buttonframe.place(x=0,y=27,width=780,height=40)
+
+    # Create buttons
+     mainn_button = tk.Button(Buttonframe, text="MAIN", command=show_mainn_page)
+     mainn_button.pack(side=tk.LEFT, padx=1, pady=2)
+
+     eventss_button = tk.Button(Buttonframe, text="EVENTS", command=show_eventss_page)
+     eventss_button.pack(side=tk.LEFT, padx=1, pady=2)
+
+
+     # Populate the form with the retrieved data
+     self.populate_form(reg_no, incident_details,additional_details)
+
+    def populate_form(self, reg_no, incident_details,additional_details):
+     # Populate your form with the retrieved incident details
+
+      # Mainn page components
+     #First Data Frame for Vehicle Details
+     firstdataframe = LabelFrame(self.mainn_page, bd=3, relief=tk.RIDGE,text="Vehicle Details")
+     firstdataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     firstdataframe.place(x=0, y=29, width=780, height=100) 
+
+     #Registration and Entry for the first data frame
+     Reg_no = tk.Label(firstdataframe, text="Registration No:")
+     Reg_no.grid(row=0, column=0)
+    
+     self.reistrationentry = tk.Entry(firstdataframe, width=15)
+     self.reistrationentry.insert(0, incident_details.get('Registration', ''))
+     self.reistrationentry.grid(row=0, column=1)
+
+      #Creating an Entry for page 2
+     self.Make_Mod = Entry(firstdataframe, width=30)
+     self.Make_Mod.insert(0,additional_details.get('Make_Mod'))
+     self.Make_Mod.grid(row=0, column=2,padx=70)
+
+     lb3 = Label(firstdataframe, text="Driver name:")
+     lb3.grid(row=0, column=3)
+     self.Driverrentry = Entry(firstdataframe, width=18)
+     self.Driverrentry.grid(row=0, column=4)
+
+    # Retrieve the value
+     self.Driverrvalue = incident_details.get('Driver_name')
+
+    # Insert the value into the Entry widget
+     self.Driverrentry.insert(0, self.Driverrvalue if self.Driverrvalue is not None else "")
+     
+     
+     #Creating a Label and Entry for Fleet No:
+     Fleett_No=Label(firstdataframe, text="Fleet No:")
+     Fleett_No.grid(row=1, column=0,pady=6)
+     self.fleett=Entry(firstdataframe,width=15)
+     self.fleett.grid(row=1,column=1)
+     self.fleettvalue=additional_details.get('fleet_no')
+     self.fleett.insert(0,self.fleettvalue if self.fleettvalue is not None else"")
+     
+
+     #Creating a Label and Entry for Vehicle loaded:
+
+     lb3 = Label(firstdataframe, text="Vehicle loaded:")
+     lb3.grid(row=2, column=0)
+     self.Vehiclee_loaded=Checkbutton(firstdataframe,width=2)
+     self.Vehiclee_loaded.grid(row=2,column=1)
+
+     #Creating another Entry for page 2
+     self.empty = Entry(firstdataframe, width=30)
+     self.empty.grid(row=1, column=2,padx=80)
+
+     #Creating a Label and Entry for Driver Phone:
+
+     lb3 = Label(firstdataframe, text="Phone:")
+     lb3.grid(row=1, column=3)
+     self.Driverrphone = Entry(firstdataframe, width=18)
+     self.Driverrphone.grid(row=1, column=4)
+     self.Driverrphonevalue= incident_details.get('Driver_phone')
+     self.Driverrphone.insert(0,self.Driverrphonevalue if self.Driverrphonevalue is not None else"")
+     
+     
+     #Second Data Frame for Customer and Company Details 
+     Seconddataframe= LabelFrame(self.mainn_page, bd=3, relief=tk.RIDGE,text="Customer/Company Details")
+     Seconddataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Seconddataframe.place(x=0,y=130,width=780,height=100)
+
+     #Creating Label for ID and entry
+     Customer_Id = Label(Seconddataframe, text="Customer_ID:", padx=3, pady=3)
+     Customer_Id.grid(row=0, column=0)
+     self.Customer_Identryy= Entry(Seconddataframe, width=16)
+     self.Customer_Identryy.grid(row=0, column=1)
+     self.Customer_Identryyvalue=additional_details.get('Customer_No')
+     self.Customer_Identryy.insert(0,self.Customer_Identryyvalue if self.Customer_Identryyvalue is not 
+                                   None else"")
+     
+
+     #Creating Label for Cust_Name and entry
+     Cust_Name = Label(Seconddataframe, text="Name:", padx=3, pady=3)
+     Cust_Name.grid(row=0, column=2)
+     self.Cust_Namee_Entry= Entry(Seconddataframe, width=16)
+     self.Cust_Namee_Entry.grid(row=0, column=3)
+     self.Cust_Namee_Entryvalue= additional_details.get('Customer_Name')
+     self.Cust_Namee_Entry.insert(0,self.Cust_Namee_Entryvalue if self.Cust_Namee_Entryvalue is not
+                                  None else"")
+     
+     
+     #Creating Label for Contract_No and Entry
+     
+     Contract_No = Label(Seconddataframe, text="Contract_No:", padx=3, pady=3)
+     Contract_No.grid(row=0, column=4)
+     self.Contract_No_Entryy= Entry(Seconddataframe, width=16)
+     self.Contract_No_Entryy.grid(row=0, column=5)
+     self.Contract_No_Entryyvalue= additional_details.get('Contract_No')
+     self.Contract_No_Entryy.insert(0,self.Contract_No_Entryyvalue if self.Contract_No_Entryyvalue is 
+                                    not None else"")
+     
+     
+      #Creating Label for Contact_Tel and Entry
+
+     Contact_Tel = Label(Seconddataframe, text="Contact_Tel:", padx=3, pady=3)
+     Contact_Tel.grid(row=0, column=6)
+     self.Contact_Tel_Entryy= Entry(Seconddataframe, width=16)
+     self.Contact_Tel_Entryy.grid(row=0, column=7)
+     self.Contact_Tel_Entryyvalue=incident_details.get('Contact_tel')
+     self.Contact_Tel_Entryy.insert(0,self.Contact_Tel_Entryyvalue if self.Contact_Tel_Entryyvalue is 
+                                    not None else"" )
+     
+
+    #Creating Label for Contact_Email and Entry
+
+     Contact_Email = Label(Seconddataframe, text="Contact_Email:", padx=3, pady=3)
+     Contact_Email.grid(row=1, column=0)
+     self.Contact_Email_Entryy= Entry(Seconddataframe, width=16)
+     self.Contact_Email_Entryy.grid(row=1, column=1)
+     self.Contact_Email_Entryyvalue=incident_details.get('Contact_Email')
+     self.Contact_Email_Entryy.insert(0,self.Contact_Email_Entryyvalue if self.Contact_Email_Entryyvalue
+                                      is not None else"")
+     
+
+     #Creating Label for Contact_Name and Entry
+
+     Contact_Name_Label=Label(Seconddataframe, text="Contact_Name:", padx=3, pady=3)
+     Contact_Name_Label.grid(row=1, column=2)
+     self.Contact_Name_Entryy= Entry(Seconddataframe, width=16)
+     self.Contact_Name_Entryy.grid(row=1, column=3)
+     self.Contact_Name_Entryyvalue=incident_details.get('Contact_name')
+     self.Contact_Name_Entryy.insert(0,self.Contact_Name_Entryyvalue if self.Contact_Name_Entryyvalue is
+                                     not None else"")
+     
+
+     #Creating Label for Customer_Defect_No and Entry
+
+     Customer_DefNO=Label(Seconddataframe, text="Cust_Def_No:", padx=3, pady=3)
+     Customer_DefNO.grid(row=1, column=4)
+     self.Customer_defno_Entryy= Entry(Seconddataframe, width=16)
+     self.Customer_defno_Entryy.grid(row=1, column=5)
+     self.Customer_defno_Entryyvalue= incident_details.get('Customer_defect')
+     self.Customer_defno_Entryy.insert(0,self.Customer_defno_Entryyvalue if self.Customer_defno_Entryyvalue
+                                       is not None else"")
+
+
+      #Creating Label for Order_No and Entry
+
+     Order_No=Label(Seconddataframe, text="Order No:", padx=3, pady=3)
+     Order_No.grid(row=1, column=6)
+     self.Order_No_Entryy= Entry(Seconddataframe, width=16)
+     self.Order_No_Entryy.grid(row=1, column=7)
+
+     #Creating Label for Contact_Method_ID AND Entry
+     Contact_Method_Id=Label(Seconddataframe,text="Contact_Method_ID",padx=3,pady=3)
+     Contact_Method_Id.grid(row=2,column=0)
+     self.Contact_Method_Entryy=Entry(Seconddataframe,width=16)
+     self.Contact_Method_Entryy.grid(row=2,column=1)
+     self.Contact_Email_Entryyvalue=incident_details.get('Contact_id')
+     self.Contact_Method_Entryy.insert(0, self.Contact_Email_Entryy if self.Contact_Email_Entryyvalue
+                                       is not None else"")
+     
+
+     #Creating Label for Depot
+     Depot=Label(Seconddataframe,text="Depot",padx=3,pady=3)
+     Depot.grid(row=2,column=2)
+     self.Depotentryy=Entry(Seconddataframe,width=16)
+     self.Depotentryy.grid(row=2,column=3)
+     self.Depotentryyvalue=additional_details.get('Customer_Depot')
+     self.Depotentryy.insert(0,self.Depotentryyvalue if self.Depotentryyvalue is not None else"")
+     
+     
+     #Creating a frame for incident details 
+      
+     ThirdDataframe= LabelFrame(self.mainn_page, bd=3, relief=tk.RIDGE,text="Incident Details")
+     ThirdDataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     ThirdDataframe.place(x=0,y=230,width=780,height=275)
+
+     #Creating a label and entry field for location
+     Location= Label(ThirdDataframe, text="Location:")
+     Location.grid(row=0, column=0,pady=(0,25),sticky='w')
+     self.locaentryy= Text(ThirdDataframe,width=30, height='3',wrap='word')
+     self.locaentryy.grid(row=0,column=1,columnspan=2,sticky='w')
+     self.locaentryyvalue=incident_details.get('Defect_Address')
+     self.locaentryy.insert("1.0",self.locaentryyvalue if self.locaentryyvalue is not None else"")
+     
+
+     #Creating a label and Entry for Number
+
+     Number= Label(ThirdDataframe,text="Number:")
+     Number.grid(row=0,column=3,padx=5)
+     self.Numberentryy=Entry(ThirdDataframe,width=15)
+     self.Numberentryy.grid(row=0,column=4)
+     self.Numberentryyvalue=incident_details.get('Incident No')
+     self.Numberentryy.insert(0, self.Numberentryyvalue if self.Numberentryyvalue is not None else"")
+     
+     
+     #Creating Label and Entry for Date
+     Date = Label(ThirdDataframe, text="Date", padx=5)
+     Date.grid(row=1, column=3,padx=20,pady=4)
+     self.dateeentry= DateEntry(ThirdDataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.dateeentry.grid(row=1, column=4,sticky='w')
+     self.dateeentryvalue=incident_details.get('Date')
+     self.dateeentry.insert(0,self.dateeentryvalue if self.dateeentryvalue is not None else"")
+     
+     
+     #Creating Label and Entry for Time 
+
+     Created_by = Label(ThirdDataframe, text="Created_By", padx=5)
+     Created_by.grid(row=2, column=3)
+     self.Timee= Entry(ThirdDataframe, width=10)
+     self.Timee.grid(row=2, column=4,sticky='w')
+     self.timeevalue=incident_details.get('Createdby')
+     self.Timee.insert(0,self.timeevalue if self.timeevalue is not None else"")
+     
+
+
+     #Creating Label and Entry for Odometer
+
+     Odo= Label(ThirdDataframe, text="Odometer", padx=5)
+     Odo.grid(row=3, column=3)
+     self.Odoentry= Entry(ThirdDataframe, width=13)
+     self.Odoentry.grid(row=3, column=4,sticky='w')
+     self.Odoentryvalue=incident_details.get('Odometer')
+     self.Odoentry.insert(0,self.Odoentryvalue if self.Odoentryvalue is not None else"")
+     
+
+     #Creating Lable and Entry for Location:
+     # Define the label
+     self.Localabel = tk.Label(ThirdDataframe, text="Location:", padx=5)
+     self.Localabel.grid(row=4, column=3)
+
+    # Define locaentry
+     # Fetch data from the database using backend function
+     rowss = KBACKEND.fetch_locations_and_descriptions()
+     self.locations = [row[0] for row in rowss]  # First column values for dropdown
+    # Define loca combobox
+     self.locationn_1 = ttk.Combobox(ThirdDataframe, values=self.locations, width=15)
+     self.locationn_1.grid(row=4, column=4, sticky='w')
+     self.locationn_1value=additional_details.get('PF_Depot')
+     self.locationn_1.insert(0,self.locationn_1value if self.locationn_1value is not None else"")
+     
+     #self.locationn_1.bind("<<ComboboxSelected>>", self.populate_location_description)
+
+        # Define loca entry
+     self.locationn_2 = tk.Entry(ThirdDataframe, width=15)
+     self.locationn_2.grid(row=5, column=4, sticky='w', columnspan=4)
+
+     #Creating a Lable and Entry for Type
+
+     Category= ['B', 'F', 'L', 'T','V']
+     Loc=['O','R']
+     Charge=['N','R','W']
+
+     Typee= Label(ThirdDataframe, text="Type:")
+     Typee.grid(row=1,column=0,padx=5,pady=6)
+     self.CatEntryy= ttk.Combobox(ThirdDataframe, values=Category, width=13)
+     self.CatEntryy.grid(row=1, column=1, pady=4, sticky='w') 
+     self.CatEntryyvalue=incident_details.get('Cat')
+     self.CatEntryy.insert(0,self.CatEntryyvalue if self.CatEntryyvalue is not None else"")
+     
+
+     self.LolEntryy=ttk.Combobox(ThirdDataframe,values=Loc,width=13)
+     self.LolEntryy.grid(row=1,column=2,pady=4,sticky='w')
+     self.LolEntryyvalue=incident_details.get('Loca')
+     self.LolEntryy.insert(0,self.LolEntryyvalue if self.LolEntryyvalue is not None else"")
+     
+     
+     self.Chargeentryy=ttk.Combobox(ThirdDataframe,values=Charge,width=13)
+     self.Chargeentryy.grid(row=2,column=1,pady=4,sticky='w')
+     self.Chargeentryyvalue=incident_details.get('Charge')
+     self.Chargeentryy.insert(0,self.Chargeentryyvalue if self.Chargeentryyvalue is not None else"")
+     
+     
+     #Creating a Label and Entry for Fault Description
+     Fault= Label(ThirdDataframe, text="Fault Description:")
+     Fault.grid(row=3, column=0,sticky='w')
+     self.Faultentry= Text(ThirdDataframe,width=30, height='3',wrap='word')
+     self.Faultentry.grid(row=3,column=1,sticky='w')
+     self.Faultentryvalue=incident_details['Defectdesc']
+     self.Faultentry.insert("1.0",self.Faultentryvalue if self.Faultentryvalue is not None else"")
+     
+     #Creating a Lable and Entry for Status
+
+     Status= ["A","C","D","M","O","X"]
+     Statusdesc=["Awaiting Deployment","Completed","Depot Managed Incident","Centrally Managed/ VOR","Out of Hours Team"]
+     Statuss= Label(ThirdDataframe, text="Status:")
+     Statuss.grid(row=4,column=0,padx=2)
+     self.StatussEntryy= ttk.Combobox(ThirdDataframe, values=Status, width=3)
+     self.StatussEntryy.grid(row=4, column=1, padx=2, sticky='w')
+     self.StatussEntryyvalue= incident_details.get('Status')
+     self.StatussEntryy.insert(0,self.StatussEntryyvalue if self.StatussEntryyvalue is not None else"")
+     self.new_entryy = ttk.Combobox(ThirdDataframe,values=Statusdesc,width=10)
+     self.new_entryy.grid(row=5, column=1, padx=2,  sticky='w')
+
+     #Creating Label and Entry for closed
+     Closedlabel=Label(ThirdDataframe,text="Closed")
+     Closedlabel.grid(row=6, column=3)
+     self.closedd_var = tk.BooleanVar()
+     self.Closedd = tk.Checkbutton(ThirdDataframe, variable=self.closedd_var)
+     self.Closedd.grid(row=6,column=4,sticky='w')
+     self.Closeddvalue= incident_details.get('Closed',0)
+
+     # Convert the retrieved value to boolean (1 for True, 0 for False)
+     self.Closeddvalue = bool(self.Closeddvalue)
+
+     # Set the state of the Checkbutton based on the retrieved value
+     self.closedd_var.set(self.Closeddvalue)
+     #Creating Label and Entry for Attendance Deferred
+     
+
+     Attendance_Deff= Label(ThirdDataframe, text="Attendance_Deferred")
+     Attendance_Deff.grid(row=6,column=0)
+     self.attendance_vari=tk.BooleanVar()
+     self.AttendanceEntryy= ttk.Checkbutton(ThirdDataframe, variable=self.attendance_vari)
+     self.AttendanceEntryy.grid(row=6, column=1, sticky='w')
+     self.AttendanceEntryvalue= incident_details.get('Attendance',0)
+     
+     self.AttendanceEntryvalue=bool(self.AttendanceEntryvalue)
+     self.attendance_vari.set(self.AttendanceEntryvalue)
+     
+     Deffered = Label(ThirdDataframe, text='Deferred To')
+     Deffered.grid(row=7, column=0, padx=2, sticky='w')
+     self.Deferred_Too = DateEntry(ThirdDataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Deferred_Too.grid(row=7, column=1, padx=2, sticky='w')
+     self.Deferred_Tovalue= incident_details.get('Deferred')
+     self.Deferred_Too.insert(0,self.Deferred_Tovalue if self.Deferred_Tovalue is not None else"")
+
+     whatwords = Label(ThirdDataframe, text='Defect_loc_W3W')
+     whatwords.grid(row=7, column=2, padx=2, sticky='w')
+     self.whatwordsentryy = Entry(ThirdDataframe, width=30)
+     self.whatwordsentryy.grid(row=7, column=3, padx=2, sticky='w',columnspan=2) 
+     self.whatwordsentryyvalue= incident_details.get('Whatwords')
+     self.whatwordsentryy.insert(0,self.whatwordsentryyvalue if self.whatwordsentryyvalue is not None else"")
+
+     
+     #Creating Frame for Supplier details
+     Fourthdataframe=LabelFrame(self.mainn_page,bd=3,relief=tk.RIDGE,text="Supplier Details")
+     Fourthdataframe.pack(side=tk.TOP,padx=8,pady=3, anchor="nw")
+     Fourthdataframe.place(x=0,y=503,width=780,height=60)
+     
+     #Creating label and Entry for Name:
+     supp=KBACKEND.fetch_supplier_details()
+     self.supplier = [row[1] for row in supp]
+
+     Namesup= Label(Fourthdataframe, text="Supplier No:")
+     Namesup.grid(row=0,column=0,padx=5)
+     self.nameentryY= ttk.Entry(Fourthdataframe,width=30)
+     self.nameentryY.grid(row=0,column=1,padx=5)
+     
+      #Creating label and Entry for Contat:
+     Contactsup= Label(Fourthdataframe, text="Supplier Name:")
+     Contactsup.grid(row=0,column=2,padx=5,pady=5)
+     self.Contactentryy= ttk.Combobox(Fourthdataframe,values=self.supplier,width=30)
+     self.Contactentryy.grid(row=0,column=3,padx=5,pady=5)
+     #self.Contactentry.bind("<<ComboboxSelected>>", self.populate_supplier_details)
+
+     #Creating Label and Entry for phone 
+
+     Phonesup= Label(Fourthdataframe, text="Phone:")
+     Phonesup.grid(row=0,column=4,padx=5)
+     self.Phoneentryy= ttk.Entry(Fourthdataframe,width=20)
+     self.Phoneentryy.grid(row=0,column=5,padx=5)
+
+     
+
+
+    def open_incident_window(self,index):
+        if index==1:
+           self.close_the_incident_window()
+        if index==2:
+           self.save_the_incident_details()
+        if index==3:
+           self.open_events_From_mainpage()
+    
+    ############### Giving Functionalities for icons of the incidentspage navigated from mainpage ########
+    def close_the_incident_window(self):
+        self.form_window.destroy()
+    def save_the_incident_details(self):
+       pass
+    def open_events_From_mainpage(self):
+       pass
+
+
+
+
+
+
+
+
+
+
+
+
+     
+         
+
+
+
+    
+
+    # Giving the functionalities for the icons such as exit and save 
+    def open_icon_windowthird(self,index):
+        if index == 1:
+            self.close_the_third_window()
+        elif index == 2:
+            self.save_the_details()   
+        
+    def close_the_third_window(self):
+        self.purchase_order.destroy()  
+    def save_the_details():
+        pass
+
+
+
+    #This closes the first window and exits the application.
+    def close_the_window(self):
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+          self.root.destroy()
+    
+
+    
+        
+
+
+    
+
+       
+
+        
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = KerridgeReplacement(root)
+    root.mainloop()
+
+
