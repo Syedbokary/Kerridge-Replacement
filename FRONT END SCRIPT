@@ -15,7 +15,8 @@ class KerridgeReplacement:
         self.root.title("Kerridge Replacement Application")
         self.root.geometry("800x600")
         
-
+        
+        # Initialize your UI
          
         # Add icons within a box
         self.add_icon_box()
@@ -23,10 +24,17 @@ class KerridgeReplacement:
         # Add a DataFrame below the icons
         self.add_data_frame()
 
+        self.undo_stack = []
+        
+        # Bind the apply_filter function to the Enter key press event for Entry fields
+        self.Regtext1.bind("<KeyRelease>", self.handle_filtering)
+        self.text2.bind("<KeyRelease>", self.handle_filtering)
+        self.text3.bind("<KeyRelease>", self.handle_filtering)
+        self.text6.bind("<<DateEntrySelected>>", self.handle_filtering)
         
 
         
-        
+
          
        
     #Creating the top 13 icons with images
@@ -71,55 +79,92 @@ class KerridgeReplacement:
         lb1.grid(row=0, column=0)
         self.Regtext1 = Entry(dataframe, width=18)
         self.Regtext1.grid(row=0, column=1)
+        self.attach_context_menu(self.Regtext1)
 
         lb2 = Label(dataframe, text="Customer", padx=10)
         lb2.grid(row=0, column=2)
-        self.text2 = Entry(dataframe, width=30)
+        self.text2 = Entry(dataframe, width=25)
         self.text2.grid(row=0, column=3)
+        self.attach_context_menu(self.text2)
     
         lb3 = Label(dataframe, text="Owner", padx=5)
         lb3.grid(row=0, column=4)
         self.text3 = Entry(dataframe, width=13)
         self.text3.grid(row=0, column=5)
+        self.attach_context_menu(self.text3)
 
         lb4 = Label(dataframe, text="Creator", padx=5)
         lb4.grid(row=0, column=6)
         self.text4 = Entry(dataframe, width=13)
         self.text4.grid(row=0, column=7)
+        self.attach_context_menu(self.text4)
 
-        # Incident Type
-        lb5 = Label(dataframe, text="Incident Type", padx=5)
+        # Incident Type-Cat
+        catdetails=KBACKEND.fetch_cat_details()
+        self.catdetails= [row[0] for row in catdetails]
+        lb5 = Label(dataframe, text="Defect_Cat", padx=5,pady=5)
         lb5.grid(row=1, column=0)
-        self.text5 = Entry(dataframe, width=18)
+        self.text5 = ttk.Combobox(dataframe, values= self.catdetails, width=13)
         self.text5.grid(row=1, column=1)
+        self.attach_context_menu(self.text5)
+        
+        #Incident Type- Loc
+        locationdetails= KBACKEND.fetch_Location_details()
+        self.locationdetails= [row[0] for row in locationdetails]
+        locationlabel= Label(dataframe,text="I_Location", padx=5)
+        locationlabel.grid(row=1,column=2)
+        self.I_location=ttk.Combobox(dataframe,values=self.locationdetails,width=13)
+        self.I_location.grid(row=1,column=3)
+        self.attach_context_menu(self.I_location)
 
+        #Incident Type- Charge
+        Chargedetails=KBACKEND.fetch_charge_details()
+        self.chargedetails=[row[0] for row in Chargedetails]
+        chargelabel=Label(dataframe,text="Charge",padx=5)
+        chargelabel.grid(row=1,column=4)
+        self.I_charge=ttk.Combobox(dataframe,values=self.chargedetails,width=13)
+        self.I_charge.grid(row=1,column=5)
+        self.attach_context_menu(self.I_charge)
         # Incident date
         lb6 = Label(dataframe, text="Incident date", padx=5)
-        lb6.grid(row=1, column=2)
-        self.text6 = DateEntry(dataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-        self.text6.grid(row=1, column=3)
+        lb6.grid(row=1, column=6)
+        self.text6 = DateEntry(dataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='yyyy-mm-dd')
+        self.text6.grid(row=1, column=7)
+        #self.text6.set_date(None)
+        self.text6.delete(0, "end")
+        self.attach_context_menu(self.text6)
 
         #status
         lb7=Label(dataframe,text="Status",padx=5)
-        lb7.grid(row=1, column=4)
+        lb7.grid(row=2, column=0)
         self.text7= Entry(dataframe,width=13)
-        self.text7.grid(row=1,column=5,padx=5,pady=5)
+        self.text7.grid(row=2,column=1,padx=5,pady=5)
+        self.attach_context_menu(self.text7)
         
 
         #closed
-
-        text11= Checkbutton(dataframe,width=2)
-        text11.grid(row=1,column=6)
+        self.is_closed= tk.BooleanVar()
+        self.text11= Checkbutton(dataframe,variable=self.is_closed,width=2,command=self.handle_checkbutton)
+        self.text11.grid(row=2,column=2)
         self.lb8=Label(dataframe,text="Closed")
-        self.lb8.grid(row=1, column=7,)
+        self.lb8.grid(row=2, column=3)
+        self.attach_context_menu(self.text11)
 
         #Locations
 
         lb8= Label(dataframe,text="Locations")
-        lb8.grid(row=2,column=0)
+        lb8.grid(row=2,column=4)
         self.text12=Entry(dataframe,width=18)
-        self.text12.grid(row=2,column=1)
+        self.text12.grid(row=2,column=5)
+        self.attach_context_menu(self.text12)
         
+        
+       
+
+        
+        self.clear_button = Button(dataframe, text="Clear All",width=10,command=self.clear_filters)
+        self.clear_button.grid(row=2, column=7)
+
 
         #Creating Buttons in the legend frame
         #OverdueButton
@@ -279,12 +324,13 @@ class KerridgeReplacement:
             self.Depotentry.delete(0, tk.END)
 
             self.text1.insert(0, reg_no)
-            self.Fleet_entry.insert(0, result[0])
+            self.Fleet_entry.insert(0, result[1])
             self.text2.insert(0,result[2])
             self.Customer_Identry.insert(0, result[4])
             self.Cust_Name_Entry.insert(0,result[5]) 
             self.Contract_No_Entry.insert(0,result[3])
             self.location_1.insert(0,result[6])
+            self.populate_location_description()
             self.Depotentry.insert(0,result[7])
 
         else:
@@ -359,10 +405,12 @@ class KerridgeReplacement:
      self.text1 = Entry(dataframe,width=15)
      self.text1.insert(0, reg_no)
      self.text1.grid(row=0, column=1)
+     self.attach_context_menu(self.text1)
      
      #Creating an Entry for page 2
      self.text2 = Entry(dataframe, width=30)
      self.text2.grid(row=0, column=2,padx=70)
+     self.attach_context_menu(self.text2)
      
      #Creating a Label and Entry for Driver name:
 
@@ -370,12 +418,14 @@ class KerridgeReplacement:
      lb3.grid(row=0, column=3)
      self.Driverentry = Entry(dataframe, width=18)
      self.Driverentry.grid(row=0, column=4)
+     self.attach_context_menu(self.Driverentry)
 
      #Creating a Label and Entry for Fleet No:
      Fleet_No=Label(dataframe, text="Fleet No:")
      Fleet_No.grid(row=1, column=0,pady=6)
      self.Fleet_entry=Entry(dataframe,width=15)
      self.Fleet_entry.grid(row=1,column=1)
+     self.attach_context_menu(self.Fleet_entry)
 
      #Creating a Label and Entry for Vehicle loaded:
 
@@ -383,17 +433,19 @@ class KerridgeReplacement:
      lb3.grid(row=2, column=0)
      Vehicle_loaded=Checkbutton(dataframe,width=2)
      Vehicle_loaded.grid(row=2,column=1)
+     
 
      #Creating another Entry for page 2
      text2 = Entry(dataframe, width=30)
      text2.grid(row=1, column=2,padx=80)
-
+     
      #Creating a Label and Entry for Driver Phone:
 
      lb3 = Label(dataframe, text="Phone:")
      lb3.grid(row=1, column=3)
      self.Driverphone = Entry(dataframe, width=18)
      self.Driverphone.grid(row=1, column=4)
+     self.attach_context_menu(self.Driverphone)
     
      #Second Data Frame for Customer and Company Details 
      Customer= LabelFrame(self.main_page, bd=3, relief=tk.RIDGE,text="Customer/Company Details")
@@ -405,19 +457,21 @@ class KerridgeReplacement:
      Customer_Id.grid(row=0, column=0)
      self.Customer_Identry= Entry(Customer, width=16)
      self.Customer_Identry.grid(row=0, column=1)
+     self.attach_context_menu(self.Customer_Identry)
 
      #Creating Label for Cust_Name and entry
      Cust_Name = Label(Customer, text="Name:", padx=3, pady=3)
      Cust_Name.grid(row=0, column=2)
      self.Cust_Name_Entry= Entry(Customer, width=16)
      self.Cust_Name_Entry.grid(row=0, column=3)
-     
+     self.attach_context_menu(self.Cust_Name_Entry)   
      #Creating Label for Contract_No and Entry
      
      Contract_No = Label(Customer, text="Contract_No:", padx=3, pady=3)
      Contract_No.grid(row=0, column=4)
      self.Contract_No_Entry= Entry(Customer, width=16)
      self.Contract_No_Entry.grid(row=0, column=5)
+     self.attach_context_menu(self.Contract_No_Entry)
      
       #Creating Label for Contact_Tel and Entry
 
@@ -425,6 +479,7 @@ class KerridgeReplacement:
      Contact_Tel.grid(row=0, column=6)
      self.Contact_Tel_Entry= Entry(Customer, width=16)
      self.Contact_Tel_Entry.grid(row=0, column=7)
+     self.attach_context_menu(self.Contact_Tel_Entry)
 
     #Creating Label for Contact_Email and Entry
 
@@ -432,6 +487,7 @@ class KerridgeReplacement:
      Contact_Email.grid(row=1, column=0)
      self.Contact_Email_Entry= Entry(Customer, width=16)
      self.Contact_Email_Entry.grid(row=1, column=1)
+     self.attach_context_menu(self.Contact_Email_Entry)
 
       #Creating Label for Contact_Email and Entry
 
@@ -439,6 +495,7 @@ class KerridgeReplacement:
      Contact_Name_Label.grid(row=1, column=2)
      self.Contact_Name_Entry= Entry(Customer, width=16)
      self.Contact_Name_Entry.grid(row=1, column=3)
+     self.attach_context_menu(self.Contact_Name_Entry)
 
      #Creating Label for Customer_Defect_No and Entry
 
@@ -446,6 +503,7 @@ class KerridgeReplacement:
      Customer_DefNO.grid(row=1, column=4)
      self.Customer_defno_Entry= Entry(Customer, width=16)
      self.Customer_defno_Entry.grid(row=1, column=5)
+     self.attach_context_menu(self.Customer_defno_Entry)
 
       #Creating Label for Order_No and Entry
 
@@ -453,18 +511,21 @@ class KerridgeReplacement:
      Order_No.grid(row=1, column=6)
      self.Order_No_Entry= Entry(Customer, width=16)
      self.Order_No_Entry.grid(row=1, column=7)
+     self.attach_context_menu(self.Order_No_Entry)
 
      #Creating Label for Contact_Method_ID AND Entry
      Contact_Method_Id=Label(Customer,text="Contact_Method_ID",padx=3,pady=3)
      Contact_Method_Id.grid(row=2,column=0)
      self.Contact_Method_Entry=Entry(Customer,width=16)
      self.Contact_Method_Entry.grid(row=2,column=1)
+     self.attach_context_menu(self.Contact_Method_Entry)
 
      #Creating Label for Depot
      Depot=Label(Customer,text="Depot",padx=3,pady=3)
      Depot.grid(row=2,column=2)
      self.Depotentry=Entry(Customer,width=16)
      self.Depotentry.grid(row=2,column=3)
+     self.attach_context_menu(self.Depotentry)
 
      #Creating a frame for incident details 
       
@@ -477,6 +538,7 @@ class KerridgeReplacement:
      Location.grid(row=0, column=0,pady=(0,25),sticky='w')
      self.locaentry= Text(Incident_details,width=40, height='3',wrap='word')
      self.locaentry.grid(row=0,column=1,columnspan=2,sticky='w')
+     self.attach_context_menu(self.locaentry)
 
      #Creating a label and Entry for Number
 
@@ -486,12 +548,14 @@ class KerridgeReplacement:
      gen_number=KBACKEND.generate_new_i_number()
      self.Numberentry.insert(0, gen_number)
      self.Numberentry.grid(row=0,column=4)
+     self.attach_context_menu(self.Numberentry)
      
      #Creating Label and Entry for Date
      Date = Label(Incident_details, text="Date", padx=5)
      Date.grid(row=1, column=3,padx=20,pady=4)
      self.datee= DateEntry(Incident_details, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
      self.datee.grid(row=1, column=4,sticky='w')
+     self.attach_context_menu(self.datee)
 
      #Creating Label and Entry for Time 
 
@@ -499,6 +563,7 @@ class KerridgeReplacement:
      Created_by.grid(row=2, column=3)
      self.Time= Entry(Incident_details, width=10)
      self.Time.grid(row=2, column=4,sticky='w')
+     self.attach_context_menu(self.Time)
 
 
      #Creating Label and Entry for Odometer
@@ -507,6 +572,7 @@ class KerridgeReplacement:
      Odo.grid(row=3, column=3)
      self.Odo= Entry(Incident_details, width=13)
      self.Odo.grid(row=3, column=4,sticky='w')
+     self.attach_context_menu(self.Odo)
 
      #Creating Lable and Entry for Location:
      # Define the label
@@ -520,80 +586,93 @@ class KerridgeReplacement:
      self.locations = [row[0] for row in rows]  # First column values for dropdown
 
         # Define loca label
-     self.loca_label = tk.Label(Incident_details, text="Location:", padx=5)
+     self.loca_label = tk.Label(Incident_details, text="Location:", padx=3)
      self.loca_label.grid(row=4, column=3)
 
         # Define loca combobox
      self.location_1 = ttk.Combobox(Incident_details, values=self.locations, width=15)
      self.location_1.grid(row=4, column=4, sticky='w')
-     self.location_1.bind("<<ComboboxSelected>>", self.populate_location_description)
+     self.attach_context_menu(self.location_1)
+     
 
         # Define loca entry
      self.location_2 = tk.Entry(Incident_details, width=15)
      self.location_2.grid(row=5, column=4, sticky='w', columnspan=4)
+     self.attach_context_menu(self.location_2)
 
-
+     self.location_1.bind("<<ComboboxSelected>>", self.populate_location_description)
+     
 
      #Creating a Lable and Entry for Type
 
-     Category= ['B', 'F', 'L', 'T','V']
-     Loc=['O','R']
-     Charge=['N','R','W']
+     self.Catdetails=KBACKEND.fetch_cat_details()
+     self.catdesc=[row[0] for row in self.Catdetails]
+     
 
      Type= Label(Incident_details, text="Type:")
      Type.grid(row=1,column=0,padx=5,pady=6)
-     self.CatEntry= ttk.Combobox(Incident_details, values=Category, width=13)
-     self.CatEntry.grid(row=1, column=1, pady=4, sticky='w') 
-
-     self.LolEntry=ttk.Combobox(Incident_details,values=Loc,width=13)
-     self.LolEntry.grid(row=1,column=2,pady=4,sticky='w')
+     self.CatEntry= ttk.Combobox(Incident_details, values=self.catdesc, width=13)
+     self.CatEntry.grid(row=1, column=1, pady=4, sticky='w')
+     self.attach_context_menu(self.CatEntry)
      
-     self.Chargeentry=ttk.Combobox(Incident_details,values=Charge,width=13)
+     self.Locdetils=KBACKEND.fetch_Location_details()
+     self.locdesc= [row[0] for row in self.Locdetils]
+     self.LolEntry=ttk.Combobox(Incident_details,values=self.locdesc,width=13)
+     self.LolEntry.grid(row=1,column=2,pady=4,sticky='w')
+     self.attach_context_menu(self.LolEntry)
+
+     self.Chardetails=KBACKEND.fetch_charge_details()
+     self.chardesc=[row[0] for row in self.Chardetails]
+     self.Chargeentry=ttk.Combobox(Incident_details,values=self.chardesc,width=13)
      self.Chargeentry.grid(row=2,column=1,pady=4,sticky='w')
+     self.attach_context_menu(self.Chargeentry)
+
      #Creating a Label and Entry for Fault Description
      Fault= Label(Incident_details, text="Fault Desription:")
      Fault.grid(row=3, column=0, pady=(0,25),sticky='w')
      self.Faultentry= Text(Incident_details,width=40, height='3',wrap='word')
      self.Faultentry.grid(row=3,column=1,sticky='w')
+     self.attach_context_menu(self.Faultentry)
      
 
      #Creating a Lable and Entry for Status
-
-     Status= ["A","C","D","M","O","X"]
-     Statusdesc=["Awaiting Deployment","Completed","Depot Managed Incident","Centrally Managed/ VOR","Out of Hours Team"]
+     statrows=KBACKEND.fetch_status_details()
+     self.statusdescription= [row[0] for row in statrows]
      Statuss= Label(Incident_details, text="Status:")
      Statuss.grid(row=4,column=0,padx=2)
-     self.StatussEntry= ttk.Combobox(Incident_details, values=Status, width=3)
-     self.StatussEntry.grid(row=4, column=1, padx=2, sticky='w')
-     self.new_entry = ttk.Combobox(Incident_details,values=Statusdesc,width=10)
-     self.new_entry.grid(row=5, column=1, padx=2,  sticky='w')
+     self.StatussEntry= ttk.Combobox(Incident_details, values=self.statusdescription, width=10)
+     self.StatussEntry.grid(row=4, column=1, padx=2,pady=4, sticky='w')
+     self.attach_context_menu(self.StatussEntry)
+
+
 
      #Creating Label and Entry for closed
      Closedlabel=Label(Incident_details,text="Closed")
-     Closedlabel.grid(row=6, column=3)
+     Closedlabel.grid(row=7, column=3)
      self.closed_var = tk.BooleanVar()
      self.Closed = tk.Checkbutton(Incident_details, variable=self.closed_var)
-     self.Closed.grid(row=6,column=4,sticky='w')
+     self.Closed.grid(row=7,column=4,sticky='w')
 
      #Creating Label and Entry for Attendance Deferred
      
 
      Attendance_Def= Label(Incident_details, text="Attendance_Deferred")
-     Attendance_Def.grid(row=6,column=0)
+     Attendance_Def.grid(row=5,column=0)
      self.attendance_var=tk.BooleanVar()
      self.AttendanceEntry= ttk.Checkbutton(Incident_details, variable=self.attendance_var)
-     self.AttendanceEntry.grid(row=6, column=1, sticky='w')
+     self.AttendanceEntry.grid(row=5, column=1, sticky='w')
      
      Deff = Label(Incident_details, text='Deferred To')
-     Deff.grid(row=7, column=0, padx=2, sticky='w')
+     Deff.grid(row=6, column=0, padx=2, sticky='w')
      self.Deferred_To = DateEntry(Incident_details, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-     self.Deferred_To.grid(row=7, column=1, padx=2, sticky='w')
+     self.Deferred_To.grid(row=6, column=1, padx=2, sticky='w')
+     self.attach_context_menu(self.Deferred_To)
 
      whatwords = Label(Incident_details, text='Defect_loc_W3W')
-     whatwords.grid(row=7, column=2, padx=2, sticky='w')
-     self.whatwordsentry = Entry(Incident_details, width=30)
-     self.whatwordsentry.grid(row=7, column=3, padx=2, sticky='w',columnspan=2)  # Set columnspan to 2
-
+     whatwords.grid(row=6, column=3 ,sticky='w')
+     self.whatwordsentry = Entry(Incident_details, width=20)
+     self.whatwordsentry.grid(row=6, column=4,sticky='w')  # Set columnspan to 2
+     self.attach_context_menu(self.whatwordsentry)
 
 
    
@@ -610,12 +689,14 @@ class KerridgeReplacement:
      Namesup.grid(row=0,column=0,padx=5)
      self.nameentry= ttk.Entry(Supplier_details,width=30)
      self.nameentry.grid(row=0,column=1,padx=5)
+     self.attach_context_menu(self.nameentry)
      
       #Creating label and Entry for Contat:
      Contactsup= Label(Supplier_details, text="Supplier Name:")
      Contactsup.grid(row=0,column=2,padx=5,pady=5)
      self.Contactentry= ttk.Combobox(Supplier_details,values=self.supplier,width=30)
      self.Contactentry.grid(row=0,column=3,padx=5,pady=5)
+     self.attach_context_menu(self.Contactentry)
      self.Contactentry.bind("<<ComboboxSelected>>", self.populate_supplier_details)
 
      #Creating Label and Entry for phone 
@@ -624,6 +705,7 @@ class KerridgeReplacement:
      Phonesup.grid(row=0,column=4,padx=5)
      self.Phoneentry= ttk.Entry(Supplier_details,width=20)
      self.Phoneentry.grid(row=0,column=5,padx=5)
+     self.attach_context_menu(self.Phoneentry)
      
     # Events page components
      EventsFrame= LabelFrame(self.events_page, relief=tk.RIDGE,text="Events")
@@ -690,18 +772,22 @@ class KerridgeReplacement:
      Event_types= ["abcd","shhshs""hhsjjs"]
      Event_type= Label(Incident_Event, text="Event type:")
      Event_type.grid(row=0,column=0,padx=5,pady=5)
-     Event_type_entry= ttk.Combobox(Incident_Event,values=Event_types,width=20)
-     Event_type_entry.grid(row=0,column=1,sticky="w",padx=5,pady=5)
-     Event_another_entry= Entry(Incident_Event,width=50)
-     Event_another_entry.grid(row=0,column=2,sticky="w")
+     self.Event_type_entry= ttk.Combobox(Incident_Event,values=Event_types,width=20)
+     self.Event_type_entry.grid(row=0,column=1,sticky="w",padx=5,pady=5)
+     self.attach_context_menu(self.Event_type_entry)
+     self.Event_another_entry= Entry(Incident_Event,width=50)
+     self.Event_another_entry.grid(row=0,column=2,sticky="w")
+     self.attach_context_menu(self.Event_another_entry)
 
      Actions= ["abcd","shhshs""hhsjjs"]
      Action_required= Label(Incident_Event, text="Action required:")
      Action_required.grid(row=1,column=0,padx=5,pady=5)
-     Action_required_entry= ttk.Combobox(Incident_Event,values=Actions,width=20)
-     Action_required_entry.grid(row=1,column=1,sticky="w",padx=5,pady=5)
-     Action_required_another_entry= Entry(Incident_Event,width=50)
-     Action_required_another_entry.grid(row=1,column=2,sticky="w")
+     self.Action_required_entry= ttk.Combobox(Incident_Event,values=Actions,width=20)
+     self.Action_required_entry.grid(row=1,column=1,sticky="w",padx=5,pady=5)
+     self.attach_context_menu(self.Action_required_entry)
+     self.Action_required_another_entry= Entry(Incident_Event,width=50)
+     self.Action_required_another_entry.grid(row=1,column=2,sticky="w")
+     self.attach_context_menu(self.Action_required_another_entry)
 
      Created= LabelFrame(self.icon3_window,bd=3, relief=tk.RIDGE,text="Created")
      Created.pack(side=tk.TOP, padx=8, pady=3, anchor="w")
@@ -709,18 +795,21 @@ class KerridgeReplacement:
      #Creating Date, Time and ID INSIDE THE CREATED DATAFRAME
      Date_created = Label(Created, text="Date:")
      Date_created.grid(row=0, column=0,padx=5,pady=4)
-     Date_created_Entry= DateEntry(Created, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-     Date_created_Entry.grid(row=0, column=1,sticky='w')
+     self.Date_created_Entry= DateEntry(Created, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Date_created_Entry.grid(row=0, column=1,sticky='w')
+     self.attach_context_menu(self.Date_created_Entry)
      #Time
      Time_created= Label(Created,text="Time:")
      Time_created.grid(row=1,column=0)
-     Time_created_entry= Entry(Created,width=9)
-     Time_created_entry.grid(row=1,column=1,sticky="w")
+     self.Time_created_entry= Entry(Created,width=9)
+     self.Time_created_entry.grid(row=1,column=1,sticky="w")
+     self.attach_context_menu(self.Time_created_entry)
      #id
      ID= Label(Created,text="ID:")
      ID.grid(row=2,column=0)
-     ID_entry= Entry(Created,width=15)
-     ID_entry.grid(row=2,column=1,sticky="w")
+     self.ID_entry= Entry(Created,width=15)
+     self.ID_entry.grid(row=2,column=1,sticky="w")
+     self.attach_context_menu(self.ID_entry)
 
 
      Event_text=Frame(self.icon3_window,bd=3,relief=tk.RIDGE)
@@ -729,8 +818,9 @@ class KerridgeReplacement:
      #Creating a label and entry field for Event text inside Event text frame 
      Event_details= Label(Event_text, text="Event_text:")
      Event_details.grid(row=0, column=0,sticky='w')
-     Event_details_entry= Text(Event_text,width=50, height='10',wrap='word')
-     Event_details_entry.grid(row=0,column=1,sticky='w',padx=5,pady=5)
+     self.Event_details_entry= Text(Event_text,width=50, height='10',wrap='word')
+     self.Event_details_entry.grid(row=0,column=1,sticky='w',padx=5,pady=5)
+     self.attach_context_menu(self.Event_details_entry)
 
 
 
@@ -740,18 +830,21 @@ class KerridgeReplacement:
      #Creating Date, Time and ID INSIDE THE Last Amended DATAFRAME
      Date_amended = Label(Last_amended, text="Date:")
      Date_amended.grid(row=0, column=0,padx=5,pady=4)
-     Date_amended_Entry= DateEntry(Last_amended, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-     Date_amended_Entry.grid(row=0, column=1,sticky='w')
+     self.Date_amended_Entry= DateEntry(Last_amended, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Date_amended_Entry.grid(row=0, column=1,sticky='w')
+     self.attach_context_menu(self.Date_amended_Entry)
      #Time
      Time_amended= Label(Last_amended,text="Time:")
      Time_amended.grid(row=1,column=0)
-     Time_amended_entry= Entry(Last_amended,width=9)
-     Time_amended_entry.grid(row=1,column=1,sticky="w")
+     self.Time_amended_entry= Entry(Last_amended,width=9)
+     self.Time_amended_entry.grid(row=1,column=1,sticky="w")
+     self.attach_context_menu(self.Time_amended_entry)
      #id
      IDlast= Label(Last_amended,text="ID:")
      IDlast.grid(row=2,column=0)
-     ID_last_entry= Entry(Last_amended,width=15)
-     ID_last_entry.grid(row=2,column=1,sticky="w")
+     self.ID_last_entry= Entry(Last_amended,width=15)
+     self.ID_last_entry.grid(row=2,column=1,sticky="w")
+     self.attach_context_menu(self.ID_last_entry)
 
 
      Next_event= LabelFrame(self.icon3_window,bd=3,relief=tk.RIDGE,text="Next Event")
@@ -760,29 +853,35 @@ class KerridgeReplacement:
      #Creating Date, Time and ID,Type INSIDE THE Next Event Dataframe
      Date_nextevent = Label(Next_event, text="Date:")
      Date_nextevent.grid(row=0, column=0,padx=5,pady=4)
-     Date_nextevent_Entry= DateEntry(Next_event, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-     Date_nextevent_Entry.grid(row=0, column=1,sticky='w')
+     self.Date_nextevent_Entry= DateEntry(Next_event, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Date_nextevent_Entry.grid(row=0, column=1,sticky='w')
+     self.attach_context_menu(self.Date_nextevent_Entry)
      #Time
      Time_nextevent= Label(Next_event,text="Time:")
      Time_nextevent.grid(row=1,column=0,padx=5,pady=5)
-     Time_nextevent_entry= Entry(Next_event,width=9)
-     Time_nextevent_entry.grid(row=1,column=1,sticky="w",padx=5,pady=5)
+     self.Time_nextevent_entry= Entry(Next_event,width=9)
+     self.Time_nextevent_entry.grid(row=1,column=1,sticky="w",padx=5,pady=5)
+     self.attach_context_menu(self.Time_nextevent_entry)
      #id
      ids= ["abcd","shhshs""hhsjjs"]
      id_nextevent= Label(Next_event, text="ID:")
      id_nextevent.grid(row=2,column=0,padx=5,pady=5)
-     id_nextevent_entry= ttk.Combobox(Next_event,values=ids,width=20)
-     id_nextevent_entry.grid(row=2,column=1,sticky="w",padx=5,pady=5)
-     id_another_entry= Entry(Next_event,width=40)
-     id_another_entry.grid(row=2,column=2,sticky="w")
+     self.id_nextevent_entry= ttk.Combobox(Next_event,values=ids,width=20)
+     self.id_nextevent_entry.grid(row=2,column=1,sticky="w",padx=5,pady=5)
+     self.attach_context_menu(self.id_nextevent_entry)
+     self.id_another_entry= Entry(Next_event,width=40)
+     self.id_another_entry.grid(row=2,column=2,sticky="w")
+     self.attach_context_menu(self.id_another_entry)
 
      Typess= ["abcd","shhshs""hhsjjs"]
      Type_nextevent= Label(Next_event, text="Type:")
      Type_nextevent.grid(row=3,column=0,padx=5,pady=5)
-     Type_nextevent_entry= ttk.Combobox(Next_event,values=Typess,width=20)
-     Type_nextevent_entry.grid(row=3,column=1,sticky="w",padx=5,pady=5)
-     Type_another_entry= Entry(Next_event,width=40)
-     Type_another_entry.grid(row=3,column=2,sticky="w")
+     self.Type_nextevent_entry= ttk.Combobox(Next_event,values=Typess,width=20)
+     self.Type_nextevent_entry.grid(row=3,column=1,sticky="w",padx=5,pady=5)
+     self.attach_context_menu(self.Type_nextevent_entry)
+     self.Type_another_entry= Entry(Next_event,width=40)
+     self.Type_another_entry.grid(row=3,column=2,sticky="w")
+     self.attach_context_menu(self.Type_another_entry)
 
      #defining functionalities for icons in the event details page 
      icon_box = tk.Frame(self.icon3_window, relief=tk.RIDGE, borderwidth=3)
@@ -825,17 +924,19 @@ class KerridgeReplacement:
         
         
     # Define a function to populate Kerride_table with all incidents from the database
-    def populate_kerride_table(self):
+    def populate_kerride_table(self,filter_text=None, is_closed=False):
+     
     # Clear existing data from Kerride_table
      self.root.Kerride_table.delete(*self.root.Kerride_table.get_children())
 
     # Retrieve all incidents from the database
      all_incidents = KBACKEND.retrieve_all_incidents()
-
+     
      if all_incidents:
-        for incident in all_incidents:
-        # Retrieve attribute values for each incident
-         incident_date = incident.get("Incident Date")
+        for incident in all_incidents: 
+         incident_datetime_s = incident.get("Incident Date")
+         # Split the datetime string at the space character to extract the date part
+         date_part = incident_datetime_s.date()
          registration = incident.get("Registration")
          Customer=incident.get("Customer")
          I_no=incident.get("Incident No")
@@ -844,25 +945,56 @@ class KerridgeReplacement:
          loc=incident.get("Location")
          Char=incident.get("Charge")
          location=incident.get("Locationn")
-         # Insert the incident into Kerride_table
-         self.root.Kerride_table.insert("", "end", values=(incident_date,Customer,location,registration,I_no,Cat,loc,Char,Status ))
-     
-     return all_incidents
-    
-    #else:
-    #print("No incidents found in the database.")
-
-  
-    
         
-
+         
+          # If filter_text is provided and incident does not match the filter, skip it
+         if filter_text and not any(filter_text.lower() in str(value).lower() for value in (date_part,registration, Customer, location, I_no, Cat, loc, Char, Status)):
+                continue
+         
+         # If is_closed is True and status is not "X", skip the incident
+         if is_closed and Status != "X":
+                continue
+         
+         self.root.Kerride_table.insert("", "end", values=(incident_datetime_s,Customer,location,registration,I_no,Cat,loc,Char,Status ))
+     else:
+      print("No incidents found in the database.")
     
+    # Define a function to handle filtering when Entry fields are updated
+    def handle_filtering(self, event):
+        # Get the text entered in the Entry field that triggered the event
+        filter_text = event.widget.get()
+    
+        # Populate Kerride_table with filtered data
+        self.populate_kerride_table(filter_text)
 
+    def handle_checkbutton(self):
+     # Get the state of the Checkbutton
+     is_closed = self.is_closed.get()
 
+     # Populate Kerride_table with filtered data
+     self.populate_kerride_table(is_closed=is_closed)
+    
+    
+    def clear_filters(self):
+     # Clear all filter inputs
+     self.Regtext1.delete(0, "end")
+     self.text2.delete(0, "end")
+     self.text3.delete(0, "end")
+     self.text4.delete(0, "end")
+     self.text5.set('')
+     self.I_location.set('')
+     self.I_charge.set('')
+     self.text6.delete(0, "end")
+     self.text7.delete(0, "end")
+     self.text12.delete(0, "end")
+
+     # Repopulate table with all data
+     self.populate_kerride_table()
     
     
     def open_next_window(self):
      reg_no = self.text1.get()
+     I_number=self.Numberentry.get()
      driver_name = self.Driverentry.get()
      drivertel=self.Driverphone.get()
      created= self.Time.get()
@@ -910,21 +1042,18 @@ class KerridgeReplacement:
      locat= self.location_1.get()
      depo= self.Depotentry.get()
      defectno=self.Customer_defno_Entry.get()
+     supplier_no= self.nameentry.get()
 
 
-
-
-
-
-     KBACKEND.store_registration(reg_no, driver_name,created,combined_datetime,contact_method,contactname,
-                                 contacttel,contactemail,drivertel,Defect_loc,faultdesc,Cat,lol,charge,status,odo,
-                                 attendance,combined_deferred,what3,close,fleet,custid,contractno,locat,defectno)
+     KBACKEND.store_registration(reg_no, I_number, driver_name,created,combined_datetime,contact_method,contactname,
+                                 contacttel,contactemail,drivertel,Defect_loc,faultdesc,Cat,lol,
+                                 charge,status,odo,attendance,combined_deferred,what3,close,fleet,custid,contractno,locat,defectno,supplier_no)
     
 
 
      last_incident = KBACKEND.retrieve_last_incident()
 
-     # Clear existing data from Kerride_table
+     ## Clear existing data from Kerride_table
      self.root.Kerride_table.delete(*self.root.Kerride_table.get_children())
      
      if last_incident:
@@ -961,6 +1090,8 @@ class KerridgeReplacement:
               self.Phoneentry.delete(0,tk.END)
               self.nameentry.insert(0,row[0])
               self.Phoneentry.insert(0,row[2])
+
+    
     
  
 
@@ -1031,50 +1162,58 @@ class KerridgeReplacement:
      #Creating Label and Entry for Reg no 
      Reg_no= Label(Maindataframe,text="Reg_no:")
      Reg_no.grid(row=0,column=0)
-     Reg_no_entry = Entry(Maindataframe, width=30)
-     Reg_no_entry.grid(row=0, column=1)
+     self.Reg_no_entry = Entry(Maindataframe, width=30)
+     self.Reg_no_entry.grid(row=0, column=1)
+     self.attach_context_menu(self.Reg_no_entry)
 
      #Creating Label and Entry for Vehicle 
      Vehicle_main= Label(Maindataframe,text= "Vehicle:")
      Vehicle_main.grid(row=0,column=2)
-     Vehicle_main_entry= Entry(Maindataframe,width=35)
-     Vehicle_main_entry.grid(row=0,column=3,sticky='w')
+     self.Vehicle_main_entry= Entry(Maindataframe,width=35)
+     self.Vehicle_main_entry.grid(row=0,column=3,sticky='w')
+     self.attach_context_menu(self.Vehicle_main_entry)
 
      #Creating Label and Entry for Next Scheduled event
      NextSchevent= Label(Maindataframe,text= "Next sched event:")
      NextSchevent.grid(row=0,column=4)
-     NextSchevententry= Entry(Maindataframe,width=20)
-     NextSchevententry.grid(row=0,column=5,sticky='w')
+     self.NextSchevententry= Entry(Maindataframe,width=20)
+     self.NextSchevententry.grid(row=0,column=5,sticky='w')
+     self.attach_context_menu(self.NextSchevententry)
 
      #Creating Label and Entry for Reg date
      Reg_Date = Label(Maindataframe, text="Reg Date:")
      Reg_Date.grid(row=1, column=0,padx=5,pady=4)
-     Reg_Date_Entry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-     Reg_Date_Entry.grid(row=1, column=1,sticky='w')
+     self.Reg_Date_Entry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Reg_Date_Entry.grid(row=1, column=1,sticky='w')
+     self.attach_context_menu(self.Reg_Date_Entry)
 
      #Creating Label and Entry for RFL 
      RFL = Label(Maindataframe, text="RFL:")
      RFL.grid(row=1, column=2,padx=5,pady=4)
-     RFL_Entry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-     RFL_Entry.grid(row=1, column=3,sticky='w')
+     self.RFL_Entry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.RFL_Entry.grid(row=1, column=3,sticky='w')
+     self.attach_context_menu(self.RFL_Entry)
 
      #Creating Label and Entry for MOT
      MOT = Label(Maindataframe, text="MOT:")
      MOT.grid(row=1, column=4,padx=5,pady=4)
-     MOT_entry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-     MOT_entry.grid(row=1, column=5,sticky='w')
+     self.MOT_entry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.MOT_entry.grid(row=1, column=5,sticky='w')
+     self.attach_context_menu(self.MOT_entry)
 
      #Creating Label and Entry for Last Serviced
      LastServiced = Label(Maindataframe, text="Last Serviced:")
      LastServiced.grid(row=2, column=0)
-     LastServicedentry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-     LastServicedentry.grid(row=2, column=1,sticky='w')
+     self.LastServicedentry= DateEntry(Maindataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.LastServicedentry.grid(row=2, column=1,sticky='w')
+     self.attach_context_menu(self.LastServicedentry)
 
      #Creating Label and Entry for at:
      NextSchevent= Label(Maindataframe,text= "at :")
      NextSchevent.grid(row=2,column=2)
-     NextSchevententry= Entry(Maindataframe,width=10)
-     NextSchevententry.grid(row=2,column=3,sticky='w')
+     self.NextSchevententry= Entry(Maindataframe,width=10)
+     self.NextSchevententry.grid(row=2,column=3,sticky='w')
+     self.attach_context_menu(self.NextSchevententry)
 
      #Creating a new dataframe below Main dataframe
 
@@ -1086,14 +1225,16 @@ class KerridgeReplacement:
      
      Agreement= Label(Agreementframe,text="Agreement:")
      Agreement.grid(row=0,column=0,padx=5,pady=5)
-     Agreemententry= Entry(Agreementframe,width=30)
-     Agreemententry.grid(row=0,column=1,padx=5,pady=5)
+     self.Agreemententry= Entry(Agreementframe,width=30)
+     self.Agreemententry.grid(row=0,column=1,padx=5,pady=5)
+     self.attach_context_menu(self.Agreemententry)
 
      #Create Label and entry for Customer
      Customer= Label(Agreementframe,text="Customer:")
      Customer.grid(row=0,column=2,padx=5,pady=5)
-     Customerentry= Entry(Agreementframe,width=50)
-     Customerentry.grid(row=0, column=3, padx=5, pady=5)
+     self.Customerentry= Entry(Agreementframe,width=50)
+     self.Customerentry.grid(row=0, column=3, padx=5, pady=5)
+     self.attach_context_menu(self.Customerentry)
 
      #Creating a new dataframe below Agreement 
 
@@ -1151,46 +1292,53 @@ class KerridgeReplacement:
      Repairernames= ["abcd","shhshs""hhsjjs"]
      Repairer= Label(Repairerdataframe, text="Repairer:")
      Repairer.grid(row=0,column=0,padx=5,pady=5)
-     Repairerentry= ttk.Combobox(Repairerdataframe,values=Repairernames,width=20)
-     Repairerentry.grid(row=0,column=1,sticky="w",padx=5,pady=5)
+     self.Repairerentry= ttk.Combobox(Repairerdataframe,values=Repairernames,width=20)
+     self.Repairerentry.grid(row=0,column=1,sticky="w",padx=5,pady=5)
+     self.attach_context_menu(self.Repairerentry)
 
       
      #Creating a label and combobox entry for Account
      Accountnumbers= ["AB5677","MO908""HJ666"]
      Account= Label(Repairerdataframe, text="Account:")
      Account.grid(row=0,column=2,padx=5,pady=5)
-     Accountentry= ttk.Combobox(Repairerdataframe,values=Accountnumbers,width=20)
-     Accountentry.grid(row=0,column=3,sticky="w",padx=5,pady=5)
+     self.Accountentry= ttk.Combobox(Repairerdataframe,values=Accountnumbers,width=20)
+     self.Accountentry.grid(row=0,column=3,sticky="w",padx=5,pady=5)
+     self.attach_context_menu(self.Accountentry)
 
      #Creating a Label and Entry for Suplier
      Supplierr= Label(Repairerdataframe, text="Supplier:")
      Supplierr.grid(row=0,column=4,padx=5,pady=4)
-     Supplierrentry= Entry(Repairerdataframe, width=41)
-     Supplierrentry.grid(row=0,column=5,sticky="w",padx=5,pady=3)
+     self.Supplierrentry= Entry(Repairerdataframe, width=41)
+     self.Supplierrentry.grid(row=0,column=5,sticky="w",padx=5,pady=3)
+     self.attach_context_menu(self.Supplierrentry)
 
      #Creating a Label and Entry for Approval
      Approval= Label(Repairerdataframe,text="Approval:")
      Approval.grid(row=1,column=0,padx=5,pady=5)
-     Approvalentry= Entry(Repairerdataframe,width= 20)
-     Approvalentry.grid(row=1,column=1,padx=5,pady=5,sticky="w")
+     self.Approvalentry= Entry(Repairerdataframe,width= 20)
+     self.Approvalentry.grid(row=1,column=1,padx=5,pady=5,sticky="w")
+     self.attach_context_menu(self.Approvalentry)
 
      #Creating a Label and Entry for Issued:
      Issued = Label(Repairerdataframe, text="Issued:")
      Issued.grid(row=1, column=2,padx=5,pady=5)
-     Issuedentry= DateEntry(Repairerdataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-     Issuedentry.grid(row=1, column=3,padx=5,pady=5,sticky='w')
+     self.Issuedentry= DateEntry(Repairerdataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Issuedentry.grid(row=1, column=3,padx=5,pady=5,sticky='w')
+     self.attach_context_menu(self.Issuedentry)
 
      #Creating a Label and Entry for Odometer
      Odometer= Label(Repairerdataframe,text="Odometer:")
      Odometer.grid(row=2,column=0,padx=5,pady=5)
-     Odometerentry= Entry(Repairerdataframe,width= 20)
-     Odometerentry.grid(row=2,column=1,padx=5,pady=5,sticky="w")
+     self.Odometerentry= Entry(Repairerdataframe,width= 20)
+     self.Odometerentry.grid(row=2,column=1,padx=5,pady=5,sticky="w")
+     self.attach_context_menu(self.Odometerentry)
 
      #Creating a Label and Entry for Repaired:
      Repaired = Label(Repairerdataframe, text="Repaired:")
      Repaired.grid(row=2, column=2,padx=5,pady=5)
-     Repairedentry= DateEntry(Repairerdataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-     Repairedentry.grid(row=2, column=3,padx=5,pady=5,sticky='w')
+     self.Repairedentry= DateEntry(Repairerdataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Repairedentry.grid(row=2, column=3,padx=5,pady=5,sticky='w')
+     self.attach_context_menu(self.Repairedentry)
 
 
      #Creating Table below the Approval Dataframe
@@ -1239,9 +1387,9 @@ class KerridgeReplacement:
     
      # Extract the registration number from the clicked row
      registration_number = self.root.Kerride_table.item(item, "values")[3]  # Assuming registration number is the first column
-    
+     incident_number= self.root.Kerride_table.item(item, "values")[4]
      # Retrieve incident details based on the registration number
-     incident_details = KBACKEND.retrieve_incident_details(registration_number)
+     incident_details = KBACKEND.retrieve_incident_details(registration_number,incident_number)
      additional_details=KBACKEND.fetch_additional_details(registration_number)
 
      if incident_details and additional_details:
@@ -1321,16 +1469,19 @@ class KerridgeReplacement:
      self.reistrationentry = tk.Entry(firstdataframe, width=15)
      self.reistrationentry.insert(0, incident_details.get('Registration', ''))
      self.reistrationentry.grid(row=0, column=1)
+     self.attach_context_menu(self.reistrationentry)
 
       #Creating an Entry for page 2
      self.Make_Mod = Entry(firstdataframe, width=30)
      self.Make_Mod.insert(0,additional_details.get('Make_Mod'))
      self.Make_Mod.grid(row=0, column=2,padx=70)
+     self.attach_context_menu(self.Make_Mod)
 
      lb3 = Label(firstdataframe, text="Driver name:")
      lb3.grid(row=0, column=3)
      self.Driverrentry = Entry(firstdataframe, width=18)
      self.Driverrentry.grid(row=0, column=4)
+     self.attach_context_menu(self.Driverrentry)
 
     # Retrieve the value
      self.Driverrvalue = incident_details.get('Driver_name')
@@ -1344,6 +1495,7 @@ class KerridgeReplacement:
      Fleett_No.grid(row=1, column=0,pady=6)
      self.fleett=Entry(firstdataframe,width=15)
      self.fleett.grid(row=1,column=1)
+     self.attach_context_menu(self.fleett)
      self.fleettvalue=additional_details.get('fleet_no')
      self.fleett.insert(0,self.fleettvalue if self.fleettvalue is not None else"")
      
@@ -1354,10 +1506,12 @@ class KerridgeReplacement:
      lb3.grid(row=2, column=0)
      self.Vehiclee_loaded=Checkbutton(firstdataframe,width=2)
      self.Vehiclee_loaded.grid(row=2,column=1)
+     self.attach_context_menu(self.Vehiclee_loaded)
 
      #Creating another Entry for page 2
      self.empty = Entry(firstdataframe, width=30)
      self.empty.grid(row=1, column=2,padx=80)
+     self.attach_context_menu(self.empty)
 
      #Creating a Label and Entry for Driver Phone:
 
@@ -1365,6 +1519,7 @@ class KerridgeReplacement:
      lb3.grid(row=1, column=3)
      self.Driverrphone = Entry(firstdataframe, width=18)
      self.Driverrphone.grid(row=1, column=4)
+     self.attach_context_menu(self.Driverrphone)
      self.Driverrphonevalue= incident_details.get('Driver_phone')
      self.Driverrphone.insert(0,self.Driverrphonevalue if self.Driverrphonevalue is not None else"")
      
@@ -1379,6 +1534,7 @@ class KerridgeReplacement:
      Customer_Id.grid(row=0, column=0)
      self.Customer_Identryy= Entry(Seconddataframe, width=16)
      self.Customer_Identryy.grid(row=0, column=1)
+     self.attach_context_menu(self.Customer_Identryy)
      self.Customer_Identryyvalue=additional_details.get('Customer_No')
      self.Customer_Identryy.insert(0,self.Customer_Identryyvalue if self.Customer_Identryyvalue is not 
                                    None else"")
@@ -1389,6 +1545,7 @@ class KerridgeReplacement:
      Cust_Name.grid(row=0, column=2)
      self.Cust_Namee_Entry= Entry(Seconddataframe, width=16)
      self.Cust_Namee_Entry.grid(row=0, column=3)
+     self.attach_context_menu(self.Cust_Namee_Entry)
      self.Cust_Namee_Entryvalue= additional_details.get('Customer_Name')
      self.Cust_Namee_Entry.insert(0,self.Cust_Namee_Entryvalue if self.Cust_Namee_Entryvalue is not
                                   None else"")
@@ -1400,6 +1557,7 @@ class KerridgeReplacement:
      Contract_No.grid(row=0, column=4)
      self.Contract_No_Entryy= Entry(Seconddataframe, width=16)
      self.Contract_No_Entryy.grid(row=0, column=5)
+     self.attach_context_menu(self.Contract_No_Entryy)
      self.Contract_No_Entryyvalue= additional_details.get('Contract_No')
      self.Contract_No_Entryy.insert(0,self.Contract_No_Entryyvalue if self.Contract_No_Entryyvalue is 
                                     not None else"")
@@ -1411,6 +1569,7 @@ class KerridgeReplacement:
      Contact_Tel.grid(row=0, column=6)
      self.Contact_Tel_Entryy= Entry(Seconddataframe, width=16)
      self.Contact_Tel_Entryy.grid(row=0, column=7)
+     self.attach_context_menu(self.Contact_Tel_Entryy)
      self.Contact_Tel_Entryyvalue=incident_details.get('Contact_tel')
      self.Contact_Tel_Entryy.insert(0,self.Contact_Tel_Entryyvalue if self.Contact_Tel_Entryyvalue is 
                                     not None else"" )
@@ -1422,6 +1581,7 @@ class KerridgeReplacement:
      Contact_Email.grid(row=1, column=0)
      self.Contact_Email_Entryy= Entry(Seconddataframe, width=16)
      self.Contact_Email_Entryy.grid(row=1, column=1)
+     self.attach_context_menu(self.Contact_Email_Entryy)
      self.Contact_Email_Entryyvalue=incident_details.get('Contact_Email')
      self.Contact_Email_Entryy.insert(0,self.Contact_Email_Entryyvalue if self.Contact_Email_Entryyvalue
                                       is not None else"")
@@ -1433,6 +1593,7 @@ class KerridgeReplacement:
      Contact_Name_Label.grid(row=1, column=2)
      self.Contact_Name_Entryy= Entry(Seconddataframe, width=16)
      self.Contact_Name_Entryy.grid(row=1, column=3)
+     self.attach_context_menu(self.Contact_Name_Entryy)
      self.Contact_Name_Entryyvalue=incident_details.get('Contact_name')
      self.Contact_Name_Entryy.insert(0,self.Contact_Name_Entryyvalue if self.Contact_Name_Entryyvalue is
                                      not None else"")
@@ -1444,6 +1605,7 @@ class KerridgeReplacement:
      Customer_DefNO.grid(row=1, column=4)
      self.Customer_defno_Entryy= Entry(Seconddataframe, width=16)
      self.Customer_defno_Entryy.grid(row=1, column=5)
+     self.attach_context_menu(self.Customer_defno_Entryy)
      self.Customer_defno_Entryyvalue= incident_details.get('Customer_defect')
      self.Customer_defno_Entryy.insert(0,self.Customer_defno_Entryyvalue if self.Customer_defno_Entryyvalue
                                        is not None else"")
@@ -1455,14 +1617,16 @@ class KerridgeReplacement:
      Order_No.grid(row=1, column=6)
      self.Order_No_Entryy= Entry(Seconddataframe, width=16)
      self.Order_No_Entryy.grid(row=1, column=7)
+     self.attach_context_menu(self.Order_No_Entryy)
 
      #Creating Label for Contact_Method_ID AND Entry
      Contact_Method_Id=Label(Seconddataframe,text="Contact_Method_ID",padx=3,pady=3)
      Contact_Method_Id.grid(row=2,column=0)
      self.Contact_Method_Entryy=Entry(Seconddataframe,width=16)
      self.Contact_Method_Entryy.grid(row=2,column=1)
+     self.attach_context_menu(self.Contact_Method_Entryy)
      self.Contact_Email_Entryyvalue=incident_details.get('Contact_id')
-     self.Contact_Method_Entryy.insert(0, self.Contact_Email_Entryy if self.Contact_Email_Entryyvalue
+     self.Contact_Method_Entryy.insert(0, self.Contact_Email_Entryyvalue if self.Contact_Email_Entryyvalue
                                        is not None else"")
      
 
@@ -1471,6 +1635,7 @@ class KerridgeReplacement:
      Depot.grid(row=2,column=2)
      self.Depotentryy=Entry(Seconddataframe,width=16)
      self.Depotentryy.grid(row=2,column=3)
+     self.attach_context_menu(self.Depotentryy)
      self.Depotentryyvalue=additional_details.get('Customer_Depot')
      self.Depotentryy.insert(0,self.Depotentryyvalue if self.Depotentryyvalue is not None else"")
      
@@ -1486,6 +1651,7 @@ class KerridgeReplacement:
      Location.grid(row=0, column=0,pady=(0,25),sticky='w')
      self.locaentryy= Text(ThirdDataframe,width=30, height='3',wrap='word')
      self.locaentryy.grid(row=0,column=1,columnspan=2,sticky='w')
+     self.attach_context_menu(self.locaentryy)
      self.locaentryyvalue=incident_details.get('Defect_Address')
      self.locaentryy.insert("1.0",self.locaentryyvalue if self.locaentryyvalue is not None else"")
      
@@ -1496,6 +1662,7 @@ class KerridgeReplacement:
      Number.grid(row=0,column=3,padx=5)
      self.Numberentryy=Entry(ThirdDataframe,width=15)
      self.Numberentryy.grid(row=0,column=4)
+     self.attach_context_menu(self.Numberentryy)
      self.Numberentryyvalue=incident_details.get('Incident No')
      self.Numberentryy.insert(0, self.Numberentryyvalue if self.Numberentryyvalue is not None else"")
      
@@ -1505,6 +1672,7 @@ class KerridgeReplacement:
      Date.grid(row=1, column=3,padx=20,pady=4)
      self.dateeentry= DateEntry(ThirdDataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
      self.dateeentry.grid(row=1, column=4,sticky='w')
+     self.attach_context_menu(self.dateeentry)
      self.dateeentryvalue=incident_details.get('Date')
      self.dateeentry.insert(0,self.dateeentryvalue if self.dateeentryvalue is not None else"")
      
@@ -1515,6 +1683,7 @@ class KerridgeReplacement:
      Created_by.grid(row=2, column=3)
      self.Timee= Entry(ThirdDataframe, width=10)
      self.Timee.grid(row=2, column=4,sticky='w')
+     self.attach_context_menu(self.Timee)
      self.timeevalue=incident_details.get('Createdby')
      self.Timee.insert(0,self.timeevalue if self.timeevalue is not None else"")
      
@@ -1526,6 +1695,7 @@ class KerridgeReplacement:
      Odo.grid(row=3, column=3)
      self.Odoentry= Entry(ThirdDataframe, width=13)
      self.Odoentry.grid(row=3, column=4,sticky='w')
+     self.attach_context_menu(self.Odoentry)
      self.Odoentryvalue=incident_details.get('Odometer')
      self.Odoentry.insert(0,self.Odoentryvalue if self.Odoentryvalue is not None else"")
      
@@ -1542,37 +1712,45 @@ class KerridgeReplacement:
     # Define loca combobox
      self.locationn_1 = ttk.Combobox(ThirdDataframe, values=self.locations, width=15)
      self.locationn_1.grid(row=4, column=4, sticky='w')
+     self.attach_context_menu(self.locationn_1)
      self.locationn_1value=additional_details.get('PF_Depot')
      self.locationn_1.insert(0,self.locationn_1value if self.locationn_1value is not None else"")
+     #self.populate_location_descriptionn()
      
-     #self.locationn_1.bind("<<ComboboxSelected>>", self.populate_location_description)
 
         # Define loca entry
      self.locationn_2 = tk.Entry(ThirdDataframe, width=15)
      self.locationn_2.grid(row=5, column=4, sticky='w', columnspan=4)
+     self.attach_context_menu(self.locationn_2)
+     self.locationn_1.bind("<<ComboboxSelected>>", self.populate_location_descriptionn)
+     self.populate_location_descriptionn()
 
      #Creating a Lable and Entry for Type
 
-     Category= ['B', 'F', 'L', 'T','V']
-     Loc=['O','R']
-     Charge=['N','R','W']
+     categorydetails= KBACKEND.fetch_cat_details()
+     self.categorydescription= [row[0]for row in categorydetails]
 
      Typee= Label(ThirdDataframe, text="Type:")
      Typee.grid(row=1,column=0,padx=5,pady=6)
-     self.CatEntryy= ttk.Combobox(ThirdDataframe, values=Category, width=13)
+     self.CatEntryy= ttk.Combobox(ThirdDataframe, values=self.categorydescription, width=13)
      self.CatEntryy.grid(row=1, column=1, pady=4, sticky='w') 
+     self.attach_context_menu(self.CatEntryy)
      self.CatEntryyvalue=incident_details.get('Cat')
      self.CatEntryy.insert(0,self.CatEntryyvalue if self.CatEntryyvalue is not None else"")
      
-
-     self.LolEntryy=ttk.Combobox(ThirdDataframe,values=Loc,width=13)
+     locationdetails=KBACKEND.fetch_Location_details()
+     self.locationdescription= [row[0] for row in locationdetails]
+     self.LolEntryy=ttk.Combobox(ThirdDataframe,values=self.locationdescription,width=13)
      self.LolEntryy.grid(row=1,column=2,pady=4,sticky='w')
+     self.attach_context_menu(self.LolEntryy)
      self.LolEntryyvalue=incident_details.get('Loca')
      self.LolEntryy.insert(0,self.LolEntryyvalue if self.LolEntryyvalue is not None else"")
      
-     
-     self.Chargeentryy=ttk.Combobox(ThirdDataframe,values=Charge,width=13)
+     chargedetails=KBACKEND.fetch_charge_details()
+     self.Chargedescription= [row[0] for row in chargedetails]
+     self.Chargeentryy=ttk.Combobox(ThirdDataframe,values=self.Chargedescription,width=13)
      self.Chargeentryy.grid(row=2,column=1,pady=4,sticky='w')
+     self.attach_context_menu(self.Chargeentryy)
      self.Chargeentryyvalue=incident_details.get('Charge')
      self.Chargeentryy.insert(0,self.Chargeentryyvalue if self.Chargeentryyvalue is not None else"")
      
@@ -1580,23 +1758,24 @@ class KerridgeReplacement:
      #Creating a Label and Entry for Fault Description
      Fault= Label(ThirdDataframe, text="Fault Description:")
      Fault.grid(row=3, column=0,sticky='w')
-     self.Faultentry= Text(ThirdDataframe,width=30, height='3',wrap='word')
-     self.Faultentry.grid(row=3,column=1,sticky='w')
-     self.Faultentryvalue=incident_details['Defectdesc']
-     self.Faultentry.insert("1.0",self.Faultentryvalue if self.Faultentryvalue is not None else"")
+     self.Faultentryy= Text(ThirdDataframe,width=30, height='3',wrap='word')
+     self.Faultentryy.grid(row=3,column=1,sticky='w')
+     self.attach_context_menu(self.Faultentryy)
+     self.Faultentryyvalue=incident_details['Defectdesc']
+     self.Faultentryy.insert("1.0",self.Faultentryyvalue if self.Faultentryyvalue is not None else"")
      
      #Creating a Lable and Entry for Status
 
-     Status= ["A","C","D","M","O","X"]
-     Statusdesc=["Awaiting Deployment","Completed","Depot Managed Incident","Centrally Managed/ VOR","Out of Hours Team"]
+     rowsss= KBACKEND.fetch_status_details()
+     self.Statuss= [row[0] for row in rowsss]
      Statuss= Label(ThirdDataframe, text="Status:")
      Statuss.grid(row=4,column=0,padx=2)
-     self.StatussEntryy= ttk.Combobox(ThirdDataframe, values=Status, width=3)
+     self.StatussEntryy= ttk.Combobox(ThirdDataframe, values=self.Statuss, width=15)
      self.StatussEntryy.grid(row=4, column=1, padx=2, sticky='w')
+     self.attach_context_menu(self.StatussEntryy)
      self.StatussEntryyvalue= incident_details.get('Status')
      self.StatussEntryy.insert(0,self.StatussEntryyvalue if self.StatussEntryyvalue is not None else"")
-     self.new_entryy = ttk.Combobox(ThirdDataframe,values=Statusdesc,width=10)
-     self.new_entryy.grid(row=5, column=1, padx=2,  sticky='w')
+
 
      #Creating Label and Entry for closed
      Closedlabel=Label(ThirdDataframe,text="Closed")
@@ -1619,6 +1798,7 @@ class KerridgeReplacement:
      self.attendance_vari=tk.BooleanVar()
      self.AttendanceEntryy= ttk.Checkbutton(ThirdDataframe, variable=self.attendance_vari)
      self.AttendanceEntryy.grid(row=6, column=1, sticky='w')
+     self.attach_context_menu(self.AttendanceEntryy)
      self.AttendanceEntryvalue= incident_details.get('Attendance',0)
      
      self.AttendanceEntryvalue=bool(self.AttendanceEntryvalue)
@@ -1628,6 +1808,7 @@ class KerridgeReplacement:
      Deffered.grid(row=7, column=0, padx=2, sticky='w')
      self.Deferred_Too = DateEntry(ThirdDataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
      self.Deferred_Too.grid(row=7, column=1, padx=2, sticky='w')
+     self.attach_context_menu(self.Deferred_Too)
      self.Deferred_Tovalue= incident_details.get('Deferred')
      self.Deferred_Too.insert(0,self.Deferred_Tovalue if self.Deferred_Tovalue is not None else"")
 
@@ -1635,6 +1816,7 @@ class KerridgeReplacement:
      whatwords.grid(row=7, column=2, padx=2, sticky='w')
      self.whatwordsentryy = Entry(ThirdDataframe, width=30)
      self.whatwordsentryy.grid(row=7, column=3, padx=2, sticky='w',columnspan=2) 
+     self.attach_context_menu(self.whatwordsentryy)
      self.whatwordsentryyvalue= incident_details.get('Whatwords')
      self.whatwordsentryy.insert(0,self.whatwordsentryyvalue if self.whatwordsentryyvalue is not None else"")
 
@@ -1647,29 +1829,70 @@ class KerridgeReplacement:
      #Creating label and Entry for Name:
      supp=KBACKEND.fetch_supplier_details()
      self.supplier = [row[1] for row in supp]
-
+     
+     self.supplierno=[row[0] for row in supp]
      Namesup= Label(Fourthdataframe, text="Supplier No:")
      Namesup.grid(row=0,column=0,padx=5)
-     self.nameentryY= ttk.Entry(Fourthdataframe,width=30)
-     self.nameentryY.grid(row=0,column=1,padx=5)
+     self.nameentryy= ttk.Combobox(Fourthdataframe,value=self.supplierno,width=30)
+     self.nameentryy.grid(row=0,column=1,padx=5)
+     self.Suppliernamevalue= incident_details.get('Supplier_No')
+     self.nameentryy.insert(0,self.Suppliernamevalue if self.Suppliernamevalue is not None else"")
+     self.attach_context_menu(self.nameentryy)
+     #self.nameentryy.bind("<<ComboboxSelected>>", self.populate_supplier_details_two)
+     
+    
      
       #Creating label and Entry for Contat:
      Contactsup= Label(Fourthdataframe, text="Supplier Name:")
      Contactsup.grid(row=0,column=2,padx=5,pady=5)
      self.Contactentryy= ttk.Combobox(Fourthdataframe,values=self.supplier,width=30)
      self.Contactentryy.grid(row=0,column=3,padx=5,pady=5)
-     #self.Contactentry.bind("<<ComboboxSelected>>", self.populate_supplier_details)
-
-     #Creating Label and Entry for phone 
+     self.attach_context_menu(self.Contactentryy)
+     self.nameentryy.bind("<<ComboboxSelected>>", self.populate_supplier_details_two)
+     self.Contactentryy.bind("<<ComboboxSelected>>", self.populate_supplier_detailss)
+     
+     
+     
+     
 
      Phonesup= Label(Fourthdataframe, text="Phone:")
      Phonesup.grid(row=0,column=4,padx=5)
-     self.Phoneentryy= ttk.Entry(Fourthdataframe,width=20)
+     self.Phoneentryy= ttk.Entry(Fourthdataframe,width=17)
      self.Phoneentryy.grid(row=0,column=5,padx=5)
-
+     self.attach_context_menu(self.Phoneentryy)
+     self.nameentryy.bind("<<ComboboxSelected>>", self.populate_supplier_details_two)
+     self.populate_supplier_details_two()
      
-
-
+     
+     
+     
+    def populate_location_descriptionn(self, event=None):
+        selected_location = self.locationn_1.get()
+        rows = KBACKEND.fetch_locations_and_descriptions()
+        for row in rows:
+            if row[0] == selected_location:
+                self.locationn_2.delete(0, tk.END)
+                self.locationn_2.insert(0, row[1])
+                break
+    def populate_supplier_detailss(self,event=None):
+        selected_supplier= self.Contactentryy.get()
+        rows=KBACKEND.fetch_supplier_details()
+        for row in rows:
+           if row[1]==selected_supplier:
+              self.nameentryy.delete(0,tk.END)
+              self.Phoneentryy.delete(0,tk.END)
+              self.nameentryy.insert(0,row[0])
+              self.Phoneentryy.insert(0,row[2])
+    def populate_supplier_details_two(self,event=None):
+       selected_supplierno=self.nameentryy.get()
+       rows=KBACKEND.fetch_supplier_details()
+       for row in rows:
+          if row[0]==selected_supplierno:
+             self.Contactentryy.delete(0,tk.END)
+             self.Phoneentryy.delete(0,tk.END)
+             self.Contactentryy.insert(0,row[1])
+             self.Phoneentryy.insert(0,row[2])     
+             
     def open_incident_window(self,index):
         if index==1:
            self.close_the_incident_window()
@@ -1678,19 +1901,61 @@ class KerridgeReplacement:
         if index==3:
            self.open_events_From_mainpage()
     
+    import datetime
     ############### Giving Functionalities for icons of the incidentspage navigated from mainpage ########
     def close_the_incident_window(self):
         self.form_window.destroy()
     def save_the_incident_details(self):
-       pass
-    def open_events_From_mainpage(self):
-       pass
+     registration_no=self.reistrationentry.get()
+     Driver_name= self.Driverrentry.get()
+     fleet_no=self.fleett.get()
+     Driver_Phone=self.Driverrphone.get()
+     Customer_Id=self.Customer_Identryy.get()
+     Customer_name= self.Cust_Namee_Entry.get()
+     Contract_No=self.Contract_No_Entryy.get()
+     Contact_Tel=self.Contact_Tel_Entryy.get()
+     Contact_Email=self.Contact_Email_Entryy.get()
+     Contact_Name=self.Contact_Name_Entryy.get()
+     Customer_defect_no=self.Customer_defno_Entryy.get()
+     Order_no=self.Order_No_Entryy.get()
+     Contact_method=self.Contact_Method_Entryy.get()
+     Depot=self.Depotentryy.get()
+     Defect_Address=self.locaentryy.get("1.0", tk.END)
+     Incident_No=self.Numberentryy.get()
+     #Date=self.dateeentry.get_date()
+     created_by=self.Timee.get()
+     Odometer=self.Odoentry.get()
+     Depot_no=self.locationn_1.get()
 
+     Category=self.CatEntryy.get()
+     
 
+     Locat=self.LolEntryy.get()
+     
 
+     Charge=self.Chargeentryy.get()
+    
+     Status=self.StatussEntryy.get()
 
+     Faultdesc=self.Faultentryy.get("1.0", tk.END)
+     
+     Closed=self.closedd_var.get()
+     Attendance_def= self.attendance_vari.get()
+     Deferred_to=self.Deferred_Too.get_date()
 
+    # Getting the current time
+     current_timee = datetime.datetime.now().time()
+    
+    # Combining selected date and current time into a datetime object
+     combined_deferred = datetime.datetime.combine(Deferred_to, current_timee)
+     whatwords=self.whatwordsentryy.get()
+     SupplierNo=self.nameentryy.get()
 
+     KBACKEND.update_incident_Details(Driver_name,fleet_no,Driver_Phone,Customer_Id,Contract_No,
+                                      Contact_Tel,Contact_Email,Contact_Name,Customer_defect_no,
+                                      Contact_method,Defect_Address,Incident_No,created_by,Odometer,
+                                      Depot_no,Category,Locat,Charge,Faultdesc,Status,Closed,Attendance_def,combined_deferred,
+                                      whatwords,registration_no,SupplierNo)
 
 
 
@@ -1716,14 +1981,50 @@ class KerridgeReplacement:
     def save_the_details():
         pass
 
-
+    
 
     #This closes the first window and exits the application.
     def close_the_window(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
           self.root.destroy()
-    
 
+    
+    #Right click options#
+    def copy(self):
+        selected_text = self.root.clipboard_get()
+        self.root.clipboard_clear()
+        self.root.clipboard_append(selected_text)
+
+    def cut(self):
+        if self.root.focus_get():
+            selected_text = self.root.focus_get().selection_get()
+            self.root.focus_get().delete(tk.SEL_FIRST, tk.SEL_LAST)
+            self.root.clipboard_clear()
+            self.root.clipboard_append(selected_text)
+
+    def paste(self):
+        text_to_paste = self.root.clipboard_get()
+        self.root.focus_get().insert(tk.INSERT, text_to_paste)
+
+    
+    def undo(self):
+        if self.undo_stack:
+            previous_state = self.undo_stack.pop()
+            self.Regtext1.delete(0, tk.END)
+            self.Regtext1.insert(0, previous_state)
+
+    def attach_context_menu(self, entry):
+        # Create a context menu
+        context_menu = tk.Menu(self.root, tearoff=0)
+        context_menu.add_command(label="Copy", command=self.copy)
+        context_menu.add_command(label="Cut", command=self.cut)
+        context_menu.add_command(label="Paste", command=self.paste)
+        context_menu.add_command(label="Undo", command=self.undo)
+        # Attach context menu to the Entry widget
+        def show_context_menu(event):
+            context_menu.tk_popup(event.x_root, event.y_root)
+
+        entry.bind("<Button-3>", show_context_menu)
     
         
 
