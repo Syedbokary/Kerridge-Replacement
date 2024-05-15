@@ -1130,37 +1130,48 @@ class KerridgeReplacement:
      for row in self.event_typesinfo:
         if row[1] == selected_event_type:
             next_event_id = row[2]
-            # Find the corresponding description for the next_event_id
-            for item in self.type:
-                if item[0] == next_event_id:
-                    self.Type_nextevent_entry.set(item[1])
-                    minutes = item[3]  # Use minutes from item[3]
-                    if minutes > 1440:  # If duration exceeds one day
-                        # Calculate the number of days and remaining minutes
-                        days = minutes // 1440
-                        remaining_minutes = minutes % 1440
-                        # Calculate the adjusted date
-                        next_date = datetime.datetime.now() + datetime.timedelta(days=days)
-                        date_str = next_date.strftime("%d/%m/%Y")
-                        # Populate Date_nextevent_Entry
-                        self.Date_nextevent_Entry.set_date(date_str)
-                        # Get the current time
-                        current_time_str = self.Time_created_entry.get()
-                        current_time = datetime.datetime.strptime(current_time_str, "%H:%M")
-                        # Add remaining minutes to current time
-                        adjusted_time = current_time + datetime.timedelta(minutes=remaining_minutes)
-                    else:
-                        # Get the current time
-                        current_time_str = self.Time_created_entry.get()
-                        current_time = datetime.datetime.strptime(current_time_str, "%H:%M")
-                        # Add minutes to current time
-                        adjusted_time = current_time + datetime.timedelta(minutes=minutes)
-                    # Format adjusted time
-                    adjusted_time_str = adjusted_time.strftime("%H:%M")
-                    # Populate Time_nextevent_entry
-                    self.Time_nextevent_entry.delete(0, 'end')  # Clear previous value
-                    self.Time_nextevent_entry.insert(0, adjusted_time_str)
-                    break
+            if next_event_id is None:  # If there is no next_event_id
+                # Set Type_nextevent_entry to the selected event type
+                self.Type_nextevent_entry.set(selected_event_type)
+                # Set Date_nextevent_Entry to the current date
+                current_date = datetime.datetime.now().strftime("%d/%m/%Y")
+                self.Date_nextevent_Entry.set_date(current_date)
+                # Set Time_nextevent_entry to the current time
+                current_time = datetime.datetime.now().strftime("%H:%M")
+                self.Time_nextevent_entry.delete(0, 'end')  # Clear previous value
+                self.Time_nextevent_entry.insert(0, current_time)
+            else:
+                # Find the corresponding description for the next_event_id
+                for item in self.type:
+                    if item[0] == next_event_id:
+                        self.Type_nextevent_entry.set(item[1])
+                        minutes = item[3]  # Use minutes from item[3]
+                        if minutes > 1440:  # If duration exceeds one day
+                            # Calculate the number of days and remaining minutes
+                            days = minutes // 1440
+                            remaining_minutes = minutes % 1440
+                            # Calculate the adjusted date
+                            next_date = datetime.datetime.now() + datetime.timedelta(days=days)
+                            date_str = next_date.strftime("%d/%m/%Y")
+                            # Populate Date_nextevent_Entry
+                            self.Date_nextevent_Entry.set_date(date_str)
+                            # Get the current time
+                            current_time_str = self.Time_created_entry.get()
+                            current_time = datetime.datetime.strptime(current_time_str, "%H:%M")
+                            # Add remaining minutes to current time
+                            adjusted_time = current_time + datetime.timedelta(minutes=remaining_minutes)
+                        else:
+                            # Get the current time
+                            current_time_str = self.Time_created_entry.get()
+                            current_time = datetime.datetime.strptime(current_time_str, "%H:%M")
+                            # Add minutes to current time
+                            adjusted_time = current_time + datetime.timedelta(minutes=minutes)
+                        # Format adjusted time
+                        adjusted_time_str = adjusted_time.strftime("%H:%M")
+                        # Populate Time_nextevent_entry
+                        self.Time_nextevent_entry.delete(0, 'end')  # Clear previous value
+                        self.Time_nextevent_entry.insert(0, adjusted_time_str)
+                        break
             break
 
 
