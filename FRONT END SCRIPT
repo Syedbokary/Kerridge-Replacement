@@ -746,12 +746,8 @@ class KerridgeReplacement:
      self.events_tree.column("Time3",width= 70)
      self.events_tree.column("By3",width= 60)
      self.events_tree.column("Action",width= 70)
+     
 
-     # Simulate adding some data to the tree
-     for i in range(10):
-      self.events_tree.insert("", "end", values=[f"Item {i}"] * 13)
-
-    
      #Simulate adding some data to the tree
      self.scrollbar_y = ttk.Scrollbar(EventsFrame, orient="vertical", command=self.events_tree.yview)
      self.scrollbar_y.pack(side="right", fill="y")
@@ -899,10 +895,42 @@ class KerridgeReplacement:
     def exit(self):
          self.icon3_window.destroy()
     def save(self):
-        pass
         
-        
+        Incident_No= self.Numberentry.get()
+        date_str = self.Date_created_Entry.get()  # Get date as string
+        time_str = self.Time_created_entry.get()  # Get time as string
 
+        # Combine date and time strings into a single datetime string
+        datetime_str = f"{date_str} {time_str}"
+
+        # Convert the datetime string to a datetime object
+        datetime_obj = datetime.datetime.strptime(datetime_str, "%d/%m/%Y %H:%M")
+
+        First_event=self.Event_type_entry.get()
+        for row in self.event_typesinfo:    
+         if row[1] == First_event:
+            First_event_tostore = row[0]
+            break
+         
+        Event_text=self.Event_details_entry.get("1.0", tk.END)
+        second_event= self.Type_nextevent_entry.get()
+        for row in self.type:    
+         if row[1] == second_event:
+            Second_event_tostore = row[0]
+            break
+        datee_str= self.Date_nextevent_Entry.get()
+        timee_str=self.Time_nextevent_entry.get()
+         # Combine date and time strings into a single datetime string
+        datetime_strr = f"{datee_str} {timee_str}"
+        # Convert the datetime string to a datetime object
+        datetime_objj = datetime.datetime.strptime(datetime_strr, "%d/%m/%Y %H:%M")
+        Created_by= self.Action_required_entry.get()
+        Owner=self.Owner_entry.get()
+        KBACKEND.store_event_details(Incident_No,datetime_obj,First_event_tostore,Event_text
+                                     ,Second_event_tostore,datetime_objj,Created_by,Owner)
+        
+        
+    
 
     #defining functionalities for the icons in the second page 
     def open_icon_windowsecond(self,index):
@@ -913,8 +941,7 @@ class KerridgeReplacement:
         elif index==3:
             self.create_event_list() 
     
-     
-        
+         
         
     # Define a function to populate Kerride_table with all incidents from the database
     def populate_kerride_table(self,filter_text=None, is_closed=False):
@@ -1108,21 +1135,95 @@ class KerridgeReplacement:
               self.nameentry.insert(0,row[0])
               self.Phoneentry.insert(0,row[2])
 
-    
-    
-    #def populate_next_event_details(self, event=None):
-     #selected_event_type = self.Event_type_entry.get()
-    
-     # Find the corresponding details for the selected event type
-     #for row in self.event_typesinfo:
-        #if row[1] == selected_event_type:
-            #next_event_id = row[2]
-            # Find the corresponding description for the next_event_id
-            #for item in self.type:
-                #if item[0] == next_event_id:
-                    #self.Type_nextevent_entry.set(item[1])
-                    #break
-            #break
+    #def populate_eventstree_table(self):
+      #self.events_tree.delete(*self.events_tree.get_children())
+       #I_no=self.Numberentry.get()
+       #KBACKEND.fetch_all_events(I_no)
+       #event_details= KBACKEND.fetch_all_events(I_no)
+       #if event_details:
+          #for event in event_details:
+             #Event_created= event.get('Created')
+             #event_datetime = datetime.strptime(Event_created, "%Y-%m-%d %H:%M:%S")
+             #Created_date = event_datetime.date()
+
+             # Get the time part
+             #Created_time = event_datetime.time()
+        
+             #Notes= event.get('Notes')
+             #Last_updated= event.get('Last Updated')
+             #last_updated_datetime= datetime.strptime(Last_updated, "%Y-%m-%d %H:%M:%S")
+             #Last_updated_date= last_updated_datetime.date()
+             #Last_updated_time= last_updated_datetime.time()
+             #Follow_up= event.get('Follow up')
+             #Follow_up_datetime= datetime.strptime(Follow_up, "%Y-%m-%d %H:%M:%S")
+            # Follow_up_date= Follow_up_datetime.date()
+             #follow_up_time= Follow_up_datetime.time()
+
+             #self.events_tree.insert("", "end", values=(Created_date,Created_time,"","","",
+                #Notes,Last_updated_date,Last_updated_time,"",Follow_up_date,follow_up_time,"",""))
+             
+    def save(self):
+        
+        Incident_No= self.Numberentry.get()
+        date_str = self.Date_created_Entry.get()  # Get date as string
+        time_str = self.Time_created_entry.get()  # Get time as string
+
+        # Combine date and time strings into a single datetime string
+        datetime_str = f"{date_str} {time_str}"
+
+        # Convert the datetime string to a datetime object
+        datetime_obj = datetime.datetime.strptime(datetime_str, "%d/%m/%Y %H:%M")
+
+        First_event=self.Event_type_entry.get()
+        for row in self.event_typesinfo:    
+         if row[1] == First_event:
+            First_event_tostore = row[0]
+            break
+         
+        Event_text=self.Event_details_entry.get("1.0", tk.END)
+        second_event= self.Type_nextevent_entry.get()
+        for row in self.type:    
+         if row[1] == second_event:
+            Second_event_tostore = row[0]
+            break
+        datee_str= self.Date_nextevent_Entry.get()
+        timee_str=self.Time_nextevent_entry.get()
+         # Combine date and time strings into a single datetime string
+        datetime_strr = f"{datee_str} {timee_str}"
+        # Convert the datetime string to a datetime object
+        datetime_objj = datetime.datetime.strptime(datetime_strr, "%d/%m/%Y %H:%M")
+        Created_by= self.Action_required_entry.get()
+        Owner=self.Owner_entry.get()
+        KBACKEND.store_event_details(Incident_No,datetime_obj,First_event_tostore,Event_text
+                                     ,Second_event_tostore,datetime_objj,Created_by,Owner)
+        
+        event_details= KBACKEND.fetch_all_events(Incident_No)
+        self.events_tree.delete(*self.events_tree.get_children())
+        
+       
+        if event_details:
+          for event in event_details:
+             Event_created= event.get('Created')
+             #event_datetime = datetime.strptime(Event_created, "%Y-%m-%d %H:%M:%S")
+             Created_date = Event_created.date()
+
+             # Get the time part
+             Created_time = Event_created.time()
+        
+             Notes= event.get('Notes')
+             Last_updated= event.get('Last Updated')
+             #last_updated_datetime= datetime.strptime(Last_updated, "%Y-%m-%d %H:%M:%S")
+             Last_updated_date= Last_updated.date()
+             Last_updated_time= Last_updated.time()
+             Follow_up= event.get('Follow up')
+             #Follow_up_datetime= datetime.strptime(Follow_up, "%Y-%m-%d %H:%M:%S")
+             Follow_up_date= Follow_up.date()
+             follow_up_time= Follow_up.time()
+
+             self.events_tree.insert("", "end", values=(Created_date,Created_time,"","","",
+                Notes,Last_updated_date,Last_updated_time,"",Follow_up_date,follow_up_time,"",""))
+        
+   
     def populate_next_event_details(self, event=None):
      selected_event_type = self.Event_type_entry.get()
     
@@ -1487,7 +1588,7 @@ class KerridgeReplacement:
         self.open_icon1_window_with_clicked_row_data(registration_number, incident_details,additional_details)
      else:
         print("No incident details found for the selected registration number.")
-
+     
     ############ After the data is click this opens the incident page for that particular data########
     def open_icon1_window_with_clicked_row_data(self, reg_no, incident_details,additional_details):
      # Create a new window for the form
