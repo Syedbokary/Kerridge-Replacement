@@ -478,7 +478,25 @@ def fetch_all_events(Incident_No):
     conn=pyodbc.connect(conn_str1)
     cur=conn.cursor()
     try:
-     cur.execute("SELECT * FROM Incident_Events WHERE I_Number=?",(Incident_No))
+     cur.execute("""WITH RankedEventTypes AS (
+    SELECT 
+        Event_Type_ID,
+        Event_Description,
+        ROW_NUMBER() OVER (ORDER BY Event_Type_ID) AS RowNum
+    FROM 
+        Event_Types
+    )
+    SELECT 
+    ie.*, 
+    et_event.Event_Description AS event_description, 
+    et_next.Event_Description AS next_event_description
+    FROM 
+    Incident_Events ie
+    JOIN 
+    Event_Types et_event ON ie.Event_Type_ID = et_event.Event_Type_ID
+    JOIN 
+    RankedEventTypes et_next ON ie.Next_Event_ID = et_next.RowNum
+    WHERE ie.I_Number=?""",(Incident_No))
      row = cur.fetchone()
 
      if row:
@@ -488,11 +506,117 @@ def fetch_all_events(Incident_No):
                "Notes":row[4],
                "Last Updated":row[2],
                "Follow up":row[6],
+               "Event_Description": row[-2],
+               "Next_Event_Description": row[-1]
             }
             return [event_details]  # Return as a list of dictionaries
 
      else:
             print("No events found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+    
+def fetch_all_event_details(incident_number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+        # Execute a SELECT query to retrieve all incidents
+        sqlquery= """WITH RankedEventTypes AS (
+    SELECT 
+        Event_Type_ID,
+        Event_Description,
+        ROW_NUMBER() OVER (ORDER BY Event_Type_ID) AS RowNum
+    FROM 
+        Event_Types
+    )
+    SELECT 
+    ie.*, 
+    et_event.Event_Description AS event_description, 
+    et_next.Event_Description AS next_event_description
+    FROM 
+    Incident_Events ie
+    JOIN 
+    Event_Types et_event ON ie.Event_Type_ID = et_event.Event_Type_ID
+    JOIN 
+    RankedEventTypes et_next ON ie.Next_Event_ID = et_next.RowNum
+    WHERE ie.I_Number=?
+    ORDER BY E_Number"""
+        cur.execute(sqlquery, (incident_number,))
+        # Fetch all rows of the result set
+        rows = cur.fetchall()
+        # Convert the rows into a list of dictionaries
+        incident_events = []
+        for row in rows:
+            
+            events = {
+               "Created": row[2],
+               "Notes":row[4],
+               "Last Updated":row[2],
+               "Follow up":row[6],
+               "Event_Description": row[-2],
+               "Next_Event_Description": row[-1]
+            }
+            incident_events.append(events)
+
+        return incident_events
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetch_data_for_event(incident_no,event_no):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH RankedEventTypes AS (
+    SELECT 
+        Event_Type_ID,
+        Event_Description,
+        ROW_NUMBER() OVER (ORDER BY Event_Type_ID) AS RowNum
+    FROM 
+        Event_Types
+    )
+    SELECT 
+    ie.*, 
+    et_event.Event_Description AS event_description, 
+    et_next.Event_Description AS next_event_description
+    FROM 
+    Incident_Events ie
+    JOIN 
+    Event_Types et_event ON ie.Event_Type_ID = et_event.Event_Type_ID
+    JOIN 
+    RankedEventTypes et_next ON ie.Next_Event_ID = et_next.RowNum
+    WHERE ie.I_Number=? AND E_Number=?""",(incident_no,event_no))
+     row=cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            event_details = {
+                "Event_Type":row[-2],
+                "Createdby":row[7],
+                "Owner":row[8],
+                "Createddate":row[2],
+                "Eventtext":row[4],
+                "Nexteventdate":row[6],
+                "Nexteventtype":row[-1]
+            }
+            return event_details  # Return as a list of dictionaries
+
+     else:
+            print("No incidents found in the database.")
             return None
 
     except Exception as e:
