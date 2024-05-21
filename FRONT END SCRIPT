@@ -894,6 +894,7 @@ class KerridgeReplacement:
             self.save()
     def exit(self):
          self.icon3_window.destroy()
+
     def save(self):
         
         Incident_No= self.Numberentry.get()
@@ -929,8 +930,204 @@ class KerridgeReplacement:
         KBACKEND.store_event_details(Incident_No,datetime_obj,First_event_tostore,Event_text
                                      ,Second_event_tostore,datetime_objj,Created_by,Owner)
         
+        event_details= KBACKEND.fetch_all_events(Incident_No)
+        self.events_tree.delete(*self.events_tree.get_children())
         
+       
+        if event_details:
+          for event in event_details:
+             Event_created= event.get('Created')
+             #event_datetime = datetime.strptime(Event_created, "%Y-%m-%d %H:%M:%S")
+             Created_date = Event_created.date()
+
+             # Get the time part
+             Created_time = Event_created.time()
+        
+             Notes= event.get('Notes')
+             Last_updated= event.get('Last Updated')
+             #last_updated_datetime= datetime.strptime(Last_updated, "%Y-%m-%d %H:%M:%S")
+             Last_updated_date= Last_updated.date()
+             Last_updated_time= Last_updated.time()
+             Follow_up= event.get('Follow up')
+             #Follow_up_datetime= datetime.strptime(Follow_up, "%Y-%m-%d %H:%M:%S")
+             Follow_up_date= Follow_up.date()
+             follow_up_time= Follow_up.time()
+             Event_Description= event.get('Event_Description')
+             Next_Event_Description= event.get('Next_Event_Description')
+
+
+             self.events_tree.insert("", "end", values=(Created_date,Created_time,"",Event_Description,"",
+                Notes,Last_updated_date,Last_updated_time,"",Follow_up_date,follow_up_time,"",Next_Event_Description))
+             
+             self.events_tree.bind("<<TreeviewSelect>>", self.on_roww_selected)
+
+    def on_roww_selected(self,event):
+        selected_item = self.events_tree.selection()
+        
+        if selected_item:
+         # Extract the index of the selected item
+         item_index = self.events_tree.index(selected_item[0])
+
+         # Event number is the index + 1 (since event numbers start from 1)
+         event_no = item_index + 1
+
+         # Get the incident number from the entry
+         incident_no=self.Numberentry.get()
+
+         fetch_event_detailsthree= KBACKEND.fetch_data_for_eventthree(incident_no,event_no)
+
+         self.open_eventspagethree_with_clickedrow(fetch_event_detailsthree)        
+        
+    def open_eventspagethree_with_clickedrow(self,fetch_event_detailsthree):
+     
+     self.event_windows= tk.Toplevel(self.root)
+     self.event_windows.title("Event Detail Form")
+     self.event_windows.geometry("800x600") 
+
+     Incident_Eventt= Frame(self.event_windows, bd=3, relief=tk.RIDGE)
+     Incident_Eventt.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Incident_Eventt.place(x=0,y=30,width=600,height=100)
+
+     self.eventsinfothree= KBACKEND.fetch_event_types()
+     self.eventtypesinformationthree= [row[1] for row in self.eventsinfothree]
+     Event_type= Label(Incident_Eventt, text="Event type:")
+     Event_type.grid(row=0,column=0,padx=5,pady=5)
+     self.Event_type_entryythree= ttk.Combobox(Incident_Eventt,values=self.eventtypesinformationthree,width=20)
+     self.Event_type_entryythree.grid(row=0,column=1,sticky="w",padx=5,pady=5)
+     self.Event_type_valuethree= fetch_event_detailsthree.get("Event_Type")
+     self.Event_type_entryythree.set(self.Event_type_valuethree if self.Event_type_valuethree is not None else"")
+     self.Event_type_entryythree.state(['disabled'])
+     self.attach_context_menu(self.Event_type_entryythree)
+
+     self.Event_another_entryythree= Entry(Incident_Eventt,width=50,state='disabled')
+     self.Event_another_entryythree.grid(row=0,column=2,sticky="w")
+     self.attach_context_menu(self.Event_another_entryythree)
+
+     
+     Action_required= Label(Incident_Eventt, text="Created By")
+     Action_required.grid(row=1,column=0,padx=5,pady=5)
+     self.Action_required_entryythree= ttk.Entry(Incident_Eventt,width=30)
+     self.Action_required_entryythree.grid(row=1,column=1,sticky="w",padx=5,pady=5)
+     self.Action_required_entryyvaluethree=fetch_event_detailsthree.get("Createdby")
+     self.Action_required_entryythree.insert(0,self.Action_required_entryyvaluethree if self.Action_required_entryyvaluethree
+                                        is not None else"")
+     self.Action_required_entryythree.state(['disabled'])
+     self.attach_context_menu(self.Action_required_entryythree)
+     
+     Owner= Label(Incident_Eventt, text="Owner")
+     Owner.grid(row=2,column=0,padx=5,pady=5)
+     self.Owner_entryythree= ttk.Entry(Incident_Eventt,width=30)
+     self.Owner_entryythree.grid(row=2,column=1,sticky="w",padx=5,pady=5)
+     self.Ownerentryyvaluethree= fetch_event_detailsthree.get("Owner")
+     self.Owner_entryythree.insert(0,self.Ownerentryyvaluethree if self.Ownerentryyvaluethree is not None else"")
+     self.Owner_entryythree.state(['disabled'])
+     self.attach_context_menu(self.Owner_entryythree)
+
+     Created= LabelFrame(self.event_windows,bd=3, relief=tk.RIDGE,text="Created")
+     Created.pack(side=tk.TOP, padx=8, pady=3, anchor="w")
+     Created.place(x=610,y=30,width=180,height=120)
+
+     #Creating Date, Time and ID INSIDE THE CREATED DATAFRAME
+     Date_created = Label(Created, text="Date:")
+     Date_created.grid(row=0, column=0,padx=5,pady=4)
+     self.Date_created_Entryythree= DateEntry(Created, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Date_created_Entryythree.grid(row=0, column=1,sticky='w')
+     self.Date_created_Entryyvaluethree= fetch_event_detailsthree.get("Createddate")
+     self.Date_created_datethree= self.Date_created_Entryyvaluethree.date()
+     self.Date_created_Entryythree.set_date(self.Date_created_datethree if self.Date_created_datethree is not None else"")
+     self.Date_created_Entryythree.state(['disabled'])
+     self.attach_context_menu(self.Date_created_Entryythree)
+     #Time
+     Time_created= Label(Created,text="Time:")
+     Time_created.grid(row=1,column=0)
+     self.Time_created_entryythree= ttk.Entry(Created,width=9)
+     self.Time_created_entryythree.grid(row=1,column=1,sticky="w")
+     self.Time_created_entryyvaluethree= fetch_event_detailsthree.get("Createddate")
+     self.Time_created_timethree=self.Time_created_entryyvaluethree.time()
+     self.Time_created_entryythree.insert(0,self.Time_created_timethree if self.Time_created_timethree is not None else"")
+     self.Time_created_entryythree.state(['disabled'])
+     self.attach_context_menu(self.Time_created_entryythree)
+     #id
+     ID= Label(Created,text="ID:")
+     ID.grid(row=2,column=0)
+     self.ID_entryythree= ttk.Entry(Created,width=15)
+     self.ID_entryythree.grid(row=2,column=1,sticky="w")
+     self.ID_entryythree['state'] = 'disabled'
+     self.attach_context_menu(self.ID_entryythree)
+
+
+     Event_text=Frame(self.event_windows,bd=3,relief=tk.RIDGE)
+     Event_text.pack(side=tk.TOP, padx=8, pady=3, anchor="w")
+     Event_text.place(x=0,y=130,width=600,height=200)
+     #Creating a label and entry field for Event text inside Event text frame 
+     Event_details= Label(Event_text, text="Event_text:")
+     Event_details.grid(row=0, column=0,sticky='w')
+     self.Event_details_entryythree= tk.Text(Event_text,width=50, height='10',wrap='word')
+     self.Event_details_entryythree.grid(row=0,column=1,sticky='w',padx=5,pady=5)
+     self.Event_detailsvaluethree= fetch_event_detailsthree.get("Eventtext")
+     self.Event_details_entryythree.insert("1.0",self.Event_detailsvaluethree if self.Event_detailsvaluethree is not None else"")
+     self.Event_details_entryythree['state'] = 'disabled'
+     self.attach_context_menu(self.Event_details_entryythree)
+
+     
+
+     
+
+
+     Next_event= LabelFrame(self.event_windows,bd=3,relief=tk.RIDGE,text="Next Event")
+     Next_event.pack(side=tk.TOP, padx=8,pady=3,anchor="w")
+     Next_event.place(x=40, y=330, width=500,height= 180)
+
+     #Creating Date, Time and ID,Type INSIDE THE Next Event Dataframe
+     Date_nextevent = Label(Next_event, text="Date:")
+     Date_nextevent.grid(row=0, column=0,padx=5,pady=4)
+     self.Date_nextevent_Entryythree= DateEntry(Next_event, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Date_nextevent_Entryythree.grid(row=0, column=1,sticky='w')
+     self.Date_nextevent_Entryyvaluethree=fetch_event_detailsthree.get("Nexteventdate")
+     self.Date_nextevent_datethree= self.Date_nextevent_Entryyvaluethree.date()
+     self.Date_nextevent_Entryythree.set_date(self.Date_nextevent_datethree if self.Date_nextevent_datethree is not None else"")
+     self.Date_nextevent_Entryythree.state(['disabled'])
+     self.attach_context_menu(self.Date_nextevent_Entryythree)
+     #Time
+     Time_nextevent= Label(Next_event,text="Time:")
+     Time_nextevent.grid(row=1,column=0,padx=5,pady=5)
+     self.Time_nextevent_entryythree= Entry(Next_event,width=9)
+     self.Time_nextevent_entryythree.grid(row=1,column=1,sticky="w",padx=5,pady=5)
+     self.Time_nextevent_entryyvaluethree= fetch_event_detailsthree.get("Nexteventdate")
+     self.Time_nextevent_timethree= self.Time_nextevent_entryyvaluethree.time()
+     self.Time_nextevent_entryythree.insert(0,self.Time_nextevent_timethree if self.Time_nextevent_timethree is not None else"")
+     self.Time_nextevent_entryythree['state'] = 'disabled'
+     self.attach_context_menu(self.Time_nextevent_entryythree)
+     #id
+     ids= ["abcd","shhshs""hhsjjs"]
+     id_nextevent= Label(Next_event, text="ID:")
+     id_nextevent.grid(row=2,column=0,padx=5,pady=5)
+     self.id_nextevent_entryythree= ttk.Combobox(Next_event,values=ids,width=20)
+     self.id_nextevent_entryythree.grid(row=2,column=1,sticky="w",padx=5,pady=5)
+     self.id_nextevent_entryythree['state'] = 'disabled'
+     self.attach_context_menu(self.id_nextevent_entryythree)
+     self.id_another_entryythree= Entry(Next_event,width=40)
+     self.id_another_entryythree.grid(row=2,column=2,sticky="w")
+     self.id_another_entryythree['state'] = 'disabled'
+     self.attach_context_menu(self.id_another_entryythree)
+
+     self.typethree=KBACKEND.fetch_event_types()
+     self.typedetailsthree= [row[1] for row in self.typethree]
+     Type_nextevent= Label(Next_event, text="Type:")
+     Type_nextevent.grid(row=3,column=0,padx=5,pady=5)
+     self.Type_nextevent_entryythree= ttk.Combobox(Next_event,values=self.typedetailsthree,width=20)
+     self.Type_nextevent_entryythree.grid(row=3,column=1,sticky="w",padx=5,pady=5)
+     self.Typenextevent_valuethree= fetch_event_detailsthree.get("Nexteventtype")
+     self.Type_nextevent_entryythree.state(['disabled'])
+     self.Type_nextevent_entryythree.set(self.Typenextevent_valuethree if self.Typenextevent_valuethree is not None else"")
+     self.attach_context_menu(self.Type_nextevent_entryythree)
+     
     
+     self.Type_another_entryythree= ttk.Entry(Next_event,width=40)
+     self.Type_another_entryythree.grid(row=3,column=2,sticky="w")
+     self.Type_another_entryythree.state(['disabled'])
+     self.attach_context_menu(self.Type_another_entryythree)
+       
 
     #defining functionalities for the icons in the second page 
     def open_icon_windowsecond(self,index):
@@ -1162,70 +1359,7 @@ class KerridgeReplacement:
              #self.events_tree.insert("", "end", values=(Created_date,Created_time,"","","",
                 #Notes,Last_updated_date,Last_updated_time,"",Follow_up_date,follow_up_time,"",""))
              
-    def save(self):
-        
-        Incident_No= self.Numberentry.get()
-        date_str = self.Date_created_Entry.get()  # Get date as string
-        time_str = self.Time_created_entry.get()  # Get time as string
-
-        # Combine date and time strings into a single datetime string
-        datetime_str = f"{date_str} {time_str}"
-
-        # Convert the datetime string to a datetime object
-        datetime_obj = datetime.datetime.strptime(datetime_str, "%d/%m/%Y %H:%M")
-
-        First_event=self.Event_type_entry.get()
-        for row in self.event_typesinfo:    
-         if row[1] == First_event:
-            First_event_tostore = row[0]
-            break
-         
-        Event_text=self.Event_details_entry.get("1.0", tk.END)
-        second_event= self.Type_nextevent_entry.get()
-        for row in self.type:    
-         if row[1] == second_event:
-            Second_event_tostore = row[0]
-            break
-        datee_str= self.Date_nextevent_Entry.get()
-        timee_str=self.Time_nextevent_entry.get()
-         # Combine date and time strings into a single datetime string
-        datetime_strr = f"{datee_str} {timee_str}"
-        # Convert the datetime string to a datetime object
-        datetime_objj = datetime.datetime.strptime(datetime_strr, "%d/%m/%Y %H:%M")
-        Created_by= self.Action_required_entry.get()
-        Owner=self.Owner_entry.get()
-        KBACKEND.store_event_details(Incident_No,datetime_obj,First_event_tostore,Event_text
-                                     ,Second_event_tostore,datetime_objj,Created_by,Owner)
-        
-        event_details= KBACKEND.fetch_all_events(Incident_No)
-        self.events_tree.delete(*self.events_tree.get_children())
-        
-       
-        if event_details:
-          for event in event_details:
-             Event_created= event.get('Created')
-             #event_datetime = datetime.strptime(Event_created, "%Y-%m-%d %H:%M:%S")
-             Created_date = Event_created.date()
-
-             # Get the time part
-             Created_time = Event_created.time()
-        
-             Notes= event.get('Notes')
-             Last_updated= event.get('Last Updated')
-             #last_updated_datetime= datetime.strptime(Last_updated, "%Y-%m-%d %H:%M:%S")
-             Last_updated_date= Last_updated.date()
-             Last_updated_time= Last_updated.time()
-             Follow_up= event.get('Follow up')
-             #Follow_up_datetime= datetime.strptime(Follow_up, "%Y-%m-%d %H:%M:%S")
-             Follow_up_date= Follow_up.date()
-             follow_up_time= Follow_up.time()
-             Event_Description= event.get('Event_Description')
-             Next_Event_Description= event.get('Next_Event_Description')
-
-
-             self.events_tree.insert("", "end", values=(Created_date,Created_time,"",Event_Description,"",
-                Notes,Last_updated_date,Last_updated_time,"",Follow_up_date,follow_up_time,"",Next_Event_Description))
-        
+    
    
     def populate_next_event_details(self, event=None):
      selected_event_type = self.Event_type_entry.get()
@@ -2426,7 +2560,263 @@ class KerridgeReplacement:
                                       Depot_no,cat_value_to_store,lol_value_to_store,char_value_to_store,Faultdesc,stat_value_store,Closed,Attendance_def,
                                       combined_deferred,whatwords,registration_no,SupplierNo)
 
+    def open_events_From_mainpage(self):
+     
+     self.events_window= tk.Toplevel(self.root)
+     self.events_window.title("Event Detail Form")
+     self.events_window.geometry("800x600")
+       #defining functionalities for icons in the event details page 
+     icon_box = tk.Frame(self.events_window, relief=tk.RIDGE, borderwidth=3)
+     icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
 
+    # You can add icons below menus using PhotoImage or other methods.
+    # For demonstration purposes, let's create 13 small image icons.
+     images = ["icon27.png", "icon28.png"]
+     for ideve, path in enumerate(images, start=1):
+         image = Image.open(path)
+         image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
+         photo = ImageTk.PhotoImage(image)
+         icon_button = tk.Button(icon_box, image=photo, command=lambda index=ideve: self.event_functionalitytwo(index))
+         icon_button.image = photo
+         icon_button.pack(side=tk.LEFT, padx=5, pady=2)
+    
+     Incident_Eventtwo= Frame(self.events_window, bd=3, relief=tk.RIDGE)
+     Incident_Eventtwo.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Incident_Eventtwo.place(x=0,y=30,width=600,height=100)
+     
+     #Creating Label and Entry for Event Type, Action required inside Incident Event frame
+     self.event_typesinfotwo= KBACKEND.fetch_event_types()
+     self.eventtypedetailstwo= [row[1] for row in self.event_typesinfotwo]
+     Event_type= Label(Incident_Eventtwo, text="Event type:")
+     Event_type.grid(row=0,column=0,padx=5,pady=5)
+     self.Event_type_entrytwo= ttk.Combobox(Incident_Eventtwo,values=self.eventtypedetailstwo,width=20)
+     self.Event_type_entrytwo.grid(row=0,column=1,sticky="w",padx=5,pady=5)
+     self.attach_context_menu(self.Event_type_entrytwo)
+     self.Event_another_entrytwo= Entry(Incident_Eventtwo,width=50)
+     self.Event_another_entrytwo.grid(row=0,column=2,sticky="w")
+     self.attach_context_menu(self.Event_another_entrytwo)
+
+     
+     Action_required= Label(Incident_Eventtwo, text="Created By")
+     Action_required.grid(row=1,column=0,padx=5,pady=5)
+     self.Action_required_entrytwo= ttk.Entry(Incident_Eventtwo,width=30)
+     self.Action_required_entrytwo.grid(row=1,column=1,sticky="w",padx=5,pady=5)
+     self.attach_context_menu(self.Action_required_entrytwo)
+     
+     Owner= Label(Incident_Eventtwo, text="Owner")
+     Owner.grid(row=2,column=0,padx=5,pady=5)
+     self.Owner_entrytwo= Entry(Incident_Eventtwo,width=30)
+     self.Owner_entrytwo.grid(row=2,column=1,sticky="w",padx=5,pady=5)
+     self.attach_context_menu(self.Owner_entrytwo)
+
+     Createdtwo= LabelFrame(self.events_window,bd=3, relief=tk.RIDGE,text="Created")
+     Createdtwo.pack(side=tk.TOP, padx=8, pady=3, anchor="w")
+     Createdtwo.place(x=610,y=30,width=180,height=120)
+     #Creating Date, Time and ID INSIDE THE CREATED DATAFRAME
+     Date_created = Label(Createdtwo, text="Date:")
+     Date_created.grid(row=0, column=0,padx=5,pady=4)
+     self.Date_created_Entrytwo= DateEntry(Createdtwo, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Date_created_Entrytwo.grid(row=0, column=1,sticky='w')
+     self.attach_context_menu(self.Date_created_Entrytwo)
+     #Time
+     Time_created= Label(Createdtwo,text="Time:")
+     Time_created.grid(row=1,column=0)
+     self.Time_created_entrytwo= Entry(Createdtwo,width=9)
+     current_time = datetime.datetime.now().strftime("%H:%M")
+     self.Time_created_entrytwo.grid(row=1,column=1,sticky="w")
+     self.Time_created_entrytwo.insert(0, current_time)
+     self.attach_context_menu(self.Time_created_entrytwo)
+     #id
+     ID= Label(Createdtwo,text="ID:")
+     ID.grid(row=2,column=0)
+     self.ID_entrytwo= Entry(Createdtwo,width=15)
+     self.ID_entrytwo.grid(row=2,column=1,sticky="w")
+     self.attach_context_menu(self.ID_entrytwo)
+
+
+     Event_text=Frame(self.events_window,bd=3,relief=tk.RIDGE)
+     Event_text.pack(side=tk.TOP, padx=8, pady=3, anchor="w")
+     Event_text.place(x=0,y=130,width=600,height=200)
+     #Creating a label and entry field for Event text inside Event text frame 
+     Event_details= Label(Event_text, text="Event_text:")
+     Event_details.grid(row=0, column=0,sticky='w')
+     self.Event_details_entrytwo= Text(Event_text,width=50, height='10',wrap='word')
+     self.Event_details_entrytwo.grid(row=0,column=1,sticky='w',padx=5,pady=5)
+     self.attach_context_menu(self.Event_details_entrytwo)
+
+
+
+     
+
+
+     Next_event= LabelFrame(self.events_window,bd=3,relief=tk.RIDGE,text="Next Event")
+     Next_event.pack(side=tk.TOP, padx=8,pady=3,anchor="w")
+     Next_event.place(x=40, y=330, width=500,height= 180)
+     #Creating Date, Time and ID,Type INSIDE THE Next Event Dataframe
+     Date_nextevent = Label(Next_event, text="Date:")
+     Date_nextevent.grid(row=0, column=0,padx=5,pady=4)
+     self.Date_nextevent_Entrytwo= DateEntry(Next_event, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Date_nextevent_Entrytwo.grid(row=0, column=1,sticky='w')
+     self.attach_context_menu(self.Date_nextevent_Entrytwo)
+     #Time
+     Time_nextevent= Label(Next_event,text="Time:")
+     Time_nextevent.grid(row=1,column=0,padx=5,pady=5)
+     self.Time_nextevent_entrytwo= Entry(Next_event,width=9)
+     self.Time_nextevent_entrytwo.grid(row=1,column=1,sticky="w",padx=5,pady=5)
+     self.attach_context_menu(self.Time_nextevent_entrytwo)
+     #id
+     ids= ["abcd","shhshs""hhsjjs"]
+     id_nextevent= Label(Next_event, text="ID:")
+     id_nextevent.grid(row=2,column=0,padx=5,pady=5)
+     self.id_nextevent_entrytwo= ttk.Combobox(Next_event,values=ids,width=20)
+     self.id_nextevent_entrytwo.grid(row=2,column=1,sticky="w",padx=5,pady=5)
+     self.attach_context_menu(self.id_nextevent_entrytwo)
+     self.id_another_entrytwo= Entry(Next_event,width=40)
+     self.id_another_entrytwo.grid(row=2,column=2,sticky="w")
+     self.attach_context_menu(self.id_another_entrytwo)
+
+     self.typetwo=KBACKEND.fetch_event_types()
+     self.typedetailstwo= [row[1] for row in self.typetwo]
+     Type_nextevent= Label(Next_event, text="Type:")
+     Type_nextevent.grid(row=3,column=0,padx=5,pady=5)
+     self.Type_nextevent_entrytwo= ttk.Combobox(Next_event,values=self.typedetailstwo,width=20)
+     self.Type_nextevent_entrytwo.grid(row=3,column=1,sticky="w",padx=5,pady=5)
+     self.attach_context_menu(self.Type_nextevent_entrytwo)
+     self.Event_type_entrytwo.bind("<<ComboboxSelected>>", self.populate_next_event_detailstwo)
+     self.populate_next_event_detailstwo()
+     self.Type_another_entrytwo= Entry(Next_event,width=40)
+     self.Type_another_entrytwo.grid(row=3,column=2,sticky="w")
+     self.attach_context_menu(self.Type_another_entrytwo)
+
+    def populate_next_event_detailstwo(self, event=None):
+     selected_event_type = self.Event_type_entrytwo.get()
+    
+     # Find the corresponding details for the selected event type
+     for row in self.event_typesinfotwo:
+        if row[1] == selected_event_type:
+            next_event_id = row[2]
+            if next_event_id is None:  # If there is no next_event_id
+                # Set Type_nextevent_entry to the selected event type
+                self.Type_nextevent_entrytwo.set(selected_event_type)
+                # Set Date_nextevent_Entry to the current date
+                current_date = datetime.datetime.now().strftime("%d/%m/%Y")
+                self.Date_nextevent_Entrytwo.set_date(current_date)
+                # Set Time_nextevent_entry to the current time
+                current_time = datetime.datetime.now().strftime("%H:%M")
+                self.Time_nextevent_entrytwo.delete(0, 'end')  # Clear previous value
+                self.Time_nextevent_entrytwo.insert(0, current_time)
+            else:
+                # Find the corresponding description for the next_event_id
+                for item in self.typetwo:
+                    if item[0] == next_event_id:
+                        self.Type_nextevent_entrytwo.set(item[1])
+                        minutes = item[3]  # Use minutes from item[3]
+                        if minutes > 1440:  # If duration exceeds one day
+                            # Calculate the number of days and remaining minutes
+                            days = minutes // 1440
+                            remaining_minutes = minutes % 1440
+                            # Calculate the adjusted date
+                            next_date = datetime.datetime.now() + datetime.timedelta(days=days)
+                            date_str = next_date.strftime("%d/%m/%Y")
+                            # Populate Date_nextevent_Entry
+                            self.Date_nextevent_Entrytwo.set_date(date_str)
+                            # Get the current time
+                            current_time_str = self.Time_created_entrytwo.get()
+                            current_time = datetime.datetime.strptime(current_time_str, "%H:%M")
+                            # Add remaining minutes to current time
+                            adjusted_time = current_time + datetime.timedelta(minutes=remaining_minutes)
+                        else:
+                            # Get the current time
+                            current_time_str = self.Time_created_entrytwo.get()
+                            current_time = datetime.datetime.strptime(current_time_str, "%H:%M")
+                            # Add minutes to current time
+                            adjusted_time = current_time + datetime.timedelta(minutes=minutes)
+                        # Format adjusted time
+                        adjusted_time_str = adjusted_time.strftime("%H:%M")
+                        # Populate Time_nextevent_entry
+                        self.Time_nextevent_entrytwo.delete(0, 'end')  # Clear previous value
+                        self.Time_nextevent_entrytwo.insert(0, adjusted_time_str)
+                        break
+            break
+
+    def event_functionalitytwo(self,index):
+       if index==1:
+          self.exit_the_events()
+       elif index==2:
+          self.add_the_events_toinci()
+    
+    def exit_the_events(self):
+       self.events_window.destroy()
+    def add_the_events_toinci(self):
+     i_number=self.Numberentryy.get()
+     KBACKEND.generate_event_numbertwo(i_number)
+
+     date_str = self.Date_created_Entrytwo.get()  # Get date as string
+     time_str = self.Time_created_entrytwo.get()  # Get time as string
+
+     # Combine date and time strings into a single datetime string
+     datetime_str = f"{date_str} {time_str}"
+
+     # Convert the datetime string to a datetime object
+     datetime_obj = datetime.datetime.strptime(datetime_str, "%d/%m/%Y %H:%M")
+
+     First_event=self.Event_type_entrytwo.get()
+     for row in self.event_typesinfotwo:    
+        if row[1] == First_event:
+            First_event_tostore = row[0]
+            break
+         
+     Event_text=self.Event_details_entrytwo.get("1.0", tk.END)
+     second_event= self.Type_nextevent_entrytwo.get()
+     for row in self.typetwo:    
+         if row[1] == second_event:
+            Second_event_tostore = row[0]
+            break
+     datee_str= self.Date_nextevent_Entrytwo.get()
+     timee_str=self.Time_nextevent_entrytwo.get()
+        # Combine date and time strings into a single datetime string
+     datetime_strr = f"{datee_str} {timee_str}"
+     # Convert the datetime string to a datetime object
+     datetime_objj = datetime.datetime.strptime(datetime_strr, "%d/%m/%Y %H:%M")
+     Created_by= self.Action_required_entrytwo.get()
+     Owner=self.Owner_entrytwo.get()
+
+     KBACKEND.insert_more_events(i_number,datetime_obj,First_event_tostore,Event_text
+                                     ,Second_event_tostore,datetime_objj,Created_by,Owner)
+     
+     event_details= KBACKEND.fetch_all_eventstwo(i_number)
+     self.eventss_tree.delete(*self.eventss_tree.get_children())
+        
+       
+     if event_details:
+          for event in event_details:
+             Event_created= event.get('Created')
+             #event_datetime = datetime.strptime(Event_created, "%Y-%m-%d %H:%M:%S")
+             Created_date = Event_created.date()
+
+             # Get the time part
+             Created_time = Event_created.time()
+        
+             Notes= event.get('Notes')
+             Last_updated= event.get('Last Updated')
+             #last_updated_datetime= datetime.strptime(Last_updated, "%Y-%m-%d %H:%M:%S")
+             Last_updated_date= Last_updated.date()
+             Last_updated_time= Last_updated.time()
+             Follow_up= event.get('Follow up')
+             #Follow_up_datetime= datetime.strptime(Follow_up, "%Y-%m-%d %H:%M:%S")
+             Follow_up_date= Follow_up.date()
+             follow_up_time= Follow_up.time()
+             Event_Description= event.get('Event_Description')
+             Next_Event_Description= event.get('Next_Event_Description')
+
+
+             self.eventss_tree.insert("", "end", values=(Created_date,Created_time,"",Event_Description,"",
+                Notes,Last_updated_date,Last_updated_time,"",Follow_up_date,follow_up_time,"",Next_Event_Description))
+        
+             self.populate_events_tree()
+
+       
+       
 
 
 
