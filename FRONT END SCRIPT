@@ -4,6 +4,7 @@ from tkinter import Frame, LabelFrame,Label,Checkbutton,Button,HORIZONTAL,VERTIC
 from PIL import Image, ImageTk
 from tkinter import ttk 
 from tkcalendar import DateEntry
+from getpass import getuser
 import datetime
 import KBACKEND
 
@@ -25,6 +26,9 @@ class KerridgeReplacement:
         self.add_data_frame()
 
         self.undo_stack = []
+        
+        self.incieve=False
+        self.incieveone=False
         
         # Bind the apply_filter function to the Enter key press event for Entry fields
         self.Regtext1.bind("<KeyRelease>", self.handle_filtering)
@@ -344,7 +348,7 @@ class KerridgeReplacement:
 
      self.icon1_window= tk.Toplevel(self.root)
      self.icon1_window.title("Incident Detail Form")
-     self.icon1_window.geometry("800x600")  # Adjust the width and height as needed
+     self.icon1_window.geometry("800x620")  # Adjust the width and height as needed
      
 
     #Create a container (Frame) for the icons with a border
@@ -377,7 +381,7 @@ class KerridgeReplacement:
      def show_events_page():
       self.main_page.pack_forget()
       self.events_page.pack(fill="both", expand=True)
-
+      self.open_next_window()
     
      show_main_page()
 
@@ -534,7 +538,7 @@ class KerridgeReplacement:
       
      Incident_details= LabelFrame(self.main_page, bd=3, relief=tk.RIDGE,text="Incident Details")
      Incident_details.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
-     Incident_details.place(x=0,y=230,width=780,height=275)
+     Incident_details.place(x=0,y=230,width=780,height=293)
 
      #Creating a label and entry field for location
      Location= Label(Incident_details, text="Location:")
@@ -561,11 +565,12 @@ class KerridgeReplacement:
      self.attach_context_menu(self.datee)
 
      #Creating Label and Entry for Time 
-
+     current_user=getuser()
      Created_by = Label(Incident_details, text="Created_By", padx=5)
      Created_by.grid(row=2, column=3)
      self.Time= Entry(Incident_details, width=10)
      self.Time.grid(row=2, column=4,sticky='w')
+     self.Time.insert(0,current_user)
      self.attach_context_menu(self.Time)
 
 
@@ -668,9 +673,17 @@ class KerridgeReplacement:
      
      Deff = Label(Incident_details, text='Deferred To')
      Deff.grid(row=6, column=0, padx=2, sticky='w')
-     self.Deferred_To = DateEntry(Incident_details, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Deferred_To = DateEntry(Incident_details, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='yyyy/mm/dd')
      self.Deferred_To.grid(row=6, column=1, padx=2, sticky='w')
      self.attach_context_menu(self.Deferred_To)
+
+     Deff_time=Label(Incident_details,text='Deferred To Time')
+     Deff_time.grid(row=7,column=0,padx=2, sticky='w')
+     self.Deferred_Time= Entry(Incident_details,width=15)
+     self.Deferred_Time.grid(row=7,column=1,sticky='w')
+     current_time = datetime.datetime.now().strftime("%H:%M")
+     self.Deferred_Time.insert(0,current_time)
+     self.attach_context_menu(self.Deferred_Time)
 
      whatwords = Label(Incident_details, text='Defect_loc_W3W')
      whatwords.grid(row=6, column=3 ,sticky='w')
@@ -683,7 +696,7 @@ class KerridgeReplacement:
     #Creating Frame for Supplier details
      Supplier_details=LabelFrame(self.main_page,bd=3,relief=tk.RIDGE,text="Supplier Details")
      Supplier_details.pack(side=tk.TOP,padx=8,pady=3, anchor="nw")
-     Supplier_details.place(x=0,y=503,width=780,height=60)
+     Supplier_details.place(x=0,y=522,width=780,height=60)
 
      #Creating label and Entry for Name:
      sup=KBACKEND.fetch_supplier_details()
@@ -780,17 +793,19 @@ class KerridgeReplacement:
      self.Event_another_entry.grid(row=0,column=2,sticky="w")
      self.attach_context_menu(self.Event_another_entry)
 
-     
+     current_user=getuser()
      Action_required= Label(Incident_Event, text="Created By")
      Action_required.grid(row=1,column=0,padx=5,pady=5)
      self.Action_required_entry= ttk.Entry(Incident_Event,width=30)
      self.Action_required_entry.grid(row=1,column=1,sticky="w",padx=5,pady=5)
+     self.Action_required_entry.insert(0, current_user)
      self.attach_context_menu(self.Action_required_entry)
      
      Owner= Label(Incident_Event, text="Owner")
      Owner.grid(row=2,column=0,padx=5,pady=5)
      self.Owner_entry= Entry(Incident_Event,width=30)
      self.Owner_entry.grid(row=2,column=1,sticky="w",padx=5,pady=5)
+     self.Owner_entry.insert(0,current_user)
      self.attach_context_menu(self.Owner_entry)
 
      Created= LabelFrame(self.icon3_window,bd=3, relief=tk.RIDGE,text="Created")
@@ -929,7 +944,41 @@ class KerridgeReplacement:
         Owner=self.Owner_entry.get()
         KBACKEND.store_event_details(Incident_No,datetime_obj,First_event_tostore,Event_text
                                      ,Second_event_tostore,datetime_objj,Created_by,Owner)
+        getting_ino= KBACKEND.giving_i_no_to_events()
+        if getting_ino:
+           for incident_details in getting_ino:
+              incident_no= incident_details.get("I_Number")
+              if incident_no is not None:
+               last_incievent= KBACKEND.retrievevents(incident_no)
+               if last_incievent:
+                for incidents in last_incievent:
+                 print("Processing incident:", incidents)
+       
+                incident_date = incidents.get("Incident Date")
+                Customer=incidents.get("Customer")
+                registration = incidents.get("Registration")
+                I_no=incidents.get("Incident No")
+                Status=incidents.get("Status")
+                Category=incidents.get("Category")
+                loca=incidents.get("Location")
+                Charg=incidents.get("Charge")
+                Locat= incidents.get("Locationn")
+                Owner=incidents.get("Owner")
+                Next_Event_DT=incidents.get("Next_Event_DT")
+                if Next_Event_DT is not None:
+                 Next_Event_Date = Next_Event_DT.date()
+                 Next_Event_Time = Next_Event_DT.time()
+                else:
+                 Next_Event_Date = None  # or a default value
+                 Next_Event_Time = None
+        # Insert the incident into Kerride_table
+                 self.root.Kerride_table.insert("", "end", values=(incident_date, Customer, Locat, registration,I_no,Category,loca,Charg,Status,Owner,Next_Event_Date,Next_Event_Time))
+        self.populate_kerride_table()
+       
         
+        
+              
+              
         event_details= KBACKEND.fetch_all_events(Incident_No)
         self.events_tree.delete(*self.events_tree.get_children())
         
@@ -1141,14 +1190,12 @@ class KerridgeReplacement:
          
         
     # Define a function to populate Kerride_table with all incidents from the database
-    def populate_kerride_table(self,filter_text=None, is_closed=False):
+    def populate_kerride_table(self,filter_text=None, is_closed=False,):
      
-    # Clear existing data from Kerride_table
      self.root.Kerride_table.delete(*self.root.Kerride_table.get_children())
-
-    # Retrieve all incidents from the database
+    
      all_incidents = KBACKEND.retrieve_all_incidents()
-     
+    
      if all_incidents:
         for incident in all_incidents: 
          incident_datetime_s = incident.get("Incident Date")
@@ -1162,7 +1209,17 @@ class KerridgeReplacement:
          loc=incident.get("Location")
          Char=incident.get("Charge")
          location=incident.get("Locationn")
+         Owner= incident.get("Owner")
+         Next_Event_Datetime=incident.get("Next_Event_Date")
+         
+         if Next_Event_Datetime is not None:
+          Next_Event_Date = Next_Event_Datetime.date()
+          Next_Event_Time = Next_Event_Datetime.time()
+         else:
+          Next_Event_Date = None  # or a default value
+          Next_Event_Time = None  # or a default value
         
+
          
           # If filter_text is provided and incident does not match the filter, skip it
          if filter_text and not any(filter_text.lower() in str(value).lower() for value in (date_part,registration, Customer, location, I_no, Cat, loc, Char, Status)):
@@ -1172,9 +1229,10 @@ class KerridgeReplacement:
          if is_closed and Status != "X":
                 continue
          
-         self.root.Kerride_table.insert("", "end", values=(incident_datetime_s,Customer,location,registration,I_no,Cat,loc,Char,Status ))
+         self.root.Kerride_table.insert("", "end", values=(incident_datetime_s,Customer,location,registration,I_no,Cat,loc,Char,Status,Owner,Next_Event_Date,Next_Event_Time ))
      else:
       print("No incidents found in the database.")
+         
     
     # Define a function to handle filtering when Entry fields are updated
     def handle_filtering(self, event):
@@ -1261,14 +1319,17 @@ class KerridgeReplacement:
      odo= self.Odo.get()
      attendance=self.attendance_var.get()
 
-     Deferred_date = self.datee.get_date()
+     Deferred_date = self.datee.get()
+
+     Deferred_time=self.Deferred_Time.get()
     
     # Getting the current time
-     current_timee = datetime.datetime.now().time()
+     datetime_str = f"{Deferred_date} {Deferred_time}"
+
+    # Convert the datetime string to a datetime object
+     combined_deferred = datetime.datetime.strptime(datetime_str, "%d/%m/%Y %H:%M")
     
     # Combining selected date and current time into a datetime object
-     combined_deferred = datetime.datetime.combine(Deferred_date, current_timee)
-
      what3=self.whatwordsentry.get()
 
      close= self.closed_var.get()
@@ -1290,16 +1351,18 @@ class KerridgeReplacement:
                                  contacttel,contactemail,drivertel,Defect_loc,faultdesc,cat_value_to_store,lol_value_to_store,
                                  char_value_to_store,stat_value_store,odo,attendance,combined_deferred,what3,close,fleet,custid,contractno,locat,defectno,supplier_no)
     
-
-
      last_incident = KBACKEND.retrieve_last_incident()
+     print("last_incident:", last_incident)
+     
 
      ## Clear existing data from Kerride_table
      self.root.Kerride_table.delete(*self.root.Kerride_table.get_children())
      
      if last_incident:
         for incidents in last_incident:
+         print("Processing incident:", incidents)
         # Retrieve attribute values for each incident
+         #print("Last incident data:", last_incident)
          incident_date = incidents.get("Incident Date")
          Customer=incidents.get("Customer")
          registration = incidents.get("Registration")
@@ -1309,9 +1372,21 @@ class KerridgeReplacement:
          loca=incidents.get("Location")
          Charg=incidents.get("Charge")
          Locat= incidents.get("Locationn")
+         Owner=incidents.get("Owner")
+         Next_Event_DT=incidents.get("Next_Event_DT")
+         if Next_Event_DT is not None:
+          Next_Event_Date = Next_Event_DT.date()
+          Next_Event_Time = Next_Event_DT.time()
+         else:
+          Next_Event_Date = None  # or a default value
+          Next_Event_Time = None
+         
+
+
         # Insert the incident into Kerride_table
-         self.root.Kerride_table.insert("", "end", values=(incident_date, Customer, Locat, registration,I_no,Category,loca,Charg,Status))
+         self.root.Kerride_table.insert("", "end", values=(incident_date, Customer, Locat, registration,I_no,Category,loca,Charg,Status,Owner,Next_Event_Date,Next_Event_Time))
      self.populate_kerride_table()
+     
         
 
     def populate_location_description(self, event=None):
@@ -1731,7 +1806,7 @@ class KerridgeReplacement:
      # Create a new window for the form
      self.form_window = tk.Toplevel(self.root)
      self. form_window.title("Incident Detail Form")
-     self.form_window.geometry("800x600") 
+     self.form_window.geometry("800x620") 
 
      #Create a container (Frame) for the icons with a border
      icon_box = tk.Frame(self.form_window, relief=tk.RIDGE, borderwidth=3)
@@ -1762,6 +1837,7 @@ class KerridgeReplacement:
      def show_eventss_page():
       self.mainn_page.pack_forget()
       self.eventss_page.pack(fill="both", expand=True)
+      self.save_the_incident_details()
 
     
      show_mainn_page()
@@ -1974,7 +2050,7 @@ class KerridgeReplacement:
       
      ThirdDataframe= LabelFrame(self.mainn_page, bd=3, relief=tk.RIDGE,text="Incident Details")
      ThirdDataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
-     ThirdDataframe.place(x=0,y=230,width=780,height=275)
+     ThirdDataframe.place(x=0,y=230,width=780,height=293)
 
      #Creating a label and entry field for location
      Location= Label(ThirdDataframe, text="Location:")
@@ -2004,7 +2080,7 @@ class KerridgeReplacement:
      self.dateeentry.grid(row=1, column=4,sticky='w')
      self.attach_context_menu(self.dateeentry)
      self.dateeentryvalue=incident_details.get('Date')
-     self.dateeentry.insert(0,self.dateeentryvalue if self.dateeentryvalue is not None else"")
+     self.dateeentry.set_date(self.dateeentryvalue if self.dateeentryvalue is not None else"")
      
      
      #Creating Label and Entry for Time 
@@ -2136,11 +2212,28 @@ class KerridgeReplacement:
      
      Deffered = Label(ThirdDataframe, text='Deferred To')
      Deffered.grid(row=6, column=0, padx=2, sticky='w')
-     self.Deferred_Too = DateEntry(ThirdDataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Deferred_Too = DateEntry(ThirdDataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='yyyy/mm/dd')
      self.Deferred_Too.grid(row=6, column=1, padx=2, sticky='w')
      self.attach_context_menu(self.Deferred_Too)
      self.Deferred_Tovalue= incident_details.get('Deferred')
-     self.Deferred_Too.insert(0,self.Deferred_Tovalue if self.Deferred_Tovalue is not None else"")
+     if self.Deferred_Tovalue is not None:
+          self.Deferred_Tovaluedate= self.Deferred_Tovalue.date()
+     else:
+          self.Deferred_Tovaluedate=None
+     self.Deferred_Too.set_date(self.Deferred_Tovaluedate)
+
+     Deff_time=Label(ThirdDataframe,text='Deferred To Time')
+     Deff_time.grid(row=7,column=0,padx=2, sticky='w')
+     self.Deferred_Timetwo= Entry(ThirdDataframe,width=15)
+     self.Deferred_Timetwo.grid(row=7,column=1,sticky='w')
+     self.Deferred_Timetwovalue=incident_details.get('Deferred')
+     if self.Deferred_Timetwovalue is not None:
+         self.Deferred_TimetwoTime= self.Deferred_Timetwovalue.time()
+     else:
+        self.Deferred_TimetwoTime=None
+     self.Deferred_Timetwo.insert(0,self.Deferred_TimetwoTime if self.Deferred_TimetwoTime is not None else"")
+     self.attach_context_menu(self.Deferred_Timetwo)
+
 
      whatwords = Label(ThirdDataframe, text='Defect_loc_W3W')
      whatwords.grid(row=6, column=3, padx=2, sticky='w')
@@ -2154,7 +2247,7 @@ class KerridgeReplacement:
      #Creating Frame for Supplier details
      Fourthdataframe=LabelFrame(self.mainn_page,bd=3,relief=tk.RIDGE,text="Supplier Details")
      Fourthdataframe.pack(side=tk.TOP,padx=8,pady=3, anchor="nw")
-     Fourthdataframe.place(x=0,y=503,width=780,height=60)
+     Fourthdataframe.place(x=0,y=522,width=780,height=60)
      
      #Creating label and Entry for Name:
      supp=KBACKEND.fetch_supplier_details()
@@ -2363,7 +2456,7 @@ class KerridgeReplacement:
      #Creating Date, Time and ID,Type INSIDE THE Next Event Dataframe
      Date_nextevent = Label(Next_event, text="Date:")
      Date_nextevent.grid(row=0, column=0,padx=5,pady=4)
-     self.Date_nextevent_Entryy= DateEntry(Next_event, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Date_nextevent_Entryy= DateEntry(Next_event, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='yyyy/mm/dd')
      self.Date_nextevent_Entryy.grid(row=0, column=1,sticky='w')
      self.Date_nextevent_Entryyvalue=fetch_event_details.get("Nexteventdate")
      self.Date_nextevent_date= self.Date_nextevent_Entryyvalue.date()
@@ -2544,13 +2637,15 @@ class KerridgeReplacement:
      
      Closed=self.closedd_var.get()
      Attendance_def= self.attendance_vari.get()
-     Deferred_to=self.Deferred_Too.get_date()
+     Deferred_to=self.Deferred_Too.get()
 
-    # Getting the current time
-     current_timee = datetime.datetime.now().time()
+     Deferred_time=self.Deferred_Timetwo.get()
     
-    # Combining selected date and current time into a datetime object
-     combined_deferred = datetime.datetime.combine(Deferred_to, current_timee)
+    # Getting the current time
+     datetime_str = f"{Deferred_to} {Deferred_time}"
+
+    # Convert the datetime string to a datetime object
+     combined_deferred = datetime.datetime.strptime(datetime_str, "%Y/%m/%d %H:%M:%S")
      whatwords=self.whatwordsentryy.get()
      SupplierNo=self.nameentryy.get()
 
@@ -2559,7 +2654,40 @@ class KerridgeReplacement:
                                       contact_methodd,Defect_Address,Incident_No,created_by,Odometer,
                                       Depot_no,cat_value_to_store,lol_value_to_store,char_value_to_store,Faultdesc,stat_value_store,Closed,Attendance_def,
                                       combined_deferred,whatwords,registration_no,SupplierNo)
+     
+     last_updated_incident= KBACKEND.retrieve_updated_incieve(Incident_No)
 
+      ## Clear existing data from Kerride_table
+     self.root.Kerride_table.delete(*self.root.Kerride_table.get_children())
+
+     if last_updated_incident:
+        for incidents in last_updated_incident:
+        # Retrieve attribute values for each incident
+         incident_date = incidents.get("Incident Date")
+         Customer=incidents.get("Customer")
+         registration = incidents.get("Registration")
+         I_no=incidents.get("Incident No")
+         Status=incidents.get("Status")
+         Category=incidents.get("Category")
+         loca=incidents.get("Location")
+         Charg=incidents.get("Charge")
+         Locat= incidents.get("Locationn")
+         Owner=incidents.get("Owner")
+         Next_Event_DT=incidents.get("Next_Event_DT")
+         if Next_Event_DT is not None:
+          Next_Event_Date = Next_Event_DT.date()
+          Next_Event_Time = Next_Event_DT.time()
+         else:
+          Next_Event_Date = None  # or a default value
+          Next_Event_Time = None
+         # Insert the incident into Kerride_table
+         self.root.Kerride_table.insert("", "end", values=(incident_date, Customer, Locat, registration,I_no,Category,loca,Charg,Status,Owner,Next_Event_Date,Next_Event_Time))
+     self.populate_kerride_table()
+
+
+
+
+    
     def open_events_From_mainpage(self):
      
      self.events_window= tk.Toplevel(self.root)
@@ -2596,17 +2724,19 @@ class KerridgeReplacement:
      self.Event_another_entrytwo.grid(row=0,column=2,sticky="w")
      self.attach_context_menu(self.Event_another_entrytwo)
 
-     
+     current_user=getuser()
      Action_required= Label(Incident_Eventtwo, text="Created By")
      Action_required.grid(row=1,column=0,padx=5,pady=5)
      self.Action_required_entrytwo= ttk.Entry(Incident_Eventtwo,width=30)
      self.Action_required_entrytwo.grid(row=1,column=1,sticky="w",padx=5,pady=5)
+     self.Action_required_entrytwo.insert(0,current_user)
      self.attach_context_menu(self.Action_required_entrytwo)
      
      Owner= Label(Incident_Eventtwo, text="Owner")
      Owner.grid(row=2,column=0,padx=5,pady=5)
      self.Owner_entrytwo= Entry(Incident_Eventtwo,width=30)
      self.Owner_entrytwo.grid(row=2,column=1,sticky="w",padx=5,pady=5)
+     self.Owner_entrytwo.insert(0,current_user)
      self.attach_context_menu(self.Owner_entrytwo)
 
      Createdtwo= LabelFrame(self.events_window,bd=3, relief=tk.RIDGE,text="Created")
@@ -2784,6 +2914,35 @@ class KerridgeReplacement:
      KBACKEND.insert_more_events(i_number,datetime_obj,First_event_tostore,Event_text
                                      ,Second_event_tostore,datetime_objj,Created_by,Owner)
      
+     last_updated_event= KBACKEND.retrieve_updated_event(i_number)
+
+      ## Clear existing data from Kerride_table
+     self.root.Kerride_table.delete(*self.root.Kerride_table.get_children())
+
+     if last_updated_event:
+        for incidents in last_updated_event:
+        # Retrieve attribute values for each incident
+         incident_date = incidents.get("Incident Date")
+         Customer=incidents.get("Customer")
+         registration = incidents.get("Registration")
+         I_no=incidents.get("Incident No")
+         Status=incidents.get("Status")
+         Category=incidents.get("Category")
+         loca=incidents.get("Location")
+         Charg=incidents.get("Charge")
+         Locat= incidents.get("Locationn")
+         Owner=incidents.get("Owner")
+         Next_Event_DT=incidents.get("Next_Event_DT")
+         if Next_Event_DT is not None:
+          Next_Event_Date = Next_Event_DT.date()
+          Next_Event_Time = Next_Event_DT.time()
+         else:
+          Next_Event_Date = None  # or a default value
+          Next_Event_Time = None
+         # Insert the incident into Kerride_table
+         self.root.Kerride_table.insert("", "end", values=(incident_date, Customer, Locat, registration,I_no,Category,loca,Charg,Status,Owner,Next_Event_Date,Next_Event_Time))
+     self.populate_kerride_table()
+
      event_details= KBACKEND.fetch_all_eventstwo(i_number)
      self.eventss_tree.delete(*self.eventss_tree.get_children())
         
