@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import LEFT, messagebox,Entry,Text
 from tkinter import Frame, LabelFrame,Label,Checkbutton,Button,HORIZONTAL,VERTICAL,BOTTOM,RIGHT,X,Y,BOTH
+from tkinter import font
 from PIL import Image, ImageTk
 from tkinter import ttk 
 from tkcalendar import DateEntry
@@ -665,7 +666,7 @@ class KerridgeReplacement:
      Deff_time.grid(row=7,column=0,padx=2, sticky='w')
      self.Deferred_Time= Entry(Incident_details,width=15)
      self.Deferred_Time.grid(row=7,column=1,sticky='w')
-     current_time = datetime.datetime.now().strftime("%H:%M")
+     current_time = datetime.now().strftime("%H:%M")
      self.Deferred_Time.insert(0,current_time)
      self.attach_context_menu(self.Deferred_Time)
 
@@ -805,7 +806,7 @@ class KerridgeReplacement:
      Time_created= Label(Created,text="Time:")
      Time_created.grid(row=1,column=0)
      self.Time_created_entry= Entry(Created,width=9)
-     current_time = datetime.datetime.now().strftime("%H:%M")
+     current_time = datetime.now().strftime("%H:%M")
      self.Time_created_entry.grid(row=1,column=1,sticky="w")
      self.Time_created_entry.insert(0, current_time)
      self.attach_context_menu(self.Time_created_entry)
@@ -904,7 +905,7 @@ class KerridgeReplacement:
         datetime_str = f"{date_str} {time_str}"
 
         # Convert the datetime string to a datetime object
-        datetime_obj = datetime.datetime.strptime(datetime_str, "%d/%m/%Y %H:%M")
+        datetime_obj = datetime.strptime(datetime_str, "%d/%m/%Y %H:%M")
 
         First_event=self.Event_type_entry.get()
         for row in self.event_typesinfo:    
@@ -923,7 +924,7 @@ class KerridgeReplacement:
          # Combine date and time strings into a single datetime string
         datetime_strr = f"{datee_str} {timee_str}"
         # Convert the datetime string to a datetime object
-        datetime_objj = datetime.datetime.strptime(datetime_strr, "%d/%m/%Y %H:%M")
+        datetime_objj = datetime.strptime(datetime_strr, "%d/%m/%Y %H:%M")
         Created_by= self.Action_required_entry.get()
         Owner=self.Owner_entry.get()
         KBACKEND.store_event_details(Incident_No,datetime_obj,First_event_tostore,Event_text
@@ -957,7 +958,7 @@ class KerridgeReplacement:
                  Next_Event_Time = None
         # Insert the incident into Kerride_table
                  self.root.Kerride_table.insert("", "end", values=(incident_date, Customer, Locat, registration,I_no,Category,loca,Charg,Status,Owner,Next_Event_Date,Next_Event_Time))
-        self.populate_kerride_table()
+        self.populate_kerride_table_two()
        
         
         
@@ -1175,6 +1176,14 @@ class KerridgeReplacement:
         
     # Define a function to populate Kerride_table with all incidents from the database
     def populate_kerride_table(self,filter_criteria=None):
+     red_rows = []
+     fuchsia_rows = []
+     dark_green_rows = []
+     black_rows = []
+     green_rows = []
+     blue_rows = []
+     dark_grey_rows = []
+     violet_rows=[]
      
      self.root.Kerride_table.delete(*self.root.Kerride_table.get_children())
     
@@ -1201,44 +1210,83 @@ class KerridgeReplacement:
          if Next_Event_Datetime is not None:
           Next_Event_Date = Next_Event_Datetime.date()
           Next_Event_Time = Next_Event_Datetime.time()
+          time_difference = Next_Event_Datetime - datetime.now()
 
          else:
           Next_Event_Date = None  # or a default value
           Next_Event_Time = None  # or a default value
+          #time_difference=None
+          
+          
+         row_data = (incident_datetime_s, Customer, location, registration, I_no, Cat, loc, Char, Status, Owner, Next_Event_Date, Next_Event_Time)
+
         
          # Filter logic
          if self.passes_filter(incident, filter_criteria):
-          time_difference= Next_Event_Datetime- datetime.now()
-          if Next_Event_Datetime and Next_Event_Datetime < datetime.now():
-             tag = "red"
-          elif time_difference.total_seconds() <= 1800:  # 30 minutes ago
-            tag = "Fuchsia"
-          elif -1800 <= time_difference.total_seconds() <= 3600:  # Between 30 minutes and 1 hour
-            tag = "Dark Green"
-          elif 3600 <= time_difference.total_seconds() <= 14400:  # Between 1 and 4 hours
-            tag = "Black"
-          elif 14400 <= time_difference.total_seconds() <= 86400:  # Between 4 hours and 1 day
-            tag = "Green"
-          elif time_difference.total_seconds() >= 86400:  # More than 1 day
-            tag = "Blue"
-          else:
-            tag = "black"  # Default color
+          if Next_Event_Datetime is None:
+            #tag = "Violet"
+            violet_rows.append(row_data)
+          elif Next_Event_Datetime and Next_Event_Datetime < datetime.now() and Status.lower() != 'x':
+             #tag = "red"
+             red_rows.append(row_data)
+          elif time_difference.total_seconds() <= 1800 and Status.lower() != 'x':  # 30 minutes ago
+            #tag = "Fuchsia"
+            fuchsia_rows.append(row_data)
+          elif -1800 <= time_difference.total_seconds() <= 3600 and Status.lower() != 'x':  # Between 30 minutes and 1 hour
+            #tag = "Dark Green"
+            dark_green_rows.append(row_data)
+          elif 3600 <= time_difference.total_seconds() <= 14400 and Status.lower() != 'x':  # Between 1 and 4 hours
+            #tag = "Black"
+            black_rows.append(row_data)
+          elif 14400 <= time_difference.total_seconds() <= 86400 and Status.lower() != 'x': # Between 4 hours and 1 day
+            #tag = "Green"
+            green_rows.append(row_data)
+          elif time_difference.total_seconds() >= 86400 and Status.lower() != 'x':  # More than 1 day
+            #tag = "Blue"
+            blue_rows.append(row_data)
+          #else:
+            #tag = "black"  # Default color
           if Status.lower() == 'x':
-            tag = "Dark Grey"
-    
-          self.root.Kerride_table.insert("", "end", values=(incident_datetime_s,Customer,location,registration,I_no,Cat,loc,Char,Status,Owner,Next_Event_Date,Next_Event_Time),tags=(tag,))
-        bold_font = ('TkDefaultFont', 10, 'bold')
-        self.root.Kerride_table.tag_configure('bold', font=bold_font)
-        self.root.Kerride_table.tag_configure('red', background='white', foreground='red')
-        self.root.Kerride_table.tag_configure('Fuchsia', background='white', foreground='Fuchsia')
-        self.root.Kerride_table.tag_configure('Dark Green', background='white', foreground='Dark Green')
-        self.root.Kerride_table.tag_configure('Black', background='white', foreground='Black')
-        self.root.Kerride_table.tag_configure('Green', background='white', foreground='Green')
-        self.root.Kerride_table.tag_configure('Blue', background='white', foreground='Blue')
-        self.root.Kerride_table.tag_configure('Dark Grey', background='white', foreground='Dark Grey')
+            #tag = "Dark Grey"
+            dark_grey_rows.append(row_data)
+            
+        for row_data in red_rows:
+         self.root.Kerride_table.insert("", "end", values=row_data, tags=("red",))
 
-     else:
-      print("No incidents found in the database.")
+        for row_data in fuchsia_rows:
+         self.root.Kerride_table.insert("", "end", values=row_data, tags=("Fuchsia",))
+
+        for row_data in dark_green_rows:
+         self.root.Kerride_table.insert("", "end", values=row_data, tags=("Dark Green",))
+
+        for row_data in black_rows:
+         self.root.Kerride_table.insert("", "end", values=row_data, tags=("Black",))
+
+        for row_data in green_rows:
+         self.root.Kerride_table.insert("", "end", values=row_data, tags=("Green",))
+
+        for row_data in blue_rows:
+         self.root.Kerride_table.insert("", "end", values=row_data, tags=("Blue",))
+
+        for row_data in dark_grey_rows:
+         self.root.Kerride_table.insert("", "end", values=row_data, tags=("Dark Grey",))
+
+        for row_data in violet_rows:
+         self.root.Kerride_table.insert("", "end", values=row_data, tags=("Violet",))
+
+     bold_font = font.Font(size=10,weight="bold")
+     self.root.Kerride_table.tag_configure('red', background='white', foreground='red',font=bold_font)
+     self.root.Kerride_table.tag_configure('Fuchsia', background='white', foreground='Fuchsia',font=bold_font)
+     self.root.Kerride_table.tag_configure('Dark Green', background='white', foreground='Dark Green',font=bold_font)
+     self.root.Kerride_table.tag_configure('Black', background='white', foreground='Black',font=bold_font)
+     self.root.Kerride_table.tag_configure('Green', background='white', foreground='Green',font=bold_font)
+     self.root.Kerride_table.tag_configure('Blue', background='white', foreground='Blue',font=bold_font)
+     self.root.Kerride_table.tag_configure('Dark Grey', background='white', foreground='Dark Grey',font=bold_font)
+     self.root.Kerride_table.tag_configure('Violet', background='white', foreground='Violet',font=bold_font)
+     
+     return 
+     #else:
+      #print("No incidents found in the database.")
      
          
     def get_filter_criteria(self):
@@ -1256,58 +1304,51 @@ class KerridgeReplacement:
             "Locations": self.text12.get(),
         }
     def passes_filter(self, incident, filter_criteria):
-     registration_filter = filter_criteria.get("Registration")
-     if registration_filter is not None:
         incident_registration = incident.get("Registration", "")
-        if not incident_registration or registration_filter.lower() not in incident_registration.lower():
+        if filter_criteria["Registration"] and filter_criteria["Registration"].lower() not in (incident_registration.lower() if incident_registration else ""):
             return False
-     customer_filter = filter_criteria.get("Customer")
-     if customer_filter is not None:
+
         incident_customer = incident.get("Customer", "")
-        if not incident_customer or customer_filter.lower() not in incident_customer.lower():
-            return False
-     owner_filter = filter_criteria.get("Owner")
-     if owner_filter is not None:
+        if filter_criteria["Customer"] and filter_criteria["Customer"].lower() not in (incident_customer.lower() if incident_customer else ""):
+         return False
+
         incident_owner = incident.get("Owner", "")
-        if not incident_owner or owner_filter.lower() not in incident_owner.lower():
-            return False
-     category_filter = filter_criteria.get("Category")
-     if category_filter is not None:
+        if filter_criteria["Owner"] and filter_criteria["Owner"].lower() not in (incident_owner.lower() if incident_owner else ""):
+         return False
+
+        incident_creator = incident.get("Creator", "")
+        if filter_criteria["Creator"] and filter_criteria["Creator"].lower() not in (incident_creator.lower() if incident_creator else ""):
+         return False
+
         incident_category = incident.get("Category", "")
-        if not incident_category or category_filter.lower() not in incident_category.lower():
-            return False
-     location_filter = filter_criteria.get("Location")
-     if location_filter is not None:
+        if filter_criteria["Category"] and filter_criteria["Category"].lower() not in (incident_category.lower() if incident_category else ""):
+         return False
+
         incident_location = incident.get("Location", "")
-        if not incident_location or location_filter.lower() not in incident_location.lower():
-            return False
-     charge_filter = filter_criteria.get("Charge")
-     if charge_filter is not None:
+        if filter_criteria["Location"] and filter_criteria["Location"].lower() not in (incident_location.lower() if incident_location else ""):
+         return False
+
         incident_charge = incident.get("Charge", "")
-        if not incident_charge or charge_filter.lower() not in incident_charge.lower():
-            return False
-     incident_date_filter = filter_criteria.get("Incident Date")
-     if incident_date_filter is not None:
+        if filter_criteria["Charge"] and filter_criteria["Charge"].lower() not in (incident_charge.lower() if incident_charge else ""):
+         return False
+
         incident_date = incident.get("Incident Date")
-        if not incident_date or incident_date_filter != incident_date.date():
-            return False
-     status_filter = filter_criteria.get("Status")
-     if status_filter is not None:
+        if filter_criteria["Incident Date"] and filter_criteria["Incident Date"] != (incident_date.date() if incident_date else None):
+         return False
+
         incident_status = incident.get("Status", "")
-        if not incident_status or status_filter.lower() not in incident_status.lower():
-            return False
-     closed_filter = filter_criteria.get("Closed")
-     if closed_filter:
-        incident_status = incident.get("Status", "")
-        if incident_status.lower() != "x":
-            return False
-     locations_filter = filter_criteria.get("Locations")
-     if locations_filter is not None:
+        if filter_criteria["Status"] and filter_criteria["Status"].lower() not in (incident_status.lower() if incident_status else ""):
+         return False
+
+        if filter_criteria["Closed"] and not (incident_status.lower() == "x" if incident_status else False):
+         print("Filtered out due to 'Closed' checkbox")
+         return False
+
         incident_locationn = incident.get("Locationn", "")
-        if not incident_locationn or locations_filter.lower() not in incident_locationn.lower():
-            return False
-     return True
-     
+        if filter_criteria["Locations"] and filter_criteria["Locations"].lower() not in (incident_locationn.lower() if incident_locationn else ""):
+         return False
+
+        return True 
     def filter_kerride_table(self, event=None):
         self.populate_kerride_table()
     
@@ -1340,10 +1381,10 @@ class KerridgeReplacement:
      selected_date = self.datee.get_date()
     
     # Getting the current time
-     current_time = datetime.datetime.now().time()
+     current_time = datetime.now().time()
     
     # Combining selected date and current time into a datetime object
-     combined_datetime = datetime.datetime.combine(selected_date, current_time)
+     combined_datetime = datetime.combine(selected_date, current_time)
     
      contact_method= self.Contact_Method_Entry.get()
      for row in self.contactmeth:
@@ -1390,7 +1431,7 @@ class KerridgeReplacement:
      datetime_str = f"{Deferred_date} {Deferred_time}"
 
     # Convert the datetime string to a datetime object
-     combined_deferred = datetime.datetime.strptime(datetime_str, "%d/%m/%Y %H:%M")
+     combined_deferred = datetime.strptime(datetime_str, "%d/%m/%Y %H:%M")
     
     # Combining selected date and current time into a datetime object
      what3=self.whatwordsentry.get()
@@ -1450,6 +1491,49 @@ class KerridgeReplacement:
          self.root.Kerride_table.insert("", "end", values=(incident_date, Customer, Locat, registration,I_no,Category,loca,Charg,Status,Owner,Next_Event_Date,Next_Event_Time))
      self.populate_kerride_table()
      
+    def populate_kerride_table_two(self):
+       
+      red_rows = []
+      fuchsia_rows = []
+      dark_green_rows = []
+      black_rows = []
+      green_rows = []
+      blue_rows = []
+      dark_grey_rows = []
+      violet_rows=[]
+       
+      self.root.Kerride_table.delete(*self.root.Kerride_table.get_children())
+    
+      all_incidents = KBACKEND.retrieve_all_incidents()
+
+       
+      if all_incidents:
+        for incident in all_incidents: 
+         incident_datetime_s = incident.get("Incident Date")
+         # Split the datetime string at the space character to extract the date part
+         date_part = incident_datetime_s.date()
+         registration = incident.get("Registration") or ""
+         Customer=incident.get("Customer") or ""
+         I_no=incident.get("Incident No") or ""
+         Status=incident.get("Status") or ""
+         Cat=incident.get("Category") or ""
+         loc=incident.get("Location") or ""
+         Char=incident.get("Charge") or ""
+         location=incident.get("Locationn") or ""
+         Owner= incident.get("Owner") or ""
+         Next_Event_Datetime=incident.get("Next_Event_Date")
+         
+         if Next_Event_Datetime is not None:
+          Next_Event_Date = Next_Event_Datetime.date()
+          Next_Event_Time = Next_Event_Datetime.time()
+         else:
+          Next_Event_Date = None  # or a default value
+          Next_Event_Time = None  # or a default value
+        
+         # Filter logic
+         
+         self.root.Kerride_table.insert("", "end", values=(incident_datetime_s,Customer,location,registration,I_no,Cat,loc,Char,Status,Owner,Next_Event_Date,Next_Event_Time ))
+         
         
 
     def populate_location_description(self, event=None):
@@ -1510,10 +1594,10 @@ class KerridgeReplacement:
                 # Set Type_nextevent_entry to the selected event type
                 self.Type_nextevent_entry.set(selected_event_type)
                 # Set Date_nextevent_Entry to the current date
-                current_date = datetime.datetime.now().strftime("%d/%m/%Y")
+                current_date = datetime.now().strftime("%d/%m/%Y")
                 self.Date_nextevent_Entry.set_date(current_date)
                 # Set Time_nextevent_entry to the current time
-                current_time = datetime.datetime.now().strftime("%H:%M")
+                current_time = datetime.now().strftime("%H:%M")
                 self.Time_nextevent_entry.delete(0, 'end')  # Clear previous value
                 self.Time_nextevent_entry.insert(0, current_time)
             else:
@@ -1527,21 +1611,21 @@ class KerridgeReplacement:
                             days = minutes // 1440
                             remaining_minutes = minutes % 1440
                             # Calculate the adjusted date
-                            next_date = datetime.datetime.now() + datetime.timedelta(days=days)
+                            next_date = datetime.now() +timedelta(days=days)
                             date_str = next_date.strftime("%d/%m/%Y")
                             # Populate Date_nextevent_Entry
                             self.Date_nextevent_Entry.set_date(date_str)
                             # Get the current time
                             current_time_str = self.Time_created_entry.get()
-                            current_time = datetime.datetime.strptime(current_time_str, "%H:%M")
+                            current_time = datetime.strptime(current_time_str, "%H:%M")
                             # Add remaining minutes to current time
-                            adjusted_time = current_time + datetime.timedelta(minutes=remaining_minutes)
+                            adjusted_time = current_time + timedelta(minutes=remaining_minutes)
                         else:
                             # Get the current time
                             current_time_str = self.Time_created_entry.get()
-                            current_time = datetime.datetime.strptime(current_time_str, "%H:%M")
+                            current_time = datetime.strptime(current_time_str, "%H:%M")
                             # Add minutes to current time
-                            adjusted_time = current_time + datetime.timedelta(minutes=minutes)
+                            adjusted_time = current_time + timedelta(minutes=minutes)
                         # Format adjusted time
                         adjusted_time_str = adjusted_time.strftime("%H:%M")
                         # Populate Time_nextevent_entry
