@@ -1,3 +1,4 @@
+import re
 import tkinter as tk
 from tkinter import LEFT, messagebox,Entry,Text
 from tkinter import Frame, LabelFrame,Label,Checkbutton,Button,HORIZONTAL,VERTICAL,BOTTOM,RIGHT,X,Y,BOTH
@@ -8,7 +9,187 @@ from tkcalendar import DateEntry
 from getpass import getuser
 import datetime
 from datetime import datetime, timedelta
+
+
 import KBACKEND
+
+class LoginWindow:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Login")
+        self.root.geometry("600x370")
+        self.root.configure(bg="white")  # Set background color
+        self.root.resizable(False, False)  # Disable window resizing
+        
+        # Add a title at the top
+        self.title_label = tk.Label(self.root, text="Kerridge Replacement", bg="white", fg="green", font=('Arial', 20, 'bold'))
+        self.title_label.pack(pady=10)
+        
+        # Create a frame for the main content
+        content_frame = tk.Frame(self.root, bg="white")
+        content_frame.pack(expand=True, fill=tk.BOTH, padx=20, pady=10)
+        
+        # Add background image on the left side
+        background_image = Image.open("Background.png")
+        background_image = background_image.resize((200, 220), Image.BILINEAR)  # Use Image.BILINEAR for resizing
+        self.background_photo = ImageTk.PhotoImage(background_image)
+        background_label = tk.Label(content_frame, image=self.background_photo, bg="white")
+        background_label.grid(row=0, column=0, rowspan=4, padx=10, pady=10)
+        
+        # Define a larger font
+        large_font = ('Arial', 14)
+        
+        # Username entry
+        self.username_label = tk.Label(content_frame, text="Username:", bg="white", fg="green", font=large_font)
+        self.username_label.grid(row=0, column=1, sticky='e', pady=5)
+        self.username_entry = tk.Entry(content_frame, font=large_font)
+        self.username_entry.grid(row=0, column=2, pady=5)
+        
+        # Password entry
+        self.password_label = tk.Label(content_frame, text="Password:", bg="white", fg="green", font=large_font)
+        self.password_label.grid(row=1, column=1, sticky='e', pady=5)
+        self.password_entry = tk.Entry(content_frame, show="*", font=large_font)
+        self.password_entry.grid(row=1, column=2, pady=5)
+        
+        self.show_password_var = tk.BooleanVar()
+        self.show_password_checkbox = tk.Checkbutton(content_frame, text="Show Password", variable=self.show_password_var,command=self.toggle_show_password)
+        self.show_password_checkbox.grid(row=2, column=1,sticky='w', pady=5)
+        # Server entry
+        #self.server_label = tk.Label(content_frame, text="Server:", bg="white", fg="green", font=large_font)
+        #self.server_label.grid(row=2, column=1, sticky='e', pady=5)
+        #self.server_entry = tk.Entry(content_frame, font=large_font)
+        #self.server_entry.grid(row=2, column=2, pady=5)
+        #self.server_entry.insert(0, "default_server")  # Auto-fill the server field
+        
+        # Connect button
+        self.connect_button = tk.Button(content_frame, text="Connect", command=self.connect, bg="green", fg="white", font=large_font)
+        self.connect_button.grid(row=3, column=1, pady=10, sticky='e', padx=5)
+        
+        
+        # Cancel button
+        self.cancel_button = tk.Button(content_frame, text="Cancel", command=self.root.quit, bg="red", fg="white", font=large_font)
+        self.cancel_button.grid(row=3, column=2, pady=10, sticky='w', padx=5)
+        
+        # Add User button
+        self.add_user_button = tk.Button(content_frame, text="Add User", command= self.add_user,bg="blue", fg="white", font=large_font)
+        self.add_user_button.grid(row=4, column=1, pady=10, sticky='e', padx=5)
+
+        # Forgot Password button
+        self.forgot_password_button = tk.Button(content_frame, text="Forgot Password",command=self.forgot_password, bg="orange", fg="white", font=large_font)
+        self.forgot_password_button.grid(row=4, column=2, pady=10, sticky='w', padx=5)
+
+
+        # Bind the Enter key to the connect method
+        self.root.bind('<Return>', self.connect_with_event)
+
+    def toggle_show_password(self):
+        if self.show_password_var.get():
+            self.password_entry.config(show="")
+        else:
+            self.password_entry.config(show="*")
+        
+    def connect_with_event(self, event):
+        self.connect()
+        
+    def connect(self):
+
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+        # Implement your login logic here
+        # For demonstration, let's assume login is successful if username and password are both "admin"
+        if KBACKEND.users_function(username, password):
+            self.root.destroy()  # Close the login window
+            # Directly open the KerridgeReplacement window if login is successful
+            root = tk.Tk()  # Create a new Tk instance for the KerridgeReplacement window
+            kerridge_replacement = KerridgeReplacement(root)
+        else:
+            # Display an error message for unsuccessful login
+            error_label = tk.Label(self.root, text="Invalid username or password", fg="red")
+            error_label.pack()
+    
+    def add_user(self):
+        add_user_window = tk.Toplevel(self.root)
+        add_user_window.title("Add User")
+        add_user_window.geometry("400x250")
+        add_user_window.configure(bg="white")
+
+        tk.Label(add_user_window, text="New Username:", bg="white", fg="green").pack(pady=5)
+        new_username_entry = tk.Entry(add_user_window)
+        new_username_entry.pack(pady=5)
+
+        tk.Label(add_user_window, text="New Password:", bg="white", fg="green").pack(pady=5)
+        self.new_password_entry = tk.Entry(add_user_window, show="*")
+        self.new_password_entry.pack(pady=5)
+
+        self.show_password_varr = tk.BooleanVar()
+        self.show_password_checkboxx = tk.Checkbutton(add_user_window, text="Show Password", variable=self.show_password_varr,command=self.toggle_show_passwordd)
+        self.show_password_checkboxx.pack(pady=5)
+
+        def save_new_user():
+            new_username = new_username_entry.get()
+            new_password = self.new_password_entry.get()
+            if self.is_valid_password(new_password):
+                KBACKEND.add_more_users(new_username,new_password)
+                add_user_window.destroy()
+            else:
+                messagebox.showerror("Error", "Password does not meet the required criteria")
+
+        tk.Button(add_user_window, text="Save", command=save_new_user, bg="green", fg="white").pack(pady=10)
+        tk.Button(add_user_window, text="Cancel", command=add_user_window.destroy, bg="red", fg="white").pack(pady=5)
+    
+    def toggle_show_passwordd(self):
+        if self.show_password_varr.get():
+            self.new_password_entry.config(show="")
+        else:
+            self.new_password_entry.config(show="*")
+    def forgot_password(self):
+        forgot_password_window = tk.Toplevel(self.root)
+        forgot_password_window.title("Forgot Password")
+        forgot_password_window.geometry("400x250")
+        forgot_password_window.configure(bg="white")
+
+        tk.Label(forgot_password_window, text="Enter Username:", bg="white", fg="green").pack(pady=5)
+        username_entry = tk.Entry(forgot_password_window)
+        username_entry.pack(pady=5)
+
+        tk.Label(forgot_password_window, text="New Password:", bg="white", fg="green").pack(pady=5)
+        self.new_password_entryy = tk.Entry(forgot_password_window, show="*")
+        self.new_password_entryy.pack(pady=5)
+
+        self.show_password_varrr = tk.BooleanVar()
+        self.show_password_checkboxxx = tk.Checkbutton(forgot_password_window, text="Show Password", variable=self.show_password_varrr,command=self.toggle_show_passworddd)
+        self.show_password_checkboxxx.pack(pady=5)
+
+
+
+        def reset_password():
+            username = username_entry.get()
+            new_password = self.new_password_entryy.get()
+            if self.is_valid_password(new_password):
+                KBACKEND.reset_password_for_users(new_password,username)
+                forgot_password_window.destroy()
+            else:
+                messagebox.showerror("Error", "Password does not meet the required criteria")
+
+        tk.Button(forgot_password_window, text="Reset Password", command=reset_password, bg="green", fg="white").pack(pady=10)
+        tk.Button(forgot_password_window, text="Cancel", command=forgot_password_window.destroy, bg="red", fg="white").pack(pady=5)
+    def toggle_show_passworddd(self):
+        if self.show_password_varrr.get():
+            self.new_password_entryy.config(show="")
+        else:
+            self.new_password_entryy.config(show="*")
+    def is_valid_password(self, password):
+        if len(password) < 8:
+            return False
+        if not re.search("[a-z]", password):
+            return False
+        if not re.search("[A-Z]", password):
+            return False
+        if not re.search("[0-9]", password):
+            return False
+        if not re.search("[@#$%^&+=]", password):
+            return False
+        return True
 
 
     
@@ -17,6 +198,7 @@ class KerridgeReplacement:
         self.root = root
         self.root.title("Kerridge Replacement Application")
         self.root.geometry("800x600")
+        self.root.resizable(False, False)
         
         
         # Initialize your UI
@@ -79,9 +261,9 @@ class KerridgeReplacement:
 
         lb2 = Label(dataframe, text="Customer", padx=10)
         lb2.grid(row=0, column=2)
-        self.text2 = Entry(dataframe, width=25)
-        self.text2.grid(row=0, column=3)
-        self.attach_context_menu(self.text2)
+        self.custext2 = Entry(dataframe, width=25)
+        self.custext2.grid(row=0, column=3)
+        self.attach_context_menu(self.custext2)
     
         lb3 = Label(dataframe, text="Owner", padx=5)
         lb3.grid(row=0, column=4)
@@ -276,7 +458,7 @@ class KerridgeReplacement:
 
     def attach_events(self):
         self.Regtext1.bind("<KeyRelease>", self.filter_kerride_table)
-        self.text2.bind("<KeyRelease>", self.filter_kerride_table)
+        self.custext2.bind("<KeyRelease>", self.filter_kerride_table)
         self.text3.bind("<KeyRelease>", self.filter_kerride_table)
         self.text4.bind("<KeyRelease>", self.filter_kerride_table)
         self.text5.bind("<<ComboboxSelected>>", self.filter_kerride_table)
@@ -303,6 +485,7 @@ class KerridgeReplacement:
      self.registration_window = tk.Toplevel(self.root)
      self.registration_window.title("Find Customer")
      self.registration_window.geometry("300x70")
+     self.registration_window.resizable(False, False)
 
     # Create label and entry field for registration number
      label = Label(self.registration_window, text="Enter Registration No:")
@@ -361,7 +544,7 @@ class KerridgeReplacement:
      self.icon1_window= tk.Toplevel(self.root)
      self.icon1_window.title("Incident Detail Form")
      self.icon1_window.geometry("800x620")  # Adjust the width and height as needed
-     
+     self.icon1_window.resizable(False,False)
 
     #Create a container (Frame) for the icons with a border
      icon_box = tk.Frame(self.icon1_window, relief=tk.RIDGE, borderwidth=3)
@@ -788,6 +971,7 @@ class KerridgeReplacement:
      self.icon3_window= tk.Toplevel(self.root)
      self.icon3_window.title("Event Detail Form")
      self.icon3_window.geometry("800x600") 
+     self.icon3_window.resizable(False,False)
 
      Incident_Event= Frame(self.icon3_window, bd=3, relief=tk.RIDGE)
      Incident_Event.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
@@ -1015,10 +1199,12 @@ class KerridgeReplacement:
              follow_up_time= Follow_up.time()
              Event_Description= event.get('Event_Description')
              Next_Event_Description= event.get('Next_Event_Description')
+             Created= event.get('Created_By')
+             Own= event.get('Owner')
 
 
-             self.events_tree.insert("", "end", values=(Created_date,Created_time,"",Event_Description,"",
-                Notes,Last_updated_date,Last_updated_time,"",Follow_up_date,follow_up_time,"",Next_Event_Description))
+             self.events_tree.insert("", "end", values=(Created_date,Created_time,Created,Event_Description,"",
+                Notes,Last_updated_date,Last_updated_time,Own,Follow_up_date,follow_up_time,Own,Next_Event_Description))
              
              self.events_tree.bind("<<TreeviewSelect>>", self.on_roww_selected)
 
@@ -1044,6 +1230,7 @@ class KerridgeReplacement:
      self.event_windows= tk.Toplevel(self.root)
      self.event_windows.title("Event Detail Form")
      self.event_windows.geometry("800x600") 
+     self.event_windows.resizable(False,False)
 
      Incident_Eventt= Frame(self.event_windows, bd=3, relief=tk.RIDGE)
      Incident_Eventt.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
@@ -1338,9 +1525,9 @@ class KerridgeReplacement:
      
          
     def get_filter_criteria(self):
-        return {
+         return {
             "Registration": self.Regtext1.get(),
-            "Customer": self.text2.get(),
+            "Customer": self.custext2.get(),
             "Owner": self.text3.get(),
             "Creator": self.text4.get(),
             "Category": self.text5.get(),
@@ -1404,7 +1591,7 @@ class KerridgeReplacement:
     def clear_filters(self):
      # Clear all filter inputs
      self.Regtext1.delete(0, "end")
-     self.text2.delete(0, "end")
+     self.custext2.delete(0, "end")
      self.text3.delete(0, "end")
      self.text4.delete(0, "end")
      self.text5.set('')
@@ -1710,7 +1897,7 @@ class KerridgeReplacement:
      self.purchase_order= tk.Toplevel(self.root)
      self.purchase_order.title("Maintainence Control")
      self.purchase_order.geometry("800x600")  # Adjust the width and height as needed
-
+     self.purchase_order.resizable(False,False)
      icon_box = tk.Frame(self.purchase_order, relief=tk.RIDGE, borderwidth=3)
      icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
 
@@ -2002,6 +2189,7 @@ class KerridgeReplacement:
      self.form_window = tk.Toplevel(self.root)
      self. form_window.title("Incident Detail Form")
      self.form_window.geometry("800x620") 
+     self.form_window.resizable(False,False)
 
      #Create a container (Frame) for the icons with a border
      icon_box = tk.Frame(self.form_window, relief=tk.RIDGE, borderwidth=3)
@@ -2555,6 +2743,7 @@ class KerridgeReplacement:
      self.event_window= tk.Toplevel(self.root)
      self.event_window.title("Event Detail Form")
      self.event_window.geometry("800x600") 
+     self.event_window.resizable(False,False)
 
      Incident_Eventt= Frame(self.event_window, bd=3, relief=tk.RIDGE)
      Incident_Eventt.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
@@ -2724,10 +2913,12 @@ class KerridgeReplacement:
              follow_up_time= Follow_up.time()
              Event_Description= events.get('Event_Description')
              Next_Event_Description= events.get('Next_Event_Description')
+             C_By= events.get('Created_By')
+             Own= events.get('Owner')
 
 
-             self.eventss_tree.insert("", "end", values=(Created_date,Created_time,"",Event_Description,"",
-                Notes,Last_updated_date,Last_updated_time,"",Follow_up_date,follow_up_time,"",Next_Event_Description))
+             self.eventss_tree.insert("", "end", values=(Created_date,Created_time,C_By,Event_Description,"",
+                Notes,Last_updated_date,Last_updated_time,Own,Follow_up_date,follow_up_time,Own,Next_Event_Description))
         
     
 
@@ -2892,6 +3083,7 @@ class KerridgeReplacement:
      self.events_window= tk.Toplevel(self.root)
      self.events_window.title("Event Detail Form")
      self.events_window.geometry("800x600")
+     self.events_window.resizable(False,False)
        #defining functionalities for icons in the event details page 
      icon_box = tk.Frame(self.events_window, relief=tk.RIDGE, borderwidth=3)
      icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
@@ -3168,6 +3360,8 @@ class KerridgeReplacement:
              Next_Event_Description= event.get('Next_Event_Description')
 
 
+
+
              self.eventss_tree.insert("", "end", values=(Created_date,Created_time,"",Event_Description,"",
                 Notes,Last_updated_date,Last_updated_time,"",Follow_up_date,follow_up_time,"",Next_Event_Description))
         
@@ -3254,8 +3448,8 @@ class KerridgeReplacement:
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = KerridgeReplacement(root)
-    root.mainloop()
+ root = tk.Tk()
+ login_window = LoginWindow(root)
+ root.mainloop()
 
 
