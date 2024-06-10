@@ -17,9 +17,20 @@ class LoginWindow:
     def __init__(self, root):
         self.root = root
         self.root.title("Login")
-        self.root.geometry("600x370")
+        self.root.geometry("620x400")
         self.root.configure(bg="white")  # Set background color
         self.root.resizable(False, False)  # Disable window resizing
+
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+
+        # Calculate the x and y coordinates for the Tk root window to center it
+        x = (screen_width - 620) // 2
+        y = (screen_height - 400) // 2
+
+        # Set the window to center
+        self.root.geometry("+{}+{}".format(x, y))
+
         
         # Add a title at the top
         self.title_label = tk.Label(self.root, text="Kerridge Replacement", bg="white", fg="green", font=('Arial', 20, 'bold'))
@@ -31,7 +42,7 @@ class LoginWindow:
         
         # Add background image on the left side
         background_image = Image.open("Background.png")
-        background_image = background_image.resize((200, 220), Image.BILINEAR)  # Use Image.BILINEAR for resizing
+        background_image = background_image.resize((250, 250), Image.BILINEAR)  # Use Image.BILINEAR for resizing
         self.background_photo = ImageTk.PhotoImage(background_image)
         background_label = tk.Label(content_frame, image=self.background_photo, bg="white")
         background_label.grid(row=0, column=0, rowspan=4, padx=10, pady=10)
@@ -53,7 +64,7 @@ class LoginWindow:
         
         self.show_password_var = tk.BooleanVar()
         self.show_password_checkbox = tk.Checkbutton(content_frame, text="Show Password", variable=self.show_password_var,command=self.toggle_show_password)
-        self.show_password_checkbox.grid(row=2, column=1,sticky='w', pady=5)
+        self.show_password_checkbox.grid(row=2, column=1,sticky='e', pady=5)
         # Server entry
         #self.server_label = tk.Label(content_frame, text="Server:", bg="white", fg="green", font=large_font)
         #self.server_label.grid(row=2, column=1, sticky='e', pady=5)
@@ -70,13 +81,20 @@ class LoginWindow:
         self.cancel_button = tk.Button(content_frame, text="Cancel", command=self.root.quit, bg="red", fg="white", font=large_font)
         self.cancel_button.grid(row=3, column=2, pady=10, sticky='w', padx=5)
         
-        # Add User button
-        self.add_user_button = tk.Button(content_frame, text="Add User", command= self.add_user,bg="blue", fg="white", font=large_font)
-        self.add_user_button.grid(row=4, column=1, pady=10, sticky='e', padx=5)
+        ##link_frame = tk.Frame(self.root)
+        #link_frame.pack(pady=5)
+        
+        self.add_user_label = tk.Label(content_frame, text="Add User", fg="blue", cursor="hand2", font=("Arial", 10, "underline"))
+        self.add_user_label.grid(row=5,column=1,pady=5)
+        self.add_user_label.bind("<Button-1>", self.add_user)
 
-        # Forgot Password button
-        self.forgot_password_button = tk.Button(content_frame, text="Forgot Password",command=self.forgot_password, bg="orange", fg="white", font=large_font)
-        self.forgot_password_button.grid(row=4, column=2, pady=10, sticky='w', padx=5)
+        self.forgot_password_label = tk.Label(content_frame, text="Forgot Password", fg="blue", cursor="hand2", font=("Arial", 10, "underline"))
+        self.forgot_password_label.grid(row=4,column=1)
+        self.forgot_password_label.bind("<Button-1>", self.forgot_password)
+
+        self.delete_label = tk.Label(content_frame, text="Delete User", fg="blue", cursor="hand2", font=("Arial", 10, "underline"))
+        self.delete_label.grid(row=5,column=2,pady=5)
+        self.delete_label.bind("<Button-1>", self.delete_user)
 
 
         # Bind the Enter key to the connect method
@@ -107,46 +125,66 @@ class LoginWindow:
             error_label = tk.Label(self.root, text="Invalid username or password", fg="red")
             error_label.pack()
     
-    def add_user(self):
-        add_user_window = tk.Toplevel(self.root)
-        add_user_window.title("Add User")
-        add_user_window.geometry("400x250")
-        add_user_window.configure(bg="white")
+    def add_user(self,event=None):
+        root_center_x = self.root.winfo_x() + self.root.winfo_width() // 2
+        root_center_y = self.root.winfo_y() + self.root.winfo_height() // 2
 
-        tk.Label(add_user_window, text="New Username:", bg="white", fg="green").pack(pady=5)
-        new_username_entry = tk.Entry(add_user_window)
+        # Calculate the x and y coordinates for the add_user_window to center it
+        x = root_center_x - 200  # Half of the width of add_user_window
+        y = root_center_y - 125
+        self.add_user_window = tk.Toplevel(self.root)
+        self.add_user_window.title("Add User")
+        self.add_user_window.geometry("400x250")
+        self.add_user_window.configure(bg="white")
+
+        # Position the add_user_window
+        self.add_user_window.geometry("+{}+{}".format(x, y))
+
+        # Get the dimensions of the main window
+
+        tk.Label(self.add_user_window, text="New Username:", bg="white", fg="green").pack(pady=5)
+        new_username_entry = tk.Entry(self.add_user_window)
         new_username_entry.pack(pady=5)
 
-        tk.Label(add_user_window, text="New Password:", bg="white", fg="green").pack(pady=5)
-        self.new_password_entry = tk.Entry(add_user_window, show="*")
+        tk.Label(self.add_user_window, text="New Password:", bg="white", fg="green").pack(pady=5)
+        self.new_password_entry = tk.Entry(self.add_user_window, show="*")
         self.new_password_entry.pack(pady=5)
 
         self.show_password_varr = tk.BooleanVar()
-        self.show_password_checkboxx = tk.Checkbutton(add_user_window, text="Show Password", variable=self.show_password_varr,command=self.toggle_show_passwordd)
+        self.show_password_checkboxx = tk.Checkbutton(self.add_user_window, text="Show Password", variable=self.show_password_varr,command=self.toggle_show_passwordd)
         self.show_password_checkboxx.pack(pady=5)
 
         def save_new_user():
             new_username = new_username_entry.get()
             new_password = self.new_password_entry.get()
-            if self.is_valid_password(new_password):
-                KBACKEND.add_more_users(new_username,new_password)
-                add_user_window.destroy()
-            else:
-                messagebox.showerror("Error", "Password does not meet the required criteria")
-
-        tk.Button(add_user_window, text="Save", command=save_new_user, bg="green", fg="white").pack(pady=10)
-        tk.Button(add_user_window, text="Cancel", command=add_user_window.destroy, bg="red", fg="white").pack(pady=5)
+            is_valid, message = self.is_valid_password(new_password)
+            if not is_valid:
+             messagebox.showerror("Error", message)
+             return
+            KBACKEND.add_more_users(new_username,new_password)
+            self.add_user_window.destroy()
+        tk.Button(self.add_user_window, text="Save", command=save_new_user, bg="green", fg="white").pack(pady=10)
+        tk.Button(self.add_user_window, text="Cancel", command=self.add_user_window.destroy, bg="red", fg="white").pack(pady=5)
     
     def toggle_show_passwordd(self):
         if self.show_password_varr.get():
             self.new_password_entry.config(show="")
         else:
             self.new_password_entry.config(show="*")
-    def forgot_password(self):
+    def forgot_password(self,event=None):
+        root_center_x = self.root.winfo_x() + self.root.winfo_width() // 2
+        root_center_y = self.root.winfo_y() + self.root.winfo_height() // 2
+
+        # Calculate the x and y coordinates for the add_user_window to center it
+        x = root_center_x - 200  # Half of the width of add_user_window
+        y = root_center_y - 125
         forgot_password_window = tk.Toplevel(self.root)
         forgot_password_window.title("Forgot Password")
         forgot_password_window.geometry("400x250")
         forgot_password_window.configure(bg="white")
+
+        # Position the add_user_window
+        forgot_password_window.geometry("+{}+{}".format(x, y))
 
         tk.Label(forgot_password_window, text="Enter Username:", bg="white", fg="green").pack(pady=5)
         username_entry = tk.Entry(forgot_password_window)
@@ -165,11 +203,12 @@ class LoginWindow:
         def reset_password():
             username = username_entry.get()
             new_password = self.new_password_entryy.get()
-            if self.is_valid_password(new_password):
-                KBACKEND.reset_password_for_users(new_password,username)
-                forgot_password_window.destroy()
-            else:
-                messagebox.showerror("Error", "Password does not meet the required criteria")
+            is_valid, message = self.is_valid_password(new_password)
+            if not is_valid:
+             messagebox.showerror("Error", message)
+             return
+            KBACKEND.reset_password_for_users(new_password,username)
+            forgot_password_window.destroy()
 
         tk.Button(forgot_password_window, text="Reset Password", command=reset_password, bg="green", fg="white").pack(pady=10)
         tk.Button(forgot_password_window, text="Cancel", command=forgot_password_window.destroy, bg="red", fg="white").pack(pady=5)
@@ -178,18 +217,47 @@ class LoginWindow:
             self.new_password_entryy.config(show="")
         else:
             self.new_password_entryy.config(show="*")
+            
+    def delete_user(self, event=None):
+        root_center_x = self.root.winfo_x() + self.root.winfo_width() // 2
+        root_center_y = self.root.winfo_y() + self.root.winfo_height() // 2
+
+        # Calculate the x and y coordinates for the add_user_window to center it
+        x = root_center_x - 200  # Half of the width of add_user_window
+        y = root_center_y - 125
+        delete_user_window = tk.Toplevel(self.root)
+        delete_user_window.title("Delete User")
+        delete_user_window.geometry("400x150")
+        delete_user_window.resizable(False, False)
+
+        delete_user_window.geometry("+{}+{}".format(x, y))
+
+        tk.Label(delete_user_window, text="Username:").pack(pady=5)
+        username_entry = tk.Entry(delete_user_window)
+        username_entry.pack(pady=5)
+
+        def delete_user_action():
+            username = username_entry.get()
+            if not username:
+                messagebox.showerror("Error", "Username is required")
+                return
+            KBACKEND.delete_users(username)
+            delete_user_window.destroy()
+        tk.Button(delete_user_window, text="Delete", command=delete_user_action,bg="green", fg="white").pack(pady=10)
+        tk.Button(delete_user_window, text="Cancel", command=delete_user_window.destroy, bg="red", fg="white").pack(pady=5)
     def is_valid_password(self, password):
         if len(password) < 8:
-            return False
+            return False, "Password must be at least 8 characters long"
         if not re.search("[a-z]", password):
-            return False
+            return False, "Password must contain at least one lowercase letter"
         if not re.search("[A-Z]", password):
-            return False
+            return False, "Password must contain at least one uppercase letter"
         if not re.search("[0-9]", password):
-            return False
+            return False, "Password must contain at least one digit"
         if not re.search("[@#$%^&+=]", password):
-            return False
-        return True
+            return False, "Password must contain at least one special character (@#$%^&+=)"
+        return True, ""
+    
 
 
     
@@ -199,6 +267,7 @@ class KerridgeReplacement:
         self.root.title("Kerridge Replacement Application")
         self.root.geometry("800x600")
         self.root.resizable(False, False)
+
         
         
         # Initialize your UI
@@ -430,7 +499,7 @@ class KerridgeReplacement:
         self.root.Kerride_table["show"] = "headings"
 
         # Set column widths
-        self.root.Kerride_table.column("Incident Date", width=90)
+        self.root.Kerride_table.column("Incident Date", width=76)
         self.root.Kerride_table.column("Customer", width=110)
         self.root.Kerride_table.column("Location", width=70)
         self.root.Kerride_table.column("Registration", width=70)
@@ -486,6 +555,17 @@ class KerridgeReplacement:
      self.registration_window.title("Find Customer")
      self.registration_window.geometry("300x70")
      self.registration_window.resizable(False, False)
+
+      # Get the dimensions of the main window
+     main_window_width = self.root.winfo_width()
+     main_window_height = self.root.winfo_height()
+
+     # Calculate the center coordinates
+     x = self.root.winfo_rootx() + main_window_width // 2 - 150
+     y = self.root.winfo_rooty() + main_window_height // 2 - 35
+
+     # Set the registration window's geometry to be positioned at the center
+     self.registration_window.geometry(f"+{x}+{y}")
 
     # Create label and entry field for registration number
      label = Label(self.registration_window, text="Enter Registration No:")
@@ -545,6 +625,16 @@ class KerridgeReplacement:
      self.icon1_window.title("Incident Detail Form")
      self.icon1_window.geometry("800x620")  # Adjust the width and height as needed
      self.icon1_window.resizable(False,False)
+
+     main_window_width = self.root.winfo_width()
+     main_window_height = self.root.winfo_height()
+
+     # Calculate the center coordinates
+     x = self.root.winfo_rootx()
+     y = self.root.winfo_rooty()
+
+        # Set the icon1_window's geometry to be positioned exactly on top of the main window
+     self.icon1_window.geometry(f"+{x}+{y}")
 
     #Create a container (Frame) for the icons with a border
      icon_box = tk.Frame(self.icon1_window, relief=tk.RIDGE, borderwidth=3)
@@ -1622,38 +1712,54 @@ class KerridgeReplacement:
      combined_datetime = datetime.combine(selected_date, current_time)
     
      contact_method= self.Contact_Method_Entry.get()
-     for row in self.contactmeth:
-        if row[1] == contact_method:
+     if contact_method is None or contact_method == "":
+      messagebox.showerror("Error", "Primary key attribute 'Contact Method' requires a value.")
+     else:
+         for row in self.contactmeth:
+          if row[1] == contact_method:
             contact_methodd = row[0]
             break
+     
      contactname=self.Contact_Name_Entry.get()
      contacttel=self.Contact_Tel_Entry.get()
      contactemail=self.Contact_Email_Entry.get()
      Defect_loc= self.locaentry.get("1.0", tk.END)
      faultdesc=self.Faultentry.get("1.0", tk.END)
      cat_selected = self.CatEntry.get()
-     for row in self.Catdetails:
-        if row[1] == cat_selected:
+     if cat_selected is None or cat_selected == "":
+      messagebox.showerror("Error", "Primary key attribute 'Category' requires a value.")
+     else:
+        for row in self.Catdetails:
+         if row[1] == cat_selected:
             cat_value_to_store = row[0]
             break
 
-     lol=self.LolEntry.get()
-     for row in self.Locdetils:
-        if row[1] == lol:
+     lol = self.LolEntry.get()
+     if lol is None or lol == "":
+      messagebox.showerror("Error", "Primary key attribute 'Location' requires a value.")
+     else:
+        for row in self.Locdetils:
+         if row[1] == lol:
             lol_value_to_store = row[0]
             break
      
-     charge=self.Chargeentry.get()
-     for row in self.Chardetails:
-        if row[1]==charge:
-           char_value_to_store= row[0]
-           break
+     charge = self.Chargeentry.get()
+     if charge is None or charge == "":
+      messagebox.showerror("Error", "Primary key attribute 'Charge' requires a value.")
+     else:
+        for row in self.Chardetails:
+         if row[1] == charge:
+            char_value_to_store = row[0]
+            break
 
-     status=self.StatussEntry.get()
-     for row in self.statrows:
-        if row[1]==status:
-           stat_value_store= row[0]
-           break
+     status = self.StatussEntry.get()
+     if status is None or status == "":
+      messagebox.showerror("Error", "Primary key attribute 'Status' requires a value.")
+     else:
+      for row in self.statrows:
+        if row[1] == status:
+            stat_value_store = row[0]
+            break
 
      odo= self.Odo.get()
      attendance=self.attendance_var.get()
@@ -2611,7 +2717,7 @@ class KerridgeReplacement:
      self.Deferred_Timetwo.grid(row=7,column=1,sticky='w')
      self.Deferred_Timetwovalue=incident_details.get('Deferred')
      if self.Deferred_Timetwovalue is not None:
-         self.Deferred_TimetwoTime= self.Deferred_Timetwovalue.time()
+         self.Deferred_TimetwoTime= self.Deferred_Timetwovalue.strftime('%H:%M')
      else:
         self.Deferred_TimetwoTime=None
      self.Deferred_Timetwo.insert(0,self.Deferred_TimetwoTime if self.Deferred_TimetwoTime is not None else"")
@@ -3026,15 +3132,20 @@ class KerridgeReplacement:
      Deferred_to=self.Deferred_Too.get()
 
      Deferred_time=self.Deferred_Timetwo.get()
-    
+     
+     current_time= datetime.now().strftime("%H:%M")
     # Getting the current time
-     datetime_str = f"{Deferred_to} {Deferred_time}"
+     if Deferred_time is not None:
+      datetime_str = f"{Deferred_to} {Deferred_time}"
+     else:
+     # Handle the case where Deferred_time is None
+      datetime_str = f"{Deferred_to} {current_time}" 
 
     # Convert the datetime string to a datetime object
      if len(datetime_str)>19:
       combined_deferred = datetime.strptime(datetime_str, "%Y/%m/%d %H:%M:%S.%f")
      else:
-       combined_deferred = datetime.strptime(datetime_str, "%Y/%m/%d %H:%M:%S")
+       combined_deferred = datetime.strptime(datetime_str, "%Y/%m/%d %H:%M")
     
      whatwords=self.whatwordsentryy.get()
      SupplierNo=self.nameentryy.get()
