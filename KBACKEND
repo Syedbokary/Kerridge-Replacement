@@ -127,8 +127,27 @@ def retrieve_all_incidents():
 
     try:
         # Execute a SELECT query to retrieve all incidents
-        cur.execute("SELECT * FROM Incident_Headder ORDER BY I_Number DESC")
-        # Fetch all rows of the result set
+        cur.execute("""WITH LatestEvent AS (
+    SELECT 
+        I_Number, 
+        Event_Owner, 
+        Next_Event_DT,
+        ROW_NUMBER() OVER (PARTITION BY I_Number ORDER BY E_Number DESC) as rn
+    FROM Incident_Events
+    )
+    SELECT 
+    ih.*, 
+    le.Event_Owner, 
+    le.Next_Event_DT
+    FROM 
+    Incident_Headder ih
+    LEFT JOIN 
+    LatestEvent le 
+    ON ih.I_Number = le.I_Number
+    AND le.rn = 1
+    ORDER BY 
+    ih.I_NUMBER DESC;""")
+    # Fetch all rows of the result set
         rows = cur.fetchall()
 
         # Convert the rows into a list of dictionaries
@@ -143,7 +162,9 @@ def retrieve_all_incidents():
                 "Location":row[13],
                 "Charge":row[14],
                 "Customer":row[5],
-                "Locationn":row[24]
+                "Locationn":row[24],
+                "Owner":row[-2],
+                "Next_Event_Date":row[-1]
                 # Add other columns as needed
             }
             incidents.append(incident)
@@ -168,13 +189,34 @@ def retrieve_last_incident():
 
     try:
         # Execute a SELECT query to retrieve the last incident
-        cur.execute("SELECT TOP 1 * FROM Incident_Headder ORDER BY I_Number DESC")
+        cur.execute("""WITH LatestEvent AS (
+    SELECT 
+        I_Number, 
+        Event_Owner, 
+        Next_Event_DT,
+        ROW_NUMBER() OVER (PARTITION BY I_Number ORDER BY E_Number DESC) as rn
+    FROM Incident_Events
+    )
+    SELECT 
+	TOP 1
+    ih.*, 
+    le.Event_Owner, 
+    le.Next_Event_DT
+    FROM 
+    Incident_Headder ih
+    LEFT JOIN 
+    LatestEvent le 
+    ON ih.I_Number = le.I_Number
+    AND le.rn = 1
+    ORDER BY 
+    ih.I_NUMBER DESC""")
         # Fetch the last row of the result set
         row = cur.fetchone()
 
         if row:
+            print("Row retrieved from database:", row)
             # Convert the row into a dictionary
-            incident = {
+            incidents = {
                 "Incident Date": row[3],
                 "Registration": row[22],
                 "Incident No": row[0],
@@ -183,10 +225,11 @@ def retrieve_last_incident():
                 "Location":row[13],
                 "Charge":row[14],
                 "Customer":row[5],
-                "Locationn":row[24]
-                # Add other columns as needed
+                "Locationn":row[24],
+                "Owner":row[-2],
+                "Next_Event_DT":row[-1]
             }
-            return [incident]  # Return as a list of dictionaries
+            return [incidents]  # Return as a list of dictionaries
 
         else:
             print("No incidents found in the database.")
@@ -266,7 +309,22 @@ def retrieve_incident_details(registration_number,incident_number):
     cur=conn.cursor()
     try:
         # Execute a SELECT query to retrieve the last incident
-        cur.execute("SELECT * FROM Incident_Headder WHERE Registration_NO =? AND I_Number=?", (registration_number,incident_number))      # Fetch the last row of the result set
+        cur.execute("""SELECT 
+    ih.*, 
+    Cat_Description,Location_Description,Charge_Description, Contact_Method_Description,Status_Description
+    FROM 
+    Incident_Headder ih
+    JOIN 
+    I_Defect_Cats cats ON ih.Cat_ID = cats.Cat_ID
+    JOIN 
+    I_Locations loc ON ih.Location_ID= loc.Location_ID
+	JOIN
+	I_Charge_Types charge ON ih.Charge_ID = charge.Charge_ID
+	JOIN
+	Contact_Methods con ON ih.Contact_Method_ID= con.Contact_Method_ID
+	JOIN
+	I_Status stat ON ih.Status_ID= stat.Status_ID
+    WHERE Registration_NO =? AND I_Number=?""", (registration_number,incident_number))      # Fetch the last row of the result set
         row = cur.fetchone()
 
         if row:
@@ -276,10 +334,10 @@ def retrieve_incident_details(registration_number,incident_number):
                 "Registration": row[22],
                 "Driver_name":row[10],
                 "Driver_phone":row[11],
-                "Cat":row[12],
-                "Loca":row[13],
-                "Charge":row[14],
-                "Contact_id":row[6],
+                "Cat":row[-5],
+                "Loca":row[-4],
+                "Charge":row[-3],
+                "Contact_id":row[-2],
                 "Contact_name":row[7],
                 "Contact_tel":row[8],
                 "Contact_Email":row[9],
@@ -290,7 +348,7 @@ def retrieve_incident_details(registration_number,incident_number):
                 "Date":row[3],
                 "Createdby":row[2],
                 "Odometer":row[27],
-                "Status": row[21],
+                "Status": row[-1],
                 "Closed":row[26],
                 "Attendance":row[18],
                 "Deferred":row[19],
@@ -410,9 +468,6 @@ def update_incident_Details(Driver_name,fleet_no,Driver_Phone,Customer_Id,Contra
                              contact_methodd,Defect_Address,Incident_No,created_by,Odometer,Depot_no,
                              cat_value_to_store,lol_value_to_store,char_value_to_store,Faultdesc,stat_value_store,
                              Closed, Attendance_def,combined_deferred,whatwords,SupplierNo,registration_no,Incident_No))
-            messagebox.showinfo("Success", "Data updated successfully")
-        else:
-            messagebox.showerror("Error", "Updating failed")
         conn.commit()
     except Exception as e:
         print("Error:", e)
@@ -507,7 +562,9 @@ def fetch_all_events(Incident_No):
                "Last Updated":row[2],
                "Follow up":row[6],
                "Event_Description": row[-2],
-               "Next_Event_Description": row[-1]
+               "Next_Event_Description": row[-1],
+               "Created_By": row[7],
+               "Owner":row[8]
             }
             return [event_details]  # Return as a list of dictionaries
 
@@ -562,7 +619,9 @@ def fetch_all_event_details(incident_number):
                "Last Updated":row[2],
                "Follow up":row[6],
                "Event_Description": row[-2],
-               "Next_Event_Description": row[-1]
+               "Next_Event_Description": row[-1],
+               "Created_By": row[7],
+               "Owner":row[8]
             }
             incident_events.append(events)
 
@@ -611,7 +670,7 @@ def fetch_data_for_event(incident_no,event_no):
                 "Createddate":row[2],
                 "Eventtext":row[4],
                 "Nexteventdate":row[6],
-                "Nexteventtype":row[-1]
+                "Nexteventtype":row[-1],
             }
             return event_details  # Return as a list of dictionaries
 
@@ -627,3 +686,418 @@ def fetch_data_for_event(incident_no,event_no):
         # Close the cursor and connection
         cur.close()
         conn.close()
+
+def generate_event_numbertwo(i_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM Incident_Events WHERE I_Number=?",(i_number,))
+    event_numbertwo = cur.fetchone()[0] or 0  # If there are no existing records, set max_i_number to 0
+    cur.close()
+    conn.close()
+    return event_numbertwo + 1
+
+def insert_more_events(i_number,datetime_obj,First_event_tostore,Event_text
+                                     ,Second_event_tostore,datetime_objj,Created_by,Owner):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    cur.execute("""INSERT INTO Incident_Events (I_Number,E_Number,E_Created,Event_Type_ID,
+                Event_Text,Next_Event_ID,Next_Event_DT,Created_By,Event_Owner) Values(?,?,?,?,?,?,?,?,?)
+                """,(i_number,generate_event_numbertwo(i_number),datetime_obj,First_event_tostore,Event_text
+                    ,Second_event_tostore,datetime_objj,Created_by,Owner)) 
+    conn.commit()
+    cur.close()
+    conn.close()                  
+
+def fetch_all_eventstwo(i_number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH RankedEventTypes AS (
+    SELECT 
+        Event_Type_ID,
+        Event_Description,
+        ROW_NUMBER() OVER (ORDER BY Event_Type_ID) AS RowNum
+    FROM 
+        Event_Types
+    )
+    SELECT 
+    ie.*, 
+    et_event.Event_Description AS event_description, 
+    et_next.Event_Description AS next_event_description
+    FROM 
+    Incident_Events ie
+    JOIN 
+    Event_Types et_event ON ie.Event_Type_ID = et_event.Event_Type_ID
+    JOIN 
+    RankedEventTypes et_next ON ie.Next_Event_ID = et_next.RowNum
+    WHERE ie.I_Number=?""",(i_number))
+     row = cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            event_details = {
+               "Created": row[2],
+               "Notes":row[4],
+               "Last Updated":row[2],
+               "Follow up":row[6],
+               "Event_Description": row[-2],
+               "Next_Event_Description": row[-1],
+               "Created_By": row[7],
+               "Owner":row[8]
+            }
+            return [event_details]  # Return as a list of dictionaries
+
+     else:
+            print("No events found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetch_data_for_eventthree(incident_no,event_no):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH RankedEventTypes AS (
+    SELECT 
+        Event_Type_ID,
+        Event_Description,
+        ROW_NUMBER() OVER (ORDER BY Event_Type_ID) AS RowNum
+    FROM 
+        Event_Types
+    )
+    SELECT 
+    ie.*, 
+    et_event.Event_Description AS event_description, 
+    et_next.Event_Description AS next_event_description
+    FROM 
+    Incident_Events ie
+    JOIN 
+    Event_Types et_event ON ie.Event_Type_ID = et_event.Event_Type_ID
+    JOIN 
+    RankedEventTypes et_next ON ie.Next_Event_ID = et_next.RowNum
+    WHERE ie.I_Number=? AND E_Number=?""",(incident_no,event_no))
+     row=cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            event_details = {
+                "Event_Type":row[-2],
+                "Createdby":row[7],
+                "Owner":row[8],
+                "Createddate":row[2],
+                "Eventtext":row[4],
+                "Nexteventdate":row[6],
+                "Nexteventtype":row[-1],
+                "Created_By": row[7],
+               "Owner":row[8]
+            }
+            return event_details  # Return as a list of dictionaries
+
+     else:
+            print("No incidents found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def retrieve_updated_incieve(Incident_No):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH LatestEvent AS (
+    SELECT 
+        I_Number, 
+        Event_Owner, 
+        Next_Event_DT,
+        ROW_NUMBER() OVER (PARTITION BY I_Number ORDER BY E_Number DESC) as rn
+    FROM Incident_Events
+    )
+    SELECT 
+
+    ih.*, 
+    le.Event_Owner, 
+    le.Next_Event_DT
+    FROM 
+    Incident_Headder ih
+    LEFT JOIN 
+    LatestEvent le 
+    ON ih.I_Number = le.I_Number
+    AND le.rn = 1
+	WHERE ih.I_Number=?""",(Incident_No))
+     row=cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            incidents = {
+               
+                "Incident Date": row[3],
+                "Registration": row[22],
+                "Incident No": row[0],
+                "Status": row[21],
+                "Category":row[12],
+                "Location":row[13],
+                "Charge":row[14],
+                "Customer":row[5],
+                "Locationn":row[24],
+                "Owner":row[-2],
+                "Next_Event_DT":row[-1]
+            }
+            return [incidents]  # Return as a list of dictionaries
+
+     else:
+            print("No incidents and Events found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def retrieve_updated_event(i_number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH LatestEvent AS (
+    SELECT 
+        I_Number, 
+        Event_Owner, 
+        Next_Event_DT,
+        ROW_NUMBER() OVER (PARTITION BY I_Number ORDER BY E_Number DESC) as rn
+    FROM Incident_Events
+    )
+    SELECT 
+
+    ih.*, 
+    le.Event_Owner, 
+    le.Next_Event_DT
+    FROM 
+    Incident_Headder ih
+    LEFT JOIN 
+    LatestEvent le 
+    ON ih.I_Number = le.I_Number
+    AND le.rn = 1
+	WHERE ih.I_Number=?""",(i_number))
+     row=cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            incidents = {
+               
+                "Incident Date": row[3],
+                "Registration": row[22],
+                "Incident No": row[0],
+                "Status": row[21],
+                "Category":row[12],
+                "Location":row[13],
+                "Charge":row[14],
+                "Customer":row[5],
+                "Locationn":row[24],
+                "Owner":row[-2],
+                "Next_Event_DT":row[-1]
+            }
+            return [incidents]  # Return as a list of dictionaries
+
+     else:
+            print("No incidents and Events found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def giving_i_no_to_events():
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+        cur.execute("""SELECT TOP 1 * FROM Incident_Headder ORDER BY I_Number DESC""")
+        row=cur.fetchone()
+        if row:
+            # Convert the row into a dictionary
+         incident_details={
+            "I_Number":row[0]
+        }
+         return [incident_details]
+        else:
+            print("No details in the database.")
+            return None
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def retrievevents(incident_no):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH LatestEvent AS (
+    SELECT 
+        I_Number, 
+        Event_Owner, 
+        Next_Event_DT,
+        ROW_NUMBER() OVER (PARTITION BY I_Number ORDER BY E_Number DESC) as rn
+    FROM Incident_Events
+    )
+    SELECT 
+
+    ih.*, 
+    le.Event_Owner, 
+    le.Next_Event_DT
+    FROM 
+    Incident_Headder ih
+    LEFT JOIN 
+    LatestEvent le 
+    ON ih.I_Number = le.I_Number
+    AND le.rn = 1
+	WHERE ih.I_Number=?""",(incident_no))
+     row=cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            incidents = {
+               
+                "Incident Date": row[3],
+                "Registration": row[22],
+                "Incident No": row[0],
+                "Status": row[21],
+                "Category":row[12],
+                "Location":row[13],
+                "Charge":row[14],
+                "Customer":row[5],
+                "Locationn":row[24],
+                "Owner":row[-2],
+                "Next_Event_DT":row[-1]
+            }
+            return [incidents]  # Return as a list of dictionaries
+
+     else:
+            print("No incidents and Events found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def users_function(username, password):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute('SELECT * FROM Users WHERE Username COLLATE SQL_Latin1_General_CP1_CS_AS = ? AND User_password COLLATE SQL_Latin1_General_CP1_CS_AS =?', (username, password))
+    user=cur.fetchone()
+
+    cur.close()
+     # Close the database connection
+    conn.close()
+        # Return True if a user is found, False otherwise
+    if user:
+     messagebox.showinfo("Login Successful", "Welcome!")
+    else:
+            messagebox.showerror("Login Failed", "Username or password incorrect")
+    return user is not None
+    
+    
+
+def generate_user_id():
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("""Select MAX(id) FROM Users""")
+    max_user_id = cur.fetchone()[0] or 0  # If there are no existing records, set max_i_number to 0
+    cur.close()
+    conn.close()
+    return max_user_id + 1
+    
+
+def add_more_users(new_username,new_password):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute('SELECT * FROM Users WHERE Username = ?', (new_username,))
+    if cur.fetchone():
+     messagebox.showerror("Error", "Username already exists")
+     conn.close()
+     return
+
+    #cur.execute('SELECT * FROM Users WHERE User_password = ?', (new_password,))
+    #if cur.fetchone():
+     #messagebox.showerror("Error", "Password already exists")
+    # conn.close()
+     #return
+    try:
+     cur.execute("""INSERT INTO USERS (id,Username, User_password) VALUES (?,?,?)""", (generate_user_id(),new_username, new_password))
+     conn.commit()
+     messagebox.showinfo("Success", "User added successfully")
+    except pyodbc.IntegrityError:
+     messagebox.showerror("Error", "Username already exists")
+    finally:
+     conn.close()
+
+def reset_password_for_users(new_password,username):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor() 
+    cur.execute('UPDATE Users SET User_password = ? WHERE Username = ?', (new_password, username))
+    if cur.rowcount == 0:
+     messagebox.showerror("Error", "Username not found")
+    else:
+     conn.commit()
+     messagebox.showinfo("Success", "Password reset successfully")
+     conn.close()
+def delete_users(username):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute('SELECT * FROM Users WHERE Username = ?', (username,))
+    user = cur.fetchone()
+
+    if not user:
+     messagebox.showerror("Error", "Username not found")
+     cur.close()
+     conn.close()
+     return
+
+    try:
+     cur.execute('DELETE FROM Users WHERE Username = ?', (username,))
+     conn.commit()
+     messagebox.showinfo("Success", "User deleted successfully")
+                
+    except pyodbc.Error as e:
+     messagebox.showerror("Error", f"Failed to delete user: {str(e)}")
+    finally:
+     cur.close()
+     conn.close()
+
+
+
+    
+
+
+
+  
+    
