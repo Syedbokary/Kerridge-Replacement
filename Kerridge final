@@ -9,6 +9,7 @@ from tkcalendar import DateEntry
 from getpass import getuser
 import datetime
 from datetime import datetime, timedelta
+import webbrowser
 
 
 import KBACKEND
@@ -265,7 +266,7 @@ class KerridgeReplacement:
     def __init__(self, root):
         self.root = root
         self.root.title("Kerridge Replacement Application")
-        self.root.geometry("800x600")
+        self.root.geometry("800x620")
         self.root.resizable(False, False)
 
         
@@ -292,7 +293,7 @@ class KerridgeReplacement:
 
         # You can add icons below menus using PhotoImage or other methods.
         # For demonstration purposes, let's create 13 small image icons.
-        image_paths = ["icon1.png", "icon2.png", "icon3.png", "icon4.png"]
+        image_paths = ["icon1.png", "icon2.png", "icon3.png"]
     
         for ida, path in enumerate(image_paths, start=1):
             image = Image.open(path)
@@ -308,17 +309,17 @@ class KerridgeReplacement:
         # Create a DataFrame below the icons
         dataframe = LabelFrame(self.root, bd=3, relief=tk.RIDGE,text="Filter forwards")
         dataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
-        dataframe.place(x=0, y=40, width=780, height=100) 
+        dataframe.place(x=0, y=40, width=780, height=128) 
 
         #================Legend frame================================#
 
         Legendframe= LabelFrame(self.root, relief=tk.RIDGE, text="Legend")
-        Legendframe.place(x=0,y=140,width=780,height=60)
+        Legendframe.place(x=0,y=168,width=780,height=60)
 
         #=================Details Frame===============================#
 
         Detailsframe= LabelFrame(self.root, relief=tk.RIDGE,text="Details")
-        Detailsframe.place(x=0,y=200,width=780,height=400)
+        Detailsframe.place(x=0,y=233,width=780,height=400)
 
        #===================Creating Lables and Text Fields=============================#
         
@@ -327,13 +328,15 @@ class KerridgeReplacement:
         self.Regtext1 = Entry(dataframe, width=18)
         self.Regtext1.grid(row=0, column=1)
         self.attach_context_menu(self.Regtext1)
-
+        
+        Customer_details=KBACKEND.get_cust_name()
+        self.Customer_details= [row[0] for row in Customer_details]
         lb2 = Label(dataframe, text="Customer", padx=10)
         lb2.grid(row=0, column=2)
-        self.custext2 = Entry(dataframe, width=25)
+        self.custext2 = ttk.Combobox(dataframe,values=self.Customer_details, width=18)
         self.custext2.grid(row=0, column=3)
         self.attach_context_menu(self.custext2)
-    
+        
         lb3 = Label(dataframe, text="Owner", padx=5)
         lb3.grid(row=0, column=4)
         self.text3 = Entry(dataframe, width=13)
@@ -348,7 +351,7 @@ class KerridgeReplacement:
 
         # Incident Type-Cat
         catdetails=KBACKEND.fetch_cat_details()
-        self.catdetails= [row[0] for row in catdetails]
+        self.catdetails= [row[1] for row in catdetails]
         lb5 = Label(dataframe, text="Defect_Cat", padx=5,pady=5)
         lb5.grid(row=1, column=0)
         self.text5 = ttk.Combobox(dataframe, values= self.catdetails, width=13)
@@ -357,7 +360,7 @@ class KerridgeReplacement:
         
         #Incident Type- Loc
         locationdetails= KBACKEND.fetch_Location_details()
-        self.locationdetails= [row[0] for row in locationdetails]
+        self.locationdetails= [row[1] for row in locationdetails]
         locationlabel= Label(dataframe,text="I_Location", padx=5)
         locationlabel.grid(row=1,column=2)
         self.I_location=ttk.Combobox(dataframe,values=self.locationdetails,width=13)
@@ -366,7 +369,7 @@ class KerridgeReplacement:
 
         #Incident Type- Charge
         Chargedetails=KBACKEND.fetch_charge_details()
-        self.chargedetails=[row[0] for row in Chargedetails]
+        self.chargedetails=[row[1] for row in Chargedetails]
         chargelabel=Label(dataframe,text="Charge",padx=5)
         chargelabel.grid(row=1,column=4)
         self.I_charge=ttk.Combobox(dataframe,values=self.chargedetails,width=13)
@@ -383,7 +386,7 @@ class KerridgeReplacement:
 
         #status
         self.Statusdetails= KBACKEND.fetch_status_details()
-        self.stats= [row[0] for row in self.Statusdetails]
+        self.stats= [row[1] for row in self.Statusdetails]
         lb7=Label(dataframe,text="Status",padx=5)
         lb7.grid(row=2, column=0)
         self.text7= ttk.Combobox(dataframe,values=self.stats,width=13)
@@ -406,13 +409,19 @@ class KerridgeReplacement:
         self.text12=Entry(dataframe,width=18)
         self.text12.grid(row=2,column=5)
         self.attach_context_menu(self.text12)
+
+        lb9= Label(dataframe,text="Incident_No")
+        lb9.grid(row=2,column=6)
+        self.text13=Entry(dataframe,width=18)
+        self.text13.grid(row=2,column=7)
+        self.attach_context_menu(self.text12)
         
         
         self.attach_events()
 
         
         self.clear_button = Button(dataframe, text="Clear All",width=10,command=self.clear_filters)
-        self.clear_button.grid(row=2, column=7)
+        self.clear_button.grid(row=3, column=7)
 
 
         #Creating Buttons in the legend frame
@@ -472,7 +481,7 @@ class KerridgeReplacement:
         # Create the Treeview widget
         self.root.Kerride_table = ttk.Treeview(Detailsframe, column=("Incident Date", "Customer", "Location",
                                                             "Registration", "Incident No", "Cat", "Loca", 
-                                                            "Char", "Status", "Owner", "Due Date", "Time"),
+                                                            "Char", "Status", "Owner", "Creator", "Due Date", "Time"),
                                        xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set,selectmode="browse")
     
         self.root.Kerride_table.configure(xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set)
@@ -492,6 +501,7 @@ class KerridgeReplacement:
         self.root.Kerride_table.heading("Char", text="Char")
         self.root.Kerride_table.heading("Status", text="Status")
         self.root.Kerride_table.heading("Owner", text="Owner")
+        self.root.Kerride_table.heading("Creator", text="Creator")
         self.root.Kerride_table.heading("Due Date", text="Due Date")
         self.root.Kerride_table.heading("Time", text="Time")
 
@@ -509,6 +519,7 @@ class KerridgeReplacement:
         self.root.Kerride_table.column("Char", width=38)
         self.root.Kerride_table.column("Status", width=45)
         self.root.Kerride_table.column("Owner", width=60)
+        self.root.Kerride_table.column("Creator", width=60)
         self.root.Kerride_table.column("Due Date", width=85)
         self.root.Kerride_table.column("Time", width=60)
         
@@ -523,10 +534,10 @@ class KerridgeReplacement:
 
     
         self.populate_kerride_table()
-    
 
     def attach_events(self):
         self.Regtext1.bind("<KeyRelease>", self.filter_kerride_table)
+        self.custext2.bind("<<ComboboxSelected>>", self.filter_kerride_table)
         self.custext2.bind("<KeyRelease>", self.filter_kerride_table)
         self.text3.bind("<KeyRelease>", self.filter_kerride_table)
         self.text4.bind("<KeyRelease>", self.filter_kerride_table)
@@ -536,6 +547,10 @@ class KerridgeReplacement:
         self.text6.bind("<<DateEntrySelected>>", self.filter_kerride_table)
         self.text7.bind("<<ComboboxSelected>>", self.filter_kerride_table)
         self.text12.bind("<KeyRelease>", self.filter_kerride_table)
+        self.text13.bind("<KeyRelease>", self.filter_kerride_table)
+        
+
+
     
 
     #opening an another window from first page icons 
@@ -613,6 +628,13 @@ class KerridgeReplacement:
             self.populate_location_description()
             self.Depotentry.insert(0,result[7])
 
+            fleetno= self.Fleet_entry.get()
+            result=KBACKEND.getmileage(fleetno)
+
+            self.Odo.delete(0, tk.END)
+
+            self.Odo.insert(0, result[0] )
+
         else:
             messagebox.showwarning("Warning", "Invalid registration number.")
         #else:
@@ -623,7 +645,7 @@ class KerridgeReplacement:
 
      self.icon1_window= tk.Toplevel(self.root)
      self.icon1_window.title("Incident Detail Form")
-     self.icon1_window.geometry("800x620")  # Adjust the width and height as needed
+     self.icon1_window.geometry("800x660")  # Adjust the width and height as needed
      self.icon1_window.resizable(False,False)
 
      main_window_width = self.root.winfo_width()
@@ -635,7 +657,6 @@ class KerridgeReplacement:
 
         # Set the icon1_window's geometry to be positioned exactly on top of the main window
      self.icon1_window.geometry(f"+{x}+{y}")
-
     #Create a container (Frame) for the icons with a border
      icon_box = tk.Frame(self.icon1_window, relief=tk.RIDGE, borderwidth=3)
      icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
@@ -717,12 +738,18 @@ class KerridgeReplacement:
      self.Fleet_entry.grid(row=1,column=1)
      self.attach_context_menu(self.Fleet_entry)
 
-     #Creating a Label and Entry for Vehicle loaded:
+     #Button to view fleet information.
 
-     lb3 = Label(dataframe, text="Vehicle loaded:")
-     lb3.grid(row=2, column=0)
-     Vehicle_loaded=Checkbutton(dataframe,width=2)
-     Vehicle_loaded.grid(row=2,column=1)
+     self.view_fleet = Button(dataframe, text="View fleet info",width=12,command=self.open_fleet_info)
+     self.view_fleet.grid(row=2, column=0,padx=20)
+     self.base_url = "http://igloouk/Igloo/(S(yfd54ks3wulvsd2uz3kj53gi))/v3/Pages/Parc/Parc.aspx?&sUrlFrom=searchConsultParc&sParc"
+
+     #Creating a Label and Entry for Vehicle loaded:
+     vehicle=Label(dataframe,text="Vehicle Loaded")
+     vehicle.grid(row=2,column=1,padx=10) 
+     self.Vehicle_loaded_var= tk.BooleanVar()
+     self.Vehicle_loaded=Checkbutton(dataframe,width=2,variable=self.Vehicle_loaded_var)
+     self.Vehicle_loaded.grid(row=2,column=2,sticky='w')
      
 
      #Creating another Entry for page 2
@@ -806,7 +833,7 @@ class KerridgeReplacement:
      #Creating Label for Contact_Method_ID AND Entry
      self.contactmeth= KBACKEND.fetch_contact_detais()
      self.contactdetails= [row[1] for row in self.contactmeth]
-     Contact_Method_Id=Label(Customer,text="Contact_Method_ID",padx=3,pady=3)
+     Contact_Method_Id=Label(Customer,text="Contact_Method_ID*:",fg="red",padx=3,pady=3)
      Contact_Method_Id.grid(row=2,column=0)
      self.Contact_Method_Entry=ttk.Combobox(Customer,width=14,values=self.contactdetails)
      self.Contact_Method_Entry.grid(row=2,column=1)
@@ -823,7 +850,7 @@ class KerridgeReplacement:
       
      Incident_details= LabelFrame(self.main_page, bd=3, relief=tk.RIDGE,text="Incident Details")
      Incident_details.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
-     Incident_details.place(x=0,y=230,width=780,height=293)
+     Incident_details.place(x=0,y=230,width=780,height=325)
 
      #Creating a label and entry field for location
      Location= Label(Incident_details, text="Location:")
@@ -831,7 +858,10 @@ class KerridgeReplacement:
      self.locaentry= Text(Incident_details,width=40, height='3',wrap='word')
      self.locaentry.grid(row=0,column=1,columnspan=2,sticky='w')
      self.attach_context_menu(self.locaentry)
-
+     
+     self.view_map = Button(Incident_details, text="View map",width=12,command=self.open_map)
+     self.view_map.grid(row=0, column=2,padx=5)
+     self.home_url = "https://www.google.com/maps"
      #Creating a label and Entry for Number
 
      Number= Label(Incident_details,text="Number:")
@@ -902,70 +932,73 @@ class KerridgeReplacement:
      self.catdesc=[row[1] for row in self.Catdetails]
      
 
-     Type= Label(Incident_details, text="Type:")
+     Type= Label(Incident_details, text="Category *:",fg="red")
      Type.grid(row=1,column=0,padx=5,pady=6)
      self.CatEntry= ttk.Combobox(Incident_details, values=self.catdesc, width=13)
      self.CatEntry.grid(row=1, column=1, pady=4, sticky='w')
      self.attach_context_menu(self.CatEntry)
      
-     
+     loctype= Label(Incident_details, text="Location *:",fg="red")
+     loctype.grid(row=2,column=0,padx=5,pady=6)
      self.Locdetils=KBACKEND.fetch_Location_details()
      self.locdesc= [row[1] for row in self.Locdetils]
      self.LolEntry=ttk.Combobox(Incident_details,values=self.locdesc,width=13)
-     self.LolEntry.grid(row=1,column=2,pady=4,sticky='w')
+     self.LolEntry.grid(row=2,column=1,pady=4,sticky='w')
      self.attach_context_menu(self.LolEntry)
 
+     Chartype= Label(Incident_details, text="Charge *:",fg="red")
+     Chartype.grid(row=3,column=0,padx=5,pady=2)
      self.Chardetails=KBACKEND.fetch_charge_details()
      self.chardesc=[row[1] for row in self.Chardetails]
      self.Chargeentry=ttk.Combobox(Incident_details,values=self.chardesc,width=13)
-     self.Chargeentry.grid(row=2,column=1,pady=4,sticky='w')
+     self.Chargeentry.grid(row=3,column=1,pady=2,sticky='w')
      self.attach_context_menu(self.Chargeentry)
 
      #Creating a Label and Entry for Fault Description
      Fault= Label(Incident_details, text="Fault Desription:")
-     Fault.grid(row=3, column=0, pady=(0,25),sticky='w')
+     Fault.grid(row=4, column=0, pady=(0,25),sticky='w')
      self.Faultentry= Text(Incident_details,width=40, height='3',wrap='word')
-     self.Faultentry.grid(row=3,column=1,sticky='w')
+     self.Faultentry.grid(row=4,column=1,sticky='w')
      self.attach_context_menu(self.Faultentry)
      
 
      #Creating a Lable and Entry for Status
      self.statrows=KBACKEND.fetch_status_details()
      self.statusdescription= [row[1] for row in self.statrows]
-     Statuss= Label(Incident_details, text="Status:")
-     Statuss.grid(row=4,column=0,padx=2)
+     Statuss= Label(Incident_details, text="Status:",fg="red")
+     Statuss.grid(row=5,column=0,padx=2)
      self.StatussEntry= ttk.Combobox(Incident_details, values=self.statusdescription, width=25)
-     self.StatussEntry.grid(row=4, column=1, padx=2,pady=4, sticky='w')
+     self.StatussEntry.grid(row=5, column=1, padx=2,pady=2, sticky='w')
      self.attach_context_menu(self.StatussEntry)
 
 
 
      #Creating Label and Entry for closed
      Closedlabel=Label(Incident_details,text="Closed")
-     Closedlabel.grid(row=7, column=3)
+     Closedlabel.grid(row=8, column=3)
      self.closed_var = tk.BooleanVar()
      self.Closed = tk.Checkbutton(Incident_details, variable=self.closed_var)
-     self.Closed.grid(row=7,column=4,sticky='w')
+     self.Closed.grid(row=8,column=4,sticky='w')
 
      #Creating Label and Entry for Attendance Deferred
      
 
      Attendance_Def= Label(Incident_details, text="Attendance_Deferred")
-     Attendance_Def.grid(row=5,column=0)
+     Attendance_Def.grid(row=6,column=0)
      self.attendance_var=tk.BooleanVar()
      self.AttendanceEntry= ttk.Checkbutton(Incident_details, variable=self.attendance_var)
-     self.AttendanceEntry.grid(row=5, column=1, sticky='w')
+     self.AttendanceEntry.grid(row=6, column=1, sticky='w')
      
      Deff = Label(Incident_details, text='Deferred To')
-     Deff.grid(row=6, column=0, padx=2, sticky='w')
+     Deff.grid(row=7, column=0, padx=2, sticky='w')
      self.Deferred_To = DateEntry(Incident_details, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='yyyy/mm/dd')
-     self.Deferred_To.grid(row=6, column=1, padx=2, sticky='w')
+     self.Deferred_To.grid(row=7, column=1, padx=2, sticky='w')
      self.attach_context_menu(self.Deferred_To)
 
      Deff_time=Label(Incident_details,text='Deferred To Time')
-     Deff_time.grid(row=7,column=0,padx=2, sticky='w')
+     Deff_time.grid(row=8,column=0,padx=2, sticky='w')
      self.Deferred_Time= Entry(Incident_details,width=15)
-     self.Deferred_Time.grid(row=7,column=1,sticky='w')
+     self.Deferred_Time.grid(row=8,column=1,sticky='w')
      current_time = datetime.now().strftime("%H:%M")
      self.Deferred_Time.insert(0,current_time)
      self.attach_context_menu(self.Deferred_Time)
@@ -976,12 +1009,16 @@ class KerridgeReplacement:
      self.whatwordsentry.grid(row=6, column=4,sticky='w')  # Set columnspan to 2
      self.attach_context_menu(self.whatwordsentry)
 
+     self.what= tk.Button(Incident_details, text="View map", width=12,command=self.open_what_map)
+     self.what.grid(row=7, column=4, columnspan=2, pady=5)
+     self.what_url = "https://what3words.com"
+
 
    
     #Creating Frame for Supplier details
      Supplier_details=LabelFrame(self.main_page,bd=3,relief=tk.RIDGE,text="Supplier Details")
      Supplier_details.pack(side=tk.TOP,padx=8,pady=3, anchor="nw")
-     Supplier_details.place(x=0,y=522,width=780,height=60)
+     Supplier_details.place(x=0,y=555,width=780,height=50)
 
      #Creating label and Entry for Name:
      sup=KBACKEND.fetch_supplier_details()
@@ -1055,7 +1092,30 @@ class KerridgeReplacement:
      self.scrollbar_x.pack(side="bottom", fill="x")
      self.events_tree.configure(xscrollcommand=self.scrollbar_x.set)
      
-     
+    def open_fleet_info(self):
+        if self.Fleet_entry is None:
+            webbrowser.open(self.base_url)
+        else:
+            fleet_url = self.base_url + str(self.Fleet_entry)
+            webbrowser.open(fleet_url)
+    def open_map(self):
+        address = self.locaentry.get("1.0", tk.END).strip()  # Get the text from the Text widget
+        if not address:
+            webbrowser.open(self.home_url)
+        else:
+            formatted_address = address.replace(" ", "+")
+            map_url = f"https://www.google.com/maps/search/?api=1&query={formatted_address}"
+            webbrowser.open(map_url)
+    def open_what_map(self):
+        address = self.whatwordsentry.get().strip()  # Get the text from the Entry widget
+        if not address:
+            webbrowser.open(self.what_url)
+        else:
+            formatted_address = address.replace(" ", ".")
+            map_url = f"https://what3words.com/{formatted_address}"
+            webbrowser.open(map_url)
+            
+            
     #Creating Event list for the third icon
     def create_event_list(self):
      self.icon3_window= tk.Toplevel(self.root)
@@ -1509,7 +1569,12 @@ class KerridgeReplacement:
          Char=incident.get("Charge")
          location=incident.get("Locationn")
          Owner= incident.get("Owner")
+         Creator=incident.get("Creator")
          Next_Event_Datetime=incident.get("Next_Event_Date")
+         Category=incident.get("Cat_Desc")
+         Loc= incident.get("Loc_Desc")
+         Charge= incident.get("Char_Desc")
+         Stat= incident.get("Status_Desc")
          
          if Next_Event_Datetime is not None:
           Next_Event_Date = Next_Event_Datetime.date()
@@ -1522,7 +1587,7 @@ class KerridgeReplacement:
           #time_difference=None
           
           
-         row_data = (incident_datetime_s, Customer, location, registration, I_no, Cat, loc, Char, Status, Owner, Next_Event_Date, Next_Event_Time)
+         row_data = (incident_datetime_s, Customer, location, registration, I_no, Cat, loc, Char, Status, Owner, Creator, Next_Event_Date, Next_Event_Time)
 
         
          # Filter logic
@@ -1627,6 +1692,7 @@ class KerridgeReplacement:
             "Status": self.text7.get(),
             "Closed": self.is_closed.get(),
             "Locations": self.text12.get(),
+            "Incident_No": self.text13.get()
         }
     def passes_filter(self, incident, filter_criteria):
         incident_registration = incident.get("Registration", "")
@@ -1645,15 +1711,15 @@ class KerridgeReplacement:
         if filter_criteria["Creator"] and filter_criteria["Creator"].lower() not in (incident_creator.lower() if incident_creator else ""):
          return False
 
-        incident_category = incident.get("Category", "")
+        incident_category = incident.get("Cat_Desc", "")
         if filter_criteria["Category"] and filter_criteria["Category"].lower() not in (incident_category.lower() if incident_category else ""):
          return False
 
-        incident_location = incident.get("Location", "")
+        incident_location = incident.get("Loc_Desc", "")
         if filter_criteria["Location"] and filter_criteria["Location"].lower() not in (incident_location.lower() if incident_location else ""):
          return False
 
-        incident_charge = incident.get("Charge", "")
+        incident_charge = incident.get("Char_Desc", "")
         if filter_criteria["Charge"] and filter_criteria["Charge"].lower() not in (incident_charge.lower() if incident_charge else ""):
          return False
 
@@ -1661,7 +1727,7 @@ class KerridgeReplacement:
         if filter_criteria["Incident Date"] and filter_criteria["Incident Date"] != (incident_date.date() if incident_date else None):
          return False
 
-        incident_status = incident.get("Status", "")
+        incident_status = incident.get("Status_Desc", "")
         if filter_criteria["Status"] and filter_criteria["Status"].lower() not in (incident_status.lower() if incident_status else ""):
          return False
 
@@ -1672,6 +1738,12 @@ class KerridgeReplacement:
         incident_locationn = incident.get("Locationn", "")
         if filter_criteria["Locations"] and filter_criteria["Locations"].lower() not in (incident_locationn.lower() if incident_locationn else ""):
          return False
+        
+        incident_number = incident.get("Incident No")
+        if filter_criteria["Incident_No"] and filter_criteria["Incident_No"].lower() not in (str(incident_number).lower() if incident_number else ""):
+         return False
+
+        
 
         return True 
     def filter_kerride_table(self, event=None):
@@ -1690,6 +1762,7 @@ class KerridgeReplacement:
      self.text6.delete(0, "end")
      self.text7.delete(0, "end")
      self.text12.delete(0, "end")
+     self.text13.delete(0,"end")
      self.is_closed.set(0)
 
      # Repopulate table with all data
@@ -1779,6 +1852,8 @@ class KerridgeReplacement:
 
      close= self.closed_var.get()
 
+     vehicle_loaded= self.Vehicle_loaded_var.get()
+
      fleet= self.Fleet_entry.get()
 
      makemodel=self.text2.get()
@@ -1794,7 +1869,7 @@ class KerridgeReplacement:
 
      KBACKEND.store_registration(reg_no, I_number, driver_name,created,combined_datetime,contact_methodd,contactname,
                                  contacttel,contactemail,drivertel,Defect_loc,faultdesc,cat_value_to_store,lol_value_to_store,
-                                 char_value_to_store,stat_value_store,odo,attendance,combined_deferred,what3,close,fleet,custid,contractno,locat,defectno,supplier_no)
+                                 char_value_to_store,stat_value_store,odo,attendance,combined_deferred,what3,close,fleet,custid,contractno,locat,defectno,supplier_no,vehicle_loaded)
     
      last_incident = KBACKEND.retrieve_last_incident()
      print("last_incident:", last_incident)
@@ -1831,52 +1906,6 @@ class KerridgeReplacement:
         # Insert the incident into Kerride_table
          self.root.Kerride_table.insert("", "end", values=(incident_date, Customer, Locat, registration,I_no,Category,loca,Charg,Status,Owner,Next_Event_Date,Next_Event_Time))
         self.clear_filters()
-     
-    def populate_kerride_table_two(self):
-       
-      red_rows = []
-      fuchsia_rows = []
-      dark_green_rows = []
-      black_rows = []
-      green_rows = []
-      blue_rows = []
-      dark_grey_rows = []
-      violet_rows=[]
-       
-      self.root.Kerride_table.delete(*self.root.Kerride_table.get_children())
-    
-      all_incidents = KBACKEND.retrieve_all_incidents()
-
-       
-      if all_incidents:
-        for incident in all_incidents: 
-         incident_datetime_s = incident.get("Incident Date")
-         # Split the datetime string at the space character to extract the date part
-         date_part = incident_datetime_s.date()
-         registration = incident.get("Registration") or ""
-         Customer=incident.get("Customer") or ""
-         I_no=incident.get("Incident No") or ""
-         Status=incident.get("Status") or ""
-         Cat=incident.get("Category") or ""
-         loc=incident.get("Location") or ""
-         Char=incident.get("Charge") or ""
-         location=incident.get("Locationn") or ""
-         Owner= incident.get("Owner") or ""
-         Next_Event_Datetime=incident.get("Next_Event_Date")
-         
-         if Next_Event_Datetime is not None:
-          Next_Event_Date = Next_Event_Datetime.date()
-          Next_Event_Time = Next_Event_Datetime.time()
-         else:
-          Next_Event_Date = None  # or a default value
-          Next_Event_Time = None  # or a default value
-        
-         # Filter logic
-         
-         self.root.Kerride_table.insert("", "end", values=(incident_datetime_s,Customer,location,registration,I_no,Cat,loc,Char,Status,Owner,Next_Event_Date,Next_Event_Time ))
-         
-        
-
     def populate_location_description(self, event=None):
         selected_location = self.location_1.get()
         rows = KBACKEND.fetch_locations_and_descriptions()
@@ -1993,6 +2022,7 @@ class KerridgeReplacement:
             
     def close_the_second_window(self):
         self.icon1_window.destroy()
+
 
 
 
@@ -2199,7 +2229,7 @@ class KerridgeReplacement:
      #Creating a Label and Entry for Suplier
      Supplierr= Label(Repairerdataframe, text="Supplier:")
      Supplierr.grid(row=0,column=4,padx=5,pady=4)
-     self.Supplierrentry= Entry(Repairerdataframe, width=41)
+     self.Supplierrentry= Entry(Repairerdataframe, width=38)
      self.Supplierrentry.grid(row=0,column=5,sticky="w",padx=5,pady=3)
      self.attach_context_menu(self.Supplierrentry)
 
@@ -2257,7 +2287,7 @@ class KerridgeReplacement:
      self.Table_tree.column("Session", width=60)
      self.Table_tree.column("Repair Description", width=200)
      self.Table_tree.column("Rech Value", width=60)
-
+    
      ##########Incident listing in the front page########################
     ########### This clicks the data with a blue colour ###############
     def change_row_color(self, event):
@@ -2294,7 +2324,7 @@ class KerridgeReplacement:
      # Create a new window for the form
      self.form_window = tk.Toplevel(self.root)
      self. form_window.title("Incident Detail Form")
-     self.form_window.geometry("800x620") 
+     self.form_window.geometry("800x660") 
      self.form_window.resizable(False,False)
 
      #Create a container (Frame) for the icons with a border
@@ -2392,15 +2422,25 @@ class KerridgeReplacement:
      self.fleettvalue=additional_details.get('fleet_no')
      self.fleett.insert(0,self.fleettvalue if self.fleettvalue is not None else"")
      
+     self.view_fleett = Button(firstdataframe, text="View fleet info",width=12,command=self.open_fleet_infotwo)
+     self.view_fleett.grid(row=2, column=0,padx=20)
+     self.basee_url = "http://igloouk/Igloo/(S(yfd54ks3wulvsd2uz3kj53gi))/v3/Pages/Parc/Parc.aspx?&sUrlFrom=searchConsultParc&sParc"
 
      #Creating a Label and Entry for Vehicle loaded:
 
      lb3 = Label(firstdataframe, text="Vehicle loaded:")
-     lb3.grid(row=2, column=0)
-     self.Vehiclee_loaded=Checkbutton(firstdataframe,width=2)
-     self.Vehiclee_loaded.grid(row=2,column=1)
+     lb3.grid(row=2,column=1,padx=10)
+     self.vehiclevar=tk.BooleanVar()
+     self.Vehiclee_loaded=Checkbutton(firstdataframe,width=2,variable=self.vehiclevar)
+     self.Vehiclee_loaded.grid(row=2,column=2,sticky='w')
      self.attach_context_menu(self.Vehiclee_loaded)
+     self.vehiclevalue= incident_details.get('Vehicle_loaded',0)
 
+     # Convert the retrieved value to boolean (1 for True, 0 for False)
+     self.vehiclevalue = bool(self.vehiclevalue)
+
+     # Set the state of the Checkbutton based on the retrieved value
+     self.vehiclevar.set(self.vehiclevalue)
      #Creating another Entry for page 2
      self.empty = Entry(firstdataframe, width=30)
      self.empty.grid(row=1, column=2,padx=80)
@@ -2515,7 +2555,7 @@ class KerridgeReplacement:
      #Creating Label for Contact_Method_ID AND Entry
      self.contactmethd= KBACKEND.fetch_contact_detais()
      self.contactdets=[row[1] for row in self.contactmethd]
-     Contact_Method_Id=Label(Seconddataframe,text="Contact_Method_ID",padx=3,pady=3)
+     Contact_Method_Id=Label(Seconddataframe,text="Contact_Method_ID*:",fg="red",padx=3,pady=3)
      Contact_Method_Id.grid(row=2,column=0)
      self.Contact_Method_Entryy=ttk.Combobox(Seconddataframe,width=14,values=self.contactdets)
      self.Contact_Method_Entryy.grid(row=2,column=1)
@@ -2539,7 +2579,7 @@ class KerridgeReplacement:
       
      ThirdDataframe= LabelFrame(self.mainn_page, bd=3, relief=tk.RIDGE,text="Incident Details")
      ThirdDataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
-     ThirdDataframe.place(x=0,y=230,width=780,height=293)
+     ThirdDataframe.place(x=0,y=230,width=780,height=325)
 
      #Creating a label and entry field for location
      Location= Label(ThirdDataframe, text="Location:")
@@ -2549,6 +2589,10 @@ class KerridgeReplacement:
      self.attach_context_menu(self.locaentryy)
      self.locaentryyvalue=incident_details.get('Defect_Address')
      self.locaentryy.insert("1.0",self.locaentryyvalue if self.locaentryyvalue is not None else"")
+
+     self.view_mapp = Button(ThirdDataframe, text="View map",width=12,command=self.open_maptwo)
+     self.view_mapp.grid(row=0, column=2,padx=5)
+     self.homee_url = "https://www.google.com/maps"
      
 
      #Creating a label and Entry for Number
@@ -2625,26 +2669,30 @@ class KerridgeReplacement:
      self.categorydetails= KBACKEND.fetch_cat_details()
      self.categorydescription= [row[1]for row in self.categorydetails]
 
-     Typee= Label(ThirdDataframe, text="Type:")
+     Typee= Label(ThirdDataframe, text="Category *:",fg="red")
      Typee.grid(row=1,column=0,padx=5,pady=6)
      self.CatEntryy= ttk.Combobox(ThirdDataframe, values=self.categorydescription, width=13)
      self.CatEntryy.grid(row=1, column=1, pady=4, sticky='w') 
      self.attach_context_menu(self.CatEntryy)
      self.CatEntryyvalue=incident_details.get('Cat')
      self.CatEntryy.insert(0,self.CatEntryyvalue if self.CatEntryyvalue is not None else"")
-     
+
+     loctype= Label(ThirdDataframe, text="Location *:",fg="red")
+     loctype.grid(row=2,column=0,padx=5,pady=6)
      self.locationdetails=KBACKEND.fetch_Location_details()
      self.locationdescription= [row[1] for row in self.locationdetails]
      self.LolEntryy=ttk.Combobox(ThirdDataframe,values=self.locationdescription,width=13)
-     self.LolEntryy.grid(row=1,column=2,pady=4,sticky='w')
+     self.LolEntryy.grid(row=2,column=1,pady=4,sticky='w')
      self.attach_context_menu(self.LolEntryy)
      self.LolEntryyvalue=incident_details.get('Loca')
      self.LolEntryy.insert(0,self.LolEntryyvalue if self.LolEntryyvalue is not None else"")
      
+     Chartype= Label(ThirdDataframe, text="Charge *:",fg="red")
+     Chartype.grid(row=3,column=0,padx=5,pady=2)
      self.chargedetails=KBACKEND.fetch_charge_details()
      self.Chargedescription= [row[1] for row in self.chargedetails]
      self.Chargeentryy=ttk.Combobox(ThirdDataframe,values=self.Chargedescription,width=13)
-     self.Chargeentryy.grid(row=2,column=1,pady=4,sticky='w')
+     self.Chargeentryy.grid(row=3,column=1,pady=2,sticky='w')
      self.attach_context_menu(self.Chargeentryy)
      self.Chargeentryyvalue=incident_details.get('Charge')
      self.Chargeentryy.insert(0,self.Chargeentryyvalue if self.Chargeentryyvalue is not None else"")
@@ -2652,9 +2700,9 @@ class KerridgeReplacement:
      
      #Creating a Label and Entry for Fault Description
      Fault= Label(ThirdDataframe, text="Fault Description:")
-     Fault.grid(row=3, column=0,sticky='w')
+     Fault.grid(row=4, column=0, pady=(0,25),sticky='w')
      self.Faultentryy= Text(ThirdDataframe,width=30, height='3',wrap='word')
-     self.Faultentryy.grid(row=3,column=1,sticky='w')
+     self.Faultentryy.grid(row=4,column=1,sticky='w')
      self.attach_context_menu(self.Faultentryy)
      self.Faultentryyvalue=incident_details['Defectdesc']
      self.Faultentryy.insert("1.0",self.Faultentryyvalue if self.Faultentryyvalue is not None else"")
@@ -2664,9 +2712,9 @@ class KerridgeReplacement:
      self.rowsss= KBACKEND.fetch_status_details()
      self.Statuss= [row[1] for row in self.rowsss]
      Statuss= Label(ThirdDataframe, text="Status:")
-     Statuss.grid(row=4,column=0,padx=2)
+     Statuss.grid(row=5,column=0,padx=2)
      self.StatussEntryy= ttk.Combobox(ThirdDataframe, values=self.Statuss, width=25)
-     self.StatussEntryy.grid(row=4, column=1, padx=2, pady=4, sticky='w')
+     self.StatussEntryy.grid(row=5, column=1, padx=2,pady=2, sticky='w')
      self.attach_context_menu(self.StatussEntryy)
      self.StatussEntryyvalue= incident_details.get('Status')
      self.StatussEntryy.insert(0,self.StatussEntryyvalue if self.StatussEntryyvalue is not None else"")
@@ -2674,10 +2722,10 @@ class KerridgeReplacement:
 
      #Creating Label and Entry for closed
      Closedlabel=Label(ThirdDataframe,text="Closed")
-     Closedlabel.grid(row=7, column=3)
+     Closedlabel.grid(row=8, column=3)
      self.closedd_var = tk.BooleanVar()
      self.Closedd = tk.Checkbutton(ThirdDataframe, variable=self.closedd_var)
-     self.Closedd.grid(row=7,column=4,sticky='w')
+     self.Closedd.grid(row=8,column=4,sticky='w')
      self.Closeddvalue= incident_details.get('Closed',0)
 
      # Convert the retrieved value to boolean (1 for True, 0 for False)
@@ -2689,10 +2737,10 @@ class KerridgeReplacement:
      
 
      Attendance_Deff= Label(ThirdDataframe, text="Attendance_Deferred")
-     Attendance_Deff.grid(row=5,column=0)
+     Attendance_Deff.grid(row=6,column=0)
      self.attendance_vari=tk.BooleanVar()
      self.AttendanceEntryy= ttk.Checkbutton(ThirdDataframe, variable=self.attendance_vari)
-     self.AttendanceEntryy.grid(row=5, column=1, sticky='w')
+     self.AttendanceEntryy.grid(row=6, column=1, sticky='w')
      self.attach_context_menu(self.AttendanceEntryy)
      self.AttendanceEntryvalue= incident_details.get('Attendance',0)
      
@@ -2700,9 +2748,9 @@ class KerridgeReplacement:
      self.attendance_vari.set(self.AttendanceEntryvalue)
      
      Deffered = Label(ThirdDataframe, text='Deferred To')
-     Deffered.grid(row=6, column=0, padx=2, sticky='w')
+     Deffered.grid(row=7, column=0, padx=2, sticky='w')
      self.Deferred_Too = DateEntry(ThirdDataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='yyyy/mm/dd')
-     self.Deferred_Too.grid(row=6, column=1, padx=2, sticky='w')
+     self.Deferred_Too.grid(row=7, column=1, padx=2, sticky='w')
      self.attach_context_menu(self.Deferred_Too)
      self.Deferred_Tovalue= incident_details.get('Deferred')
      if self.Deferred_Tovalue is not None:
@@ -2712,31 +2760,36 @@ class KerridgeReplacement:
      self.Deferred_Too.set_date(self.Deferred_Tovaluedate)
 
      Deff_time=Label(ThirdDataframe,text='Deferred To Time')
-     Deff_time.grid(row=7,column=0,padx=2, sticky='w')
+     Deff_time.grid(row=8,column=0,padx=2, sticky='w')
      self.Deferred_Timetwo= Entry(ThirdDataframe,width=15)
-     self.Deferred_Timetwo.grid(row=7,column=1,sticky='w')
+     self.Deferred_Timetwo.grid(row=8,column=1,sticky='w')
      self.Deferred_Timetwovalue=incident_details.get('Deferred')
+     current_time= datetime.now().strftime("%H:%M")
      if self.Deferred_Timetwovalue is not None:
          self.Deferred_TimetwoTime= self.Deferred_Timetwovalue.strftime('%H:%M')
      else:
-        self.Deferred_TimetwoTime=None
-     self.Deferred_Timetwo.insert(0,self.Deferred_TimetwoTime if self.Deferred_TimetwoTime is not None else"")
+        self.Deferred_TimetwoTime= current_time
+     self.Deferred_Timetwo.insert(0,self.Deferred_TimetwoTime if self.Deferred_TimetwoTime is not None else current_time)
      self.attach_context_menu(self.Deferred_Timetwo)
 
 
      whatwords = Label(ThirdDataframe, text='Defect_loc_W3W')
-     whatwords.grid(row=6, column=3, padx=2, sticky='w')
+     whatwords.grid(row=6, column=3,sticky='w')
      self.whatwordsentryy = Entry(ThirdDataframe, width=30)
-     self.whatwordsentryy.grid(row=6, column=4, padx=2, sticky='w') 
+     self.whatwordsentryy.grid(row=6, column=4, sticky='w') 
      self.attach_context_menu(self.whatwordsentryy)
      self.whatwordsentryyvalue= incident_details.get('Whatwords')
      self.whatwordsentryy.insert(0,self.whatwordsentryyvalue if self.whatwordsentryyvalue is not None else"")
+
+     self.whatt= tk.Button(ThirdDataframe, text="View map", width=12,command=self.open_what_maptwo)
+     self.whatt.grid(row=7, column=4, columnspan=2, pady=5)
+     self.whatt_url = "https://what3words.com"
 
      
      #Creating Frame for Supplier details
      Fourthdataframe=LabelFrame(self.mainn_page,bd=3,relief=tk.RIDGE,text="Supplier Details")
      Fourthdataframe.pack(side=tk.TOP,padx=8,pady=3, anchor="nw")
-     Fourthdataframe.place(x=0,y=522,width=780,height=60)
+     Fourthdataframe.place(x=0,y=555,width=780,height=50)
      
      #Creating label and Entry for Name:
      supp=KBACKEND.fetch_supplier_details()
@@ -2826,6 +2879,29 @@ class KerridgeReplacement:
      self.populate_events_tree()
 
      self.eventss_tree.bind("<<TreeviewSelect>>", self.on_row_selected)
+    
+    def open_fleet_infotwo(self):
+        if self.fleettvalue is None:
+            webbrowser.open(self.basee_url)
+        else:
+            fleet_url = self.basee_url + str(self.fleettvalue)
+            webbrowser.open(fleet_url)
+    def open_maptwo(self):
+        address = self.locaentryy.get("1.0", tk.END).strip()  # Get the text from the Text widget
+        if not address:
+            webbrowser.open(self.homee_url)
+        else:
+            formatted_address = address.replace(" ", "+")
+            map_url = f"https://www.google.com/maps/search/?api=1&query={formatted_address}"
+            webbrowser.open(map_url)
+    def open_what_maptwo(self):
+        address = self.whatwordsentryy.get().strip()  # Get the text from the Entry widget
+        if not address:
+            webbrowser.open(self.whatt_url)
+        else:
+            formatted_address = address.replace(" ", ".")
+            map_url = f"https://what3words.com/{formatted_address}"
+            webbrowser.open(map_url)
 
     def on_row_selected(self, event):
         
