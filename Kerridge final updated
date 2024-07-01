@@ -1354,7 +1354,7 @@ class KerridgeReplacement:
                 Notes,Last_updated_date,Last_updated_time,Own,Follow_up_date,follow_up_time,Own,Next_Event_Description))
              
              self.events_tree.bind("<<TreeviewSelect>>", self.on_roww_selected)
-        #self.populate_eventstree_table()
+        self.populate_eventstree_table()
 
     def on_roww_selected(self,event):
         selected_item = self.events_tree.selection()
@@ -1919,31 +1919,37 @@ class KerridgeReplacement:
               self.nameentry.insert(0,row[0])
               self.Phoneentry.insert(0,row[2])
 
-    #def populate_eventstree_table(self):
-      #self.events_tree.delete(*self.events_tree.get_children())
-      #Incident_No=self.Numberentry.get()
-      #event_details= KBACKEND.fetch_all_events(Incident_No)
-      #if event_details:
-       #for event in event_details:
-             #Event_created= event.get('Created')
+    def populate_eventstree_table(self):
+      self.events_tree.delete(*self.events_tree.get_children())
+      Incident_No=self.Numberentry.get()
+      event_details= KBACKEND.fetch_all_events_oncemore(Incident_No)
+      if event_details:
+       for event in event_details:
+             Event_created= event.get('Created')
              #event_datetime = datetime.strptime(Event_created, "%Y-%m-%d %H:%M:%S")
-             #Created_date = event_datetime.date()
+             Created_date = Event_created.date()
 
              # Get the time part
-             #Created_time = event_datetime.time()
+             Created_time = Event_created.time()
         
-             #Notes= event.get('Notes')
-             #Last_updated= event.get('Last Updated')
+             Notes= event.get('Notes')
+             Last_updated= event.get('Last Updated')
              #last_updated_datetime= datetime.strptime(Last_updated, "%Y-%m-%d %H:%M:%S")
-             #Last_updated_date= last_updated_datetime.date()
-             #Last_updated_time= last_updated_datetime.time()
-             #Follow_up= event.get('Follow up')
+             Last_updated_date= Last_updated.date()
+             Last_updated_time= Last_updated.time()
+             Follow_up= event.get('Follow up')
              #Follow_up_datetime= datetime.strptime(Follow_up, "%Y-%m-%d %H:%M:%S")
-             #Follow_up_date= Follow_up_datetime.date()
-             #follow_up_time= Follow_up_datetime.time()
+             Follow_up_date= Follow_up.date()
+             follow_up_time= Follow_up.time()
+             Event_Description= event.get('Event_Description')
+             Next_Event_Description= event.get('Next_Event_Description')
+             Created= event.get('Created_By')
+             Own= event.get('Owner')
 
-             #self.events_tree.insert("", "end", values=(Created_date,Created_time,"","","",
-                #Notes,Last_updated_date,Last_updated_time,"",Follow_up_date,follow_up_time,"",""))
+
+             self.events_tree.insert("", "end", values=(Created_date,Created_time,Created,Event_Description,"",
+                Notes,Last_updated_date,Last_updated_time,Own,Follow_up_date,follow_up_time,Own,Next_Event_Description))
+             
              
     
    
@@ -3870,7 +3876,696 @@ class KerridgeReplacement:
              self.Phoneentryy.delete(0,tk.END)
              self.Contactentryy.insert(0,row[1])
              self.Phoneentryy.insert(0,row[2])     
-             
+
+    def open_Purchase_order_From_mainpage(self):
+        self.purchasehistoryone = tk.Toplevel(self.root)
+        self.purchasehistoryone.title("Maintenance Control")
+        self.purchasehistoryone.geometry("800x615")  # Adjust the width and height as needed
+        self.purchasehistoryone.resizable(False, False)
+
+        icon_box = tk.Frame(self.purchasehistoryone, relief=tk.RIDGE, borderwidth=3)
+        icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
+
+        image_paths = ["icon 18.png", "icon 19.png"]
+        for idpurcost, path in enumerate(image_paths, start=1):
+            image = Image.open(path)
+            image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
+            photo = ImageTk.PhotoImage(image)
+            icon_button = tk.Button(icon_box, image=photo, command=lambda index=idpurcost: self.update_purchase_information(index))
+            icon_button.image = photo
+            icon_button.pack(side=tk.LEFT, padx=5, pady=2)
+        
+        # Create frames for each page
+        self.Historypone = Frame(self.purchasehistoryone)
+        self.Maintenance_Controlpone = Frame(self.purchasehistoryone)
+
+        def show_History():
+            self.Maintenance_Controlpone.pack_forget()
+            self.Historypone.pack(fill="both", expand=True)
+
+        def show_maintenance():
+            self.Maintenance_Controlpone.pack(fill="both", expand=True)
+            self.Historypone.pack_forget()
+
+        show_History()
+
+        # Creating Buttons Frame for second page
+        Buttonframe = Frame(self.purchasehistoryone, relief=tk.RIDGE)
+        Buttonframe.place(x=0, y=27, width=780, height=40)
+
+        # Create buttons
+        hist_button = tk.Button(Buttonframe, text="History", command=show_History)
+        hist_button.pack(side=tk.LEFT, padx=1, pady=2)
+
+        maintain_button = tk.Button(Buttonframe, text="Maintenance Control", command=show_maintenance)
+        maintain_button.pack(side=tk.LEFT, padx=1, pady=2)
+
+        dataframe = Label(self.Historypone, bd=3, relief=tk.RIDGE)
+        dataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+        dataframe.place(x=0, y=29, width=780, height=180) 
+
+        scrollbar_x = ttk.Scrollbar(dataframe, orient=HORIZONTAL)
+        scrollbar_y = ttk.Scrollbar(dataframe, orient=VERTICAL)
+
+        self.costlinestableone = ttk.Treeview(dataframe, column=("Repaired", "Odometer", "Supplier_Name",
+                                                             "Incident_Link", "Total_Parts_Cost", 
+                                                            "Total_Recharge","Approval"),
+                                       xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set,selectmode="browse")
+        self.costlinestableone.configure(xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set)
+
+        scrollbar_x.config(command=self.costlinestableone.xview)
+        scrollbar_y.config(command=self.costlinestableone.yview)
+
+        # Set column headings
+        self.costlinestableone.heading("Repaired", text="Repaired")
+        self.costlinestableone.heading("Odometer", text="Odometer")
+        self.costlinestableone.heading("Supplier_Name", text="Supplier_Name")
+        self.costlinestableone.heading("Incident_Link", text="Incident_Link")
+        self.costlinestableone.heading("Total_Parts_Cost", text="Total_Parts_Cost")
+        self.costlinestableone.heading("Total_Recharge", text="Total_Recharge")
+        self.costlinestableone.heading("Approval", text="Approval")
+
+        # Set Treeview to display column headings only
+        self.costlinestableone["show"] = "headings"
+
+        # Set column widths
+        self.costlinestableone.column("Repaired", width=80)
+        self.costlinestableone.column("Odometer", width=70)
+        self.costlinestableone.column("Supplier_Name", width=80)
+        self.costlinestableone.column("Incident_Link", width=90)
+        self.costlinestableone.column("Total_Parts_Cost", width=90)
+        self.costlinestableone.column("Total_Recharge", width=90)
+        self.costlinestableone.column("Approval", width=80)
+        # Pack the scrollbars
+        scrollbar_y.pack(side=RIGHT, fill=Y)
+        scrollbar_x.pack(side=BOTTOM, fill=X)
+        # Pack the Treeview widget
+        self.costlinestableone.pack(side=LEFT, fill=BOTH, expand=True)
+        self.populate_top_purchase_order_two()
+
+        self.Approvalframepone = tk.Frame(self.purchasehistoryone, bd=3, relief=tk.RIDGE)
+        self.Approvalframepone.place(x=0, y=250, width=780, height=150)
+
+        # Creating frame for the 3 buttons
+        self.Approval_Issuepone = tk.Frame(self.Approvalframepone)
+        self.Invoice_Detailspone = tk.Frame(self.Approvalframepone)
+        self.Misccpone = tk.Frame(self.Approvalframepone)
+        
+        # Function to show approval page
+        def show_Approval():
+            self.Approval_Issuepone.place(x=0, y=40, width=780, height=110)
+            self.Invoice_Detailspone.place_forget()
+            self.Misccpone.place_forget()
+        
+        # Function to show invoice details page
+        def show_Invoice_Details():
+            self.Approval_Issuepone.place_forget()
+            self.Invoice_Detailspone.place(x=0, y=40, width=780, height=110)
+            self.Misccpone.place_forget()
+        
+        # Function to show misc page
+        def show_Miscc():
+            self.Approval_Issuepone.place_forget()
+            self.Invoice_Detailspone.place_forget()
+            self.Misccpone.place(x=0, y=40, width=780, height=110)
+        
+        show_Approval()
+        
+        # Creating Buttons Frame for second page
+        Buttonframe = tk.Frame(self.Approvalframepone, relief=tk.RIDGE)
+        Buttonframe.place(x=0, y=8, width=780, height=30)
+        
+        # Create buttons
+        Approval_button = tk.Button(Buttonframe, text="Approval Issue", command=show_Approval)
+        Approval_button.pack(side=tk.LEFT, padx=1, pady=2)
+        
+        Invoice_details_button = tk.Button(Buttonframe, text="Invoice Details", command=show_Invoice_Details)
+        Invoice_details_button.pack(side=tk.LEFT, padx=1, pady=2)
+        
+        Miscc_button = tk.Button(Buttonframe, text="Misc", command=show_Miscc)
+        Miscc_button.pack(side=tk.LEFT, padx=1, pady=2)
+        
+        # Creating data frame for Approval Issue
+        Repairerdataframe = tk.Frame(self.Approval_Issuepone, bd=3, relief=tk.RIDGE)
+        Repairerdataframe.place(x=0, y=0, width=765, height=100)
+        
+        # Creating data frame for Invoice Details
+        Invoicedataframe = tk.Frame(self.Invoice_Detailspone, bd=3, relief=tk.RIDGE)
+        Invoicedataframe.place(x=0, y=0, width=765, height=100)
+
+
+        incident_number=self.Numberentryy.get()
+
+        purchase_details= KBACKEND.insert_purchase_details(incident_number)
+
+        #Creating a label and combobox entry for Repairer 
+        sup=KBACKEND.fetch_supplier_details()
+        self.supplierp = [row[1] for row in sup]
+        Repairer= Label(Repairerdataframe, text="Supplier Name:")
+        Repairer.grid(row=0,column=0,padx=5,pady=5)
+        self.Repairerentrypone= ttk.Combobox(Repairerdataframe,values=self.supplierp,width=20)
+        self.Repairerentrypone.grid(row=0,column=1,sticky="w",padx=5,pady=5)
+        if purchase_details is not None:
+         self.Repairerentryponevalue = purchase_details.get('Supplier_Name')
+        else:
+         self.Repairerentryponevalue = None
+        self.Repairerentrypone.insert(0, self.Repairerentryponevalue if self.Repairerentryponevalue is not None else "")
+
+        self.attach_context_menu(self.Repairerentrypone)
+        self.Repairerentrypone.bind("<<ComboboxSelected>>", self.populate_supplier_detailspinsert)
+
+        Account= Label(Repairerdataframe, text="Account:")
+        Account.grid(row=0,column=2,padx=5,pady=5)
+        self.Accountentrypone= ttk.Entry(Repairerdataframe,width=20)
+        self.Accountentrypone.grid(row=0,column=3,sticky="w",padx=5,pady=5)
+        if purchase_details is not None:
+         self.Accountentryponevalue= purchase_details.get('Supplier_No')
+        else:
+           self.Accountentryponevalue=None
+        self.Accountentrypone.insert(0,self.Accountentryponevalue if self.Accountentryponevalue is not None else"")
+        self.attach_context_menu(self.Accountentrypone)
+
+        Approval= Label(Repairerdataframe,text="Approval:")
+        Approval.grid(row=0,column=4,padx=5,pady=5)
+        self.Approvalentrypone= Entry(Repairerdataframe,width= 20)
+        self.Approvalentrypone.grid(row=0,column=5,sticky="w",padx=5,pady=3)
+        Approval_Number= KBACKEND.generate_purchase_order_number()
+        if purchase_details is not None:
+           self.Approvalentryponevalue= purchase_details.get('PO_Number')
+        else:
+           self.Approvalentryponevalue= None
+        self.Approvalentrypone.insert(0,self.Approvalentryponevalue if self.Approvalentryponevalue is not None else Approval_Number)
+        self.attach_context_menu(self.Approvalentrypone)
+
+        Issued = Label(Repairerdataframe, text="Issued:")
+        Issued.grid(row=1, column=0,padx=5,pady=5)
+        self.Issuedentrypone= DateEntry(Repairerdataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+        self.Issuedentrypone.grid(row=1, column=1,padx=5,pady=5,sticky='w')
+        if purchase_details is not None:
+           self.Issuedentryponevalue= purchase_details.get('PO_Created')
+        else:
+           self.Issuedentryponevalue= None
+        self.Issuedentrypone.set_date(self.Issuedentryponevalue if self.Issuedentryponevalue is not None else None)
+        self.attach_context_menu(self.Issuedentrypone)
+        
+        current_user=getuser()
+        Po_created= Label(Repairerdataframe,text="Created_By:")
+        Po_created.grid(row=1,column=2,padx=5,pady=5)
+        self.Po_createdbyone= Entry(Repairerdataframe,width=20)
+        self.Po_createdbyone.grid(row=1,column=3,padx=5,pady=5)
+        if purchase_details is not None:
+           self.Po_createdbyonevalue= purchase_details.get('Created_By')
+        else:
+           self.Po_createdbyonevalue= None
+        self.Po_createdbyone.insert(0, self.Po_createdbyonevalue if self.Po_createdbyonevalue is not None else current_user)
+        self.attach_context_menu(self.Po_createdbyone)
+        
+        fleet_entry=self.fleett.get()
+        Fleet_Number=Label(Repairerdataframe, text="Fleet_No:")
+        Fleet_Number.grid(row=1,column=4,padx=5,pady=5)
+        self.fleetnumbercostone= Entry(Repairerdataframe,width=20)
+        self.fleetnumbercostone.grid(row=1,column=5,padx=5,pady=5)
+        if purchase_details is not None:
+           self.fleetnumbercostonevalue= purchase_details.get('Fleet_No')
+        else:
+           self.fleetnumbercostonevalue= None
+        self.fleetnumbercostone.insert(0,self.fleetnumbercostonevalue if self.fleetnumbercostonevalue is not None else fleet_entry)
+        self.attach_context_menu(self.fleetnumbercostone)
+
+        #Creating a Label and Entry for Odometer
+        Odoentry=self.Odoentry.get()
+        Odometer= Label(Repairerdataframe,text="Odometer:")
+        Odometer.grid(row=2,column=0,padx=5,pady=5)
+        self.Odometerentrypone= Entry(Repairerdataframe,width= 20)
+        self.Odometerentrypone.grid(row=2,column=1,padx=5,pady=5,sticky="w")
+        if purchase_details is not None:
+           self.Odometerentryponevalue= purchase_details.get('Odometer')
+        else:
+           self.Odometerentryponevalue= None
+        self.Odometerentrypone.insert(0,self.Odometerentryponevalue if self.Odometerentryponevalue is not None else Odoentry)
+        self.attach_context_menu(self.Odometerentrypone)
+
+        #Creating a Label and Entry for Repaired:
+        Repaired = Label(Repairerdataframe, text="Repaired:")
+        Repaired.grid(row=2, column=2,padx=5,pady=5)
+        self.Repairedentrypone= DateEntry(Repairerdataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+        self.Repairedentrypone.grid(row=2, column=3,padx=5,pady=5,sticky='w')
+        self.Repairerentryponevalue = purchase_details.get('Purchase_Date') if purchase_details else None
+
+        # Convert the date string to a datetime object if it is not empty
+        try:
+         if self.Repairerentryponevalue:
+          self.Repairerentryponevalue = datetime.strptime(self.Repairerentryponevalue, "%Y-%m-%d").date()
+         else:
+          self.Repairerentryponevalue = None
+        except ValueError:
+         self.Repairerentryponevalue = None  # or handle the error as needed
+
+        # Set the date in the DateEntry widget
+        if self.Repairerentryponevalue:
+         self.Repairedentrypone.set_date(self.Repairerentryponevalue)
+        else:
+         self.Repairedentrypone.set_date(None)
+
+        Order_Category= Label(Repairerdataframe,text="Order_Category")
+        Order_Category.grid(row=2,column=4,padx=5,pady=5,sticky='w')
+        self.Order_catone= Entry(Repairerdataframe,width=20)
+        if purchase_details is not None:
+           self.Order_catonevalue=purchase_details.get('Order_Category')
+        else:
+           self.Order_catonevalue = None
+        self.Order_catone.grid(row=2,column=5,padx=5,pady=5,sticky='w')
+        self.Order_catone.insert(0, self.Order_catonevalue if self.Order_catonevalue is not None else"")
+        self.attach_context_menu(self.Order_catone)
+
+        #Creating fields for the Invoice details dataframe
+
+        Customer_Po= Label(Invoicedataframe,text="Customer Po:")
+        Customer_Po.grid(row=0,column=0,padx=5,pady=5,sticky='w')
+        self.Customer_Ponumone= Entry(Invoicedataframe,width=20)
+        self.Customer_Ponumone.grid(row=0,column=1,padx=5,pady=5,sticky='w')
+        if purchase_details is not None:
+           self.Customer_Ponumonevalue= purchase_details.get('Customer_PO')
+        else:
+           self.Customer_Ponumonevalue= None
+        self.Customer_Ponumone.insert(0,self.Customer_Ponumonevalue if self.Customer_Ponumonevalue is not None else"")
+        self.attach_context_menu(self.Customer_Ponumone)
+
+        kofax= Label(Invoicedataframe,text="Kofax Scan_No:")
+        kofax.grid(row=0,column=2,padx=5,pady=5,sticky='w')
+        self.Kofaxnoone= Entry(Invoicedataframe,width=20)
+        self.Kofaxnoone.grid(row=0,column=3,padx=5,pady=5,sticky='w')
+        if purchase_details is not None:
+           self.Kofaxnoonevalue= purchase_details.get('Kofax_Scan_No')
+        else:
+           self.Kofaxnoonevalue= None
+        self.Kofaxnoone.insert(0,self.Kofaxnoonevalue if self.Kofaxnoonevalue is not None else"")
+        self.attach_context_menu(self.Kofaxnoone)
+
+        Igloo= Label(Invoicedataframe,text="Igloo Invoice_No:")
+        Igloo.grid(row=0,column=4,padx=5,pady=5,sticky='w')
+        self.Igloonoone= Entry(Invoicedataframe,width=20)
+        self.Igloonoone.grid(row=0,column=5,padx=5,pady=5,sticky='w')
+        if purchase_details is not None:
+           self.Igloonoonevalue=purchase_details.get('Igloo_Invoice_No')
+        else:
+           self.Igloonoonevalue=None
+        self.Igloonoone.insert(0,self.Igloonoonevalue if self.Igloonoonevalue is not None else"")
+        self.attach_context_menu(self.Igloonoone)
+
+        Tableone= Frame(self.purchasehistoryone, bd=3,relief=tk.RIDGE)
+        Tableone.place(x=0,y=400,width=780,height=140)
+
+        scrollbar_x = ttk.Scrollbar(Tableone, orient=HORIZONTAL)
+        scrollbar_y = ttk.Scrollbar(Tableone, orient=VERTICAL)
+
+        self.Table_treepone = ttk.Treeview(Tableone, columns=("RTS Code", "RTS_Description", "Parts_Cost", "Labour_Cost", "Total_Cost", "Rech_Parts","Rech_Labour" ,"Total_Recharge"),
+                                       xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set,selectmode="browse")
+        
+        self.Table_treepone.configure(xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set)
+
+        scrollbar_x.config(command=self.Table_treepone.xview)
+        scrollbar_y.config(command=self.Table_treepone.yview)
+
+        
+
+        self.Table_treepone.heading("RTS Code", text="RTS Code")
+        self.Table_treepone.heading("RTS_Description", text="RTS_Description")
+        self.Table_treepone.heading("Parts_Cost", text="Parts_Cost")
+        self.Table_treepone.heading("Labour_Cost", text="Labour_Cost")
+        self.Table_treepone.heading("Total_Cost",text="Total_Cost")
+        self.Table_treepone.heading("Rech_Parts", text="Rech_Parts")
+        self.Table_treepone.heading("Rech_Labour", text="Rech_Labour")
+        self.Table_treepone.heading("Total_Recharge", text="Total_Recharge")
+
+        self.Table_treepone["show"] = "headings"
+    
+        self.Table_treepone.column("RTS Code", width=100)
+        self.Table_treepone.column("RTS_Description", width=100)
+        self.Table_treepone.column("Parts_Cost", width=100)
+        self.Table_treepone.column("Labour_Cost", width=100)
+        self.Table_treepone.column("Total_Cost", width=100)
+        self.Table_treepone.column("Rech_Parts", width=100)
+        self.Table_treepone.column("Rech_Labour", width=100)
+        self.Table_treepone.column("Total_Recharge", width=100)
+
+        # Pack the scrollbars
+        scrollbar_y.pack(side=RIGHT, fill=Y)
+        scrollbar_x.pack(side=BOTTOM, fill=X)
+        # Pack the Treeview widget
+        self.Table_treepone.pack(fill="both", expand=True)
+        self.populate_all_the_costlines_two()
+
+        Addcostline= Frame(self.purchasehistoryone, bd=3,relief=tk.RIDGE)
+        Addcostline.place(x=0,y=540,width=780,height=50)
+
+        Invoice_details_button = tk.Button(Addcostline, text="Add Costline",command= self.add_costline_two)
+        Invoice_details_button.pack(side=tk.RIGHT, padx=1, pady=2)
+
+        Maindataframemaintainence= Frame(self.Maintenance_Controlpone,bd=3, relief=tk.RIDGE)
+        Maindataframemaintainence.pack(side=tk.TOP,padx=8,pady=3, anchor='nw')
+        Maindataframemaintainence.place(x=0,y=33,width=780,height=65)
+
+        reg_entry=self.reistrationentry.get()
+        Reg_no= Label(Maindataframemaintainence,text="Reg_no:")
+        Reg_no.grid(row=0,column=0)
+        self.Reg_no_entrypone = Entry(Maindataframemaintainence, width=30)
+        self.Reg_no_entrypone.grid(row=0, column=1)
+        self.Reg_no_entrypone.insert(0,reg_entry if reg_entry is not None else"")
+        self.attach_context_menu(self.Reg_no_entrypone)
+
+        Vehicle= self.Make_Mod.get()
+        Vehicle_main= Label(Maindataframemaintainence,text= "Vehicle:")
+        Vehicle_main.grid(row=0,column=2)
+        self.Vehicle_main_entrypone= Entry(Maindataframemaintainence,width=35)
+        self.Vehicle_main_entrypone.grid(row=0,column=3,sticky='w')
+        self.Vehicle_main_entrypone.insert(0,Vehicle if Vehicle is not None else"")
+        self.attach_context_menu(self.Vehicle_main_entrypone)
+
+        Agreementframe= Frame(self.Maintenance_Controlpone,bd=3, relief=tk.RIDGE)
+        Agreementframe.pack(side=tk.TOP,padx=8,pady=3, anchor='nw')
+        Agreementframe.place(x=0,y=98,width=780,height=70)
+
+         #Create Label and entry for Agreement inside the dataframe
+        Contract_number=self.Contract_No_Entryy.get()
+        Agreement= Label(Agreementframe,text="Agreement:")
+        Agreement.grid(row=0,column=0,padx=5,pady=5)
+        self.Agreemententrypone= Entry(Agreementframe,width=30)
+        self.Agreemententrypone.grid(row=0,column=1,padx=5,pady=5)
+        self.Agreemententrypone.insert(0,Contract_number if Contract_number is not None else"")
+        self.attach_context_menu(self.Agreemententrypone)
+
+        #Create Label and entry for Customer
+        Customer_name= self.Cust_Namee_Entry.get()
+        Customer= Label(Agreementframe,text="Customer:")
+        Customer.grid(row=0,column=2,padx=5,pady=5)
+        self.Customerentrypone= Entry(Agreementframe,width=50)
+        self.Customerentrypone.grid(row=0, column=3, padx=5, pady=5)
+        self.Customerentrypone.insert(0,Customer_name if Customer_name is not None else"")
+        self.attach_context_menu(self.Customerentrypone)
+    
+
+    def add_costline_two(self):
+     self.update_the_information()
+     self.costline_windowone = tk.Toplevel(self.root)
+     self.costline_windowone.title("Cost Line Form")
+     self.costline_windowone.geometry("800x600") 
+     self.costline_windowone.resizable(False,False)
+
+     #Create a container (Frame) for the icons with a border
+     icon_box = tk.Frame(self.costline_windowone, relief=tk.RIDGE, borderwidth=3)
+     icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw") 
+
+         # You can add icons below menus using PhotoImage or other methods.
+        # For demonstration purposes, let's create 13 small image icons.
+     image_paths = ["icon23.png", "icon24.png"]
+     for idcostone, path in enumerate(image_paths, start=1):
+         image = Image.open(path)
+         image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
+         photo = ImageTk.PhotoImage(image)
+         icon_button = tk.Button(icon_box, image=photo, command=lambda index=idcostone: self.costline_icons_two(index))
+         icon_button.image = photo
+         icon_button.pack(side=tk.LEFT, padx=5, pady=2)
+
+         dataframe = Frame(self.costline_windowone, bd=3, relief=tk.RIDGE)
+         dataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+         dataframe.place(x=0, y=35, width=780, height=90)
+
+         Reg_details= self.Reg_no_entrypone.get()
+         Reg_no = Label(dataframe, text="Registration No:")
+         Reg_no.grid(row=0, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.costlineregone = Entry(dataframe,width=18)
+     self.costlineregone.grid(row=0, column=1,padx=10,pady=3)
+     self.costlineregone.insert(0,Reg_details)
+     self.attach_context_menu(self.costlineregone)
+     
+     Repairer_name=self.Repairerentrypone.get()
+     Repairer = Label(dataframe, text="Repairer:")
+     Repairer.grid(row=0, column=2)
+     self.costlinerepone = Entry(dataframe, width=18)
+     self.costlinerepone.grid(row=0, column=3,padx=10,pady=3)
+     self.costlinerepone.insert(0,Repairer_name)
+     self.attach_context_menu(self.costlinerepone)
+     
+     System_number= self.Approvalentrypone.get()
+     System = Label(dataframe, text="Po Number:")
+     System.grid(row=0, column=4)
+     self.systemcostone = Entry(dataframe, width=18)
+     self.systemcostone.grid(row=0, column=5,padx=10,pady=3)
+     self.systemcostone.insert(0,System_number)
+     self.attach_context_menu(self.systemcostone)
+     
+     Ododetails=self.Odometerentrypone.get()
+     Odometerveh = Label(dataframe, text="Vehicle Odometer:")
+     Odometerveh.grid(row=1, column=0,pady=5)
+     self.odovehcostone = Entry(dataframe, width=18)
+     self.odovehcostone.grid(row=1, column=1)
+     self.odovehcostone.insert(0,Ododetails)
+     self.attach_context_menu(self.odovehcostone)
+     
+     Repairer_accountdetails= self.Accountentrypone.get()
+     Repaireraccount = Label(dataframe, text="Repairer account:")
+     Repaireraccount.grid(row=1, column=2,pady=5)
+     self.repaccocostone = Entry(dataframe, width=18)
+     self.repaccocostone.grid(row=1, column=3)
+     self.repaccocostone.insert(0,Repairer_accountdetails)
+     self.attach_context_menu(self.repaccocostone)
+
+     Line_created= Label(dataframe,text="Line Created:")
+     Line_created.grid(row=1,column=4)
+     self.Line_createdentryone=DateEntry(dataframe, width=12,background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Line_createdentryone.grid(row=1,column=5)
+     self.Line_createdentryone.state(['disabled'])
+
+     current_user=getuser()
+     Line_createdby= Label(dataframe,text="Created_By:")
+     Line_createdby.grid(row=2,column=0)
+     self.Line_createdbyone= Entry(dataframe,width=18)
+     self.Line_createdbyone.grid(row=2,column=1)
+     self.Line_createdbyone.insert(0,current_user)
+
+     Seconddataframe = Frame(self.costline_windowone, bd=3, relief=tk.RIDGE)
+     Seconddataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Seconddataframe.place(x=0, y=125, width=780, height=70)
+
+     Reason = Label(Seconddataframe, text="RTS code:")
+     Reason.grid(row=0, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Reasoncostone = Entry(Seconddataframe,width=18)
+     self.Reasoncostone.grid(row=0, column=1,padx=15,pady=3)
+     self.attach_context_menu(self.Reasoncostone)
+
+     RTS = Label(Seconddataframe, text="RTS:")
+     RTS.grid(row=0, column=2)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.rtscostone = Entry(Seconddataframe,width=70)
+     self.rtscostone.grid(row=0, column=3,padx=10,pady=3)
+     self.attach_context_menu(self.rtscostone)
+     
+     Pfdepot= self.locationn_2.get()
+     rowss = KBACKEND.fetch_locations_and_descriptions()
+     self.depotdetailsone = [row[1] for row in rowss]  # First column values for dropdown
+     Analysis = Label(Seconddataframe, text="PF Depot:")
+     Analysis.grid(row=1, column=0,pady=5)
+     self.analysiscostone = ttk.Combobox(Seconddataframe, width=18,values=self.depotdetailsone)
+     self.analysiscostone.grid(row=1, column=1)
+     self.analysiscostone.insert(0,Pfdepot)
+     self.attach_context_menu(self.analysiscostone)
+
+     Thirddataframe = LabelFrame(self.costline_windowone, bd=3, relief=tk.RIDGE,text="Charges")
+     Thirddataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Thirddataframe.place(x=0, y=195, width=780, height=50)
+     
+     Parts = Label(Thirddataframe, text="Parts:")
+     Parts.grid(row=0, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Partscostone = Entry(Thirddataframe,width=18)
+     self.Partscostone.grid(row=0, column=1,padx=15,pady=3)
+     self.Partscostone.insert(0,"0.00")
+     self.attach_context_menu(self.Partscostone)
+
+     Labour = Label(Thirddataframe, text="Labour:")
+     Labour.grid(row=0, column=2)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Labourcostone = Entry(Thirddataframe,width=18)
+     self.Labourcostone.grid(row=0, column=3,padx=15,pady=3)
+     self.Labourcostone.insert(0,"0.00")
+     self.attach_context_menu(self.Labourcostone)
+
+     fourthdataframe = LabelFrame(self.costline_windowone, bd=3, relief=tk.RIDGE,text="Recharge")
+     fourthdataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     fourthdataframe.place(x=0, y=245, width=780, height=80)
+
+     RechParts = Label(fourthdataframe, text="Rech.Parts:")
+     RechParts.grid(row=0, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Rechcostone = Entry(fourthdataframe,width=18)
+     self.Rechcostone.grid(row=0, column=1,padx=15,pady=3)
+     self.Rechcostone.insert(0,"0.00")
+     self.attach_context_menu(self.Rechcostone)
+
+     Rechlabour = Label(fourthdataframe, text="Rech.labour:")
+     Rechlabour.grid(row=0, column=2)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Rechlabcostone = Entry(fourthdataframe,width=18)
+     self.Rechlabcostone.grid(row=0, column=3,padx=15,pady=3)
+     self.Rechlabcostone.insert(0,"0.00")
+     self.attach_context_menu(self.Rechlabcostone)
+
+     Rechposted = Label(fourthdataframe, text="Rech.posted:")
+     Rechposted.grid(row=0, column=4)
+     
+     self.rechposted_varone = tk.BooleanVar()
+     self.rechposted_valueone = tk.StringVar()
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Rechpostedcostone = Checkbutton(fourthdataframe,variable=self.rechposted_varone, command=self.toggle_date_entrytwo)
+     self.Rechpostedcostone.grid(row=0, column=5,padx=15,pady=3)
+     self.attach_context_menu(self.Rechpostedcostone)
+
+     Rechposteddate = Label(fourthdataframe, text="Rech.posted date:")
+     Rechposteddate.grid(row=1, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Rechposteddatecostone = DateEntry(fourthdataframe, width=18, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Rechposteddatecostone.grid(row=1, column=1,padx=15,pady=3)
+     self.Rechposteddatecostone.set_date(datetime.now().strftime("%d/%m/%Y"))  # Set to a valid date first
+     self.Rechposteddatecostone._top_cal.withdraw()  # Hide the calendar popup initially
+     self.clear_date_entrytwo()
+     self.attach_context_menu(self.Rechposteddatecostone)
+
+     Autorecharge = Label(fourthdataframe, text="Auto recharge:")
+     Autorecharge.grid(row=1, column=2)
+
+     self.autorechargecostone = Entry(fourthdataframe,width=18)
+     self.autorechargecostone.grid(row=1, column=3,padx=15,pady=3)
+
+     Customerreference = Label(fourthdataframe, text="Customer ref:")
+     Customerreference.grid(row=1, column=4)
+
+     self.customerreferencecostone = Entry(fourthdataframe,width=18)
+     self.customerreferencecostone.grid(row=1, column=5,padx=15,pady=3)
+
+     fifthdataframe = LabelFrame(self.costline_windowone, bd=3, relief=tk.RIDGE,text="Notes")
+     fifthdataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     fifthdataframe.place(x=0, y=325, width=780, height=135)
+
+     self.notescostone= Text(fifthdataframe,width=80, height='6',wrap='word')
+     self.notescostone.grid(row=0,column=0,sticky='w',padx=5)
+     self.attach_context_menu(self.notescostone)
+
+     Sixthdataframe = LabelFrame(self.costline_windowone, bd=3, relief=tk.RIDGE,text="Recharge text")
+     Sixthdataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Sixthdataframe.place(x=0, y=460, width=780, height=135)
+
+     self.rechargecostone= Text(Sixthdataframe,width=80, height='6',wrap='word')
+     self.rechargecostone.grid(row=0,column=0,sticky='w',padx=5)
+     self.attach_context_menu(self.rechargecostone)
+    
+    def clear_date_entrytwo(self):
+        # Clear the displayed date in the DateEntry widget
+        self.Rechposteddatecostone.delete(0, "end")
+    
+    def toggle_date_entrytwo(self):
+        if self.rechposted_varone.get():
+            self.Rechposteddatecostone.set_date(datetime.now().strftime("%d/%m/%Y"))
+            self.rechposted_valueone.set("Y")
+        else:
+           self.clear_date_entrytwo()
+           self.rechposted_valueone.set("N")
+       
+    def update_purchase_information(self,index):
+       if index==1:
+          self.Close_the_purchase_window()
+       if index==2:
+          self.update_the_information()
+    
+    def Close_the_purchase_window(self):
+       self.purchasehistoryone.destroy()
+    
+    def update_the_information(self):
+        PO_Number=self.Approvalentrypone.get()
+        i_number= self.Numberentryy.get()
+        # Getting the selected date from the DateEntry widget
+        Pocreated_date = self.Issuedentrypone.get_date()
+    
+        # Getting the current time
+        current_time = datetime.now().time()
+    
+        # Combining selected date and current time into a datetime object
+        combined_datetime = datetime.combine(Pocreated_date, current_time)
+
+        Created_By= self.Po_createdbyone.get()
+
+        Supplier_No= self.Accountentrypone.get()
+
+        Order_Category= self.Order_catone.get()
+
+        Fleet_No= self.fleetnumbercostone.get()
+
+        Odometer= self.Odometerentrypone.get()
+
+        Customer_PO= self.Customer_Ponumone.get()
+
+       
+        Kofax_Scan= self.Kofaxnoone.get()
+
+        Igloo_invoice=self.Igloonoone.get()
+
+        Supplier_Name=self.Repairerentrypone.get()
+
+        Repaired_Date=self.Repairedentrypone.get_date()
+
+        Time= datetime.now().time()
+
+        Repaired_Datetime= datetime.combine(Repaired_Date,Time)
+
+        KBACKEND.update_the_purchase_orderinfo(PO_Number,i_number,combined_datetime,Created_By,Supplier_No,
+                                              Order_Category,Fleet_No,Odometer,Customer_PO,Kofax_Scan,Igloo_invoice,Supplier_Name,Repaired_Datetime)        
+    def costline_icons_two(self,index):
+       if index==1:
+          self.close_the_costline_window()
+       if index==2:
+          self.save_the_costlines_two()
+    
+    def close_the_costline_window(self):
+       self.costline_windowone.destroy()
+    def save_the_costlines_two(self):
+       PO_Number=self.systemcostone.get()
+       KBACKEND.generate_line_number(PO_Number)
+       Line_Added= self.Line_createdentryone.get_date()
+       Time= datetime.now().time()
+
+       bothdateandtime= datetime.combine(Line_Added, Time)
+       Added_By=self.Line_createdbyone.get()
+       RTS_code= self.Reasoncostone.get()
+       RTS_Desc=self.rtscostone.get()
+       PF_Depot=self.analysiscostone.get()
+       Parts_Cost=self.Partscostone.get()
+       Labour_cost=self.Labourcostone.get()
+       Recharge_parts=self.Rechcostone.get()
+       Recharge_cost=self.Rechlabcostone.get()
+       Recharge_invoiced=self.rechposted_valueone.get()
+
+       Recharge_posted= self.Rechposteddatecostone.get_date()
+       current_time = datetime.now().time()
+       combined_datetime = datetime.combine(Recharge_posted, current_time)
+       Notes=self.notescostone.get("1.0", tk.END)
+       Recharge_text= self.rechargecostone.get("1.0", tk.END)
+
+       KBACKEND.store_cost_lines_two(PO_Number,bothdateandtime,Added_By,RTS_code,RTS_Desc,PF_Depot,Parts_Cost,
+                                 Labour_cost,Recharge_parts,Recharge_cost,Recharge_invoiced,combined_datetime,
+                                 Notes,Recharge_text)
+       
+    
+    
     def open_incident_window(self,index):
         if index==1:
            self.close_the_incident_window()
@@ -3878,6 +4573,8 @@ class KerridgeReplacement:
            self.save_the_incident_details()
         if index==3:
            self.open_events_From_mainpage()
+        if index==4:
+           self.open_Purchase_order_From_mainpage()
     
     import datetime
     ############### Giving Functionalities for icons of the incidentspage navigated from mainpage ########
@@ -4344,7 +5041,64 @@ class KerridgeReplacement:
 
              self.Table_treep.insert("", "end", values=(Rts,Rtsd,Parts,Labour,Total_Cost,Rechargep,Rechargel,Totalrecharge))
              
-           
+    def populate_top_purchase_order_two(self):
+       self.costlinestableone.delete(*self.costlinestableone.get_children())
+
+       Reg_Number= self.reistrationentry.get()
+
+       Purchase_orders=KBACKEND.retrieve_all_purchase_and_populate(Reg_Number)
+
+       if Purchase_orders:
+        for incident in Purchase_orders:
+           Repaired= incident.get("Repaired")
+           if Repaired is not None:
+            Repaired_date = Repaired.date()
+           else:
+            print("Repaired is None, cannot access 'date' attribute.")
+            Repaired_date = None  # or some default value           
+           Odometer=incident.get("Odometer")
+           Supplier_Name= incident.get("Supplier")
+           Incident_Link= incident.get("Incident_Link")
+           Total_Parts=incident.get("Total_parts")
+           Total_labours=incident.get("Total_labours")
+           Total_cost= Total_Parts + Total_labours
+           Recharge_parts= incident.get("Recharge_parts")
+           Recharge_labours= incident.get("Recharge_labours")
+           Total_Recharge= Recharge_parts+ Recharge_labours
+           PO_number= incident.get("Approval")
+
+           self.costlinestableone.insert("", "end", values=(Repaired_date,Odometer,Supplier_Name,Incident_Link,
+                                                         Total_cost,Total_Recharge,PO_number))
+    def populate_supplier_detailspinsert(self,event=None):
+        selected_supplier= self.Repairerentrypone.get()
+        rows=KBACKEND.fetch_supplier_details()
+        for row in rows:
+           if row[1]==selected_supplier:
+              self.Accountentrypone.delete(0,tk.END)
+              self.Accountentrypone.insert(0,row[0])    
+
+    def populate_all_the_costlines_two(self):
+       self.Table_treepone.delete(*self.Table_treepone.get_children())
+
+       Approval_number=self.Approvalentrypone.get()
+
+       All_cost_lines= KBACKEND.populate_all_the_cost_lines_two(Approval_number)
+       if All_cost_lines:
+          for incident in All_cost_lines:
+             Rts= incident.get("RTS_code")
+             Rtsd= incident.get("RTS_Desc")
+             Parts= incident.get("Parts_Cost")
+             Labour= incident.get("Labour_Cost")
+             Total_Cost= Parts+ Labour
+             Rechargep= incident.get("Recharge_parts")
+             Rechargel= incident.get("Recharge_labour")
+             Totalrecharge= Rechargep+ Rechargel
+
+
+             self.Table_treepone.insert("", "end", values=(Rts,Rtsd,Parts,Labour,Total_Cost,Rechargep,Rechargel,Totalrecharge))
+             
+
+
 
 
        
