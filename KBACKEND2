@@ -659,6 +659,58 @@ def fetch_all_events(Incident_No):
         # Close the cursor and connection
         cur.close()
         conn.close()
+
+def fetch_all_events_oncemore(Incident_No):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH RankedEventTypes AS (
+    SELECT 
+        Event_Type_ID,
+        Event_Description,
+        ROW_NUMBER() OVER (ORDER BY Event_Type_ID) AS RowNum
+    FROM 
+        Event_Types
+    )
+    SELECT 
+    ie.*, 
+    et_event.Event_Description AS event_description, 
+    et_next.Event_Description AS next_event_description
+    FROM 
+    Incident_Events ie
+    JOIN 
+    Event_Types et_event ON ie.Event_Type_ID = et_event.Event_Type_ID
+    JOIN 
+    RankedEventTypes et_next ON ie.Next_Event_ID = et_next.RowNum
+    WHERE ie.I_Number=?
+    ORDER BY E_Number DESC""",(Incident_No))
+     rows = cur.fetchall()
+     incidents=[]
+     for row in rows:     
+            # Convert the row into a dictionary
+            event_details = {
+               "Created": row[2],
+               "Notes":row[4],
+               "Last Updated":row[2],
+               "Follow up":row[6],
+               "Event_Description": row[-2],
+               "Next_Event_Description": row[-1],
+               "Created_By": row[7],
+               "Owner":row[8]
+            }
+            incidents.append(event_details)
+     return  incidents
+
+     
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
     
 def fetch_all_event_details(incident_number):
     conn=pyodbc.connect(conn_str1)
@@ -1406,7 +1458,7 @@ def populate_all_the_cost_lines(Approval_number):
      cur.execute("""SELECT * FROM 
 		Order_Cost_Lines
 		WHERE PO_Number= ?
-		ORDER BY Line_Number""",(Approval_number))
+		ORDER BY Line_Number """,(Approval_number))
 
     # Fetch all rows of the result set
      rows = cur.fetchall()
@@ -1430,6 +1482,179 @@ def populate_all_the_cost_lines(Approval_number):
         # Close the cursor and connection
         cur.close()
         conn.close()
+
+def insert_purchase_details(incident_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+     cur.execute("""SELECT * FROM Purchase_Order_Headder
+                WHERE Incident_Link= ?""",(incident_number))
+
+    # Fetch all rows of the result set
+     row = cur.fetchone()
+     if row:
+            incident = {
+                "PO_Number": row[0],
+                "Incident_Link": row[1],
+                "PO_Created": row[2],
+                "Created_By": row[3],
+                "Supplier_No":row[4],
+                "Order_Category":row[5],
+                "Fleet_No":row[6],
+                "Odometer":row[7],
+                "Customer_PO": row[8],
+                "Kofax_Scan_No": row[9],
+                "Igloo_Invoice_No":row[10],
+                "Supplier_Name":row[11],
+                "Repaired": row[12]
+            }
+            return incident
+    except Exception as e:
+        print("Error:", e)
+        return None
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def populate_all_the_cost_lines_two(Approval_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+     cur.execute("""SELECT * FROM 
+		Order_Cost_Lines
+		WHERE PO_Number= ?
+		ORDER BY Line_Number """,(Approval_number))
+
+    # Fetch all rows of the result set
+     rows = cur.fetchall()
+     incidents = []
+     for row in rows:
+            incident = {
+                "RTS_code": row[4],
+                "RTS_Desc": row[5],
+                "Parts_Cost": row[7],
+                "Labour_Cost": row[8],
+                "Recharge_parts":row[9],
+                "Recharge_labour":row[10]
+            }
+            incidents.append(incident) 
+     return incidents 
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def update_the_purchase_orderinfo(PO_Number,i_number,combined_datetime,Created_By,Supplier_No,
+                                              Order_Category,Fleet_No,Odometer,Customer_PO,Kofax_Scan,Igloo_invoice,Supplier_Name,Repaired_Datetime):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    try:
+            # If a record exists, update it
+        cur.execute("""UPDATE Purchase_Order_Headder 
+                        SET 
+                        PO_Created=?,
+                        Created_BY=?,
+                        Supplier_No=?,
+                        Order_Cat=?,
+                        Fleet_No=?,
+                        Odometer=?,
+                        Customer_PO=?,
+                        Kofax_Scan_No=?,
+                        Igloo_Invoice_No=?,
+                        Supplier_Name=?,
+                        Repaired=?
+                        WHERE PO_Number = ? AND Incident_Link=?""", 
+                        (combined_datetime,Created_By,Supplier_No,
+                        Order_Category,Fleet_No,Odometer,Customer_PO,Kofax_Scan,Igloo_invoice,Supplier_Name,Repaired_Datetime,PO_Number,i_number))
+        print("Record updated successfully")
+
+        # Check if any rows were affected
+        if cur.rowcount == 0:
+        # If no rows were updated, insert a new record
+         cur.execute("""INSERT INTO Purchase_Order_Headder 
+                       (PO_Created, Created_BY, Supplier_No, Order_Cat, Fleet_No, Odometer, Customer_PO, Kofax_Scan_No, Igloo_Invoice_No, Supplier_Name, Repaired, PO_Number, Incident_Link)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", 
+                       (combined_datetime, Created_By, Supplier_No, Order_Category, Fleet_No, Odometer, Customer_PO, Kofax_Scan, Igloo_invoice, Supplier_Name, Repaired_Datetime, generate_purchase_order_number(), i_number))
+         print("Record inserted successfully")
+        else:
+         print("Record updated successfully")
+        
+
+        # Commit the transaction
+        conn.commit()
+
+    except Exception as e:
+        print("Error:", e)
+        conn.rollback()  # Rollback the transaction in case of error
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def store_cost_lines_two(PO_Number,bothdateandtime,Added_By,RTS_code,RTS_Desc,PF_Depot,Parts_Cost,
+                                 Labour_cost,Recharge_parts,Recharge_cost,Recharge_invoiced,combined_datetime,
+                                 Notes,Recharge_text):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    
+    cur.execute("""Insert into Order_Cost_Lines(PO_Number,Line_Number,Line_Added,Added_By,RTS_code,
+                RTS_Description,PF_Depot,Parts_Cost,Labour_Cost,Recharge_parts,Recharge_labour,
+                Recharge_invoiced,Recharge_posted,Notes,Recharge_Text)
+                Values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(PO_Number,generate_line_number(PO_Number),bothdateandtime,Added_By,RTS_code,RTS_Desc,PF_Depot,Parts_Cost,
+                                 Labour_cost,Recharge_parts,Recharge_cost,Recharge_invoiced,combined_datetime,
+                                 Notes,Recharge_text))
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+def open_costlines_page(PO_Number,Line_added):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""SELECT * FROM  Order_Cost_Lines
+                WHERE PO_Number= ? AND Line_Number=?""",(PO_Number,Line_added))
+
+    # Fetch all rows of the result set
+     row = cur.fetchone()
+     if row:
+            incident = {
+                "PO_Number": row[0],
+                "Line_Number": row[1],
+                "Line_Added": row[2],
+                "Added_By": row[3],
+                "Rts_code":row[4],
+                "Rts_description":row[5],
+                "Pf_depot":row[6],
+                "Parts_cost":row[7],
+                "labour_cost": row[8],
+                "Recharge_parts": row[9],
+                "Recharge_labour":row[10],
+                "Recharge_invoiced":row[11],
+                "Recharge_posted": row[12],
+                "Notes":row[13],
+                "Recharge_text": row[14]
+            }
+            return incident
+    except Exception as e:
+        print("Error:", e)
+        return None
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+    
+
+
+
+
+
 
 
     
