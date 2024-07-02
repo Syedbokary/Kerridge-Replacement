@@ -266,7 +266,7 @@ class KerridgeReplacement:
     def __init__(self, root):
         self.root = root
         self.root.title("Kerridge Replacement Application")
-        self.root.geometry("800x620")
+        self.root.geometry("800x650")
         self.root.resizable(False, False)
 
         
@@ -314,12 +314,12 @@ class KerridgeReplacement:
         #================Legend frame================================#
 
         Legendframe= LabelFrame(self.root, relief=tk.RIDGE, text="Legend")
-        Legendframe.place(x=0,y=168,width=780,height=60)
+        Legendframe.place(x=0,y=168,width=780,height=80)
 
         #=================Details Frame===============================#
 
         Detailsframe= LabelFrame(self.root, relief=tk.RIDGE,text="Details")
-        Detailsframe.place(x=0,y=233,width=780,height=380)
+        Detailsframe.place(x=0,y=248,width=780,height=380)
 
        #===================Creating Lables and Text Fields=============================#
         
@@ -431,6 +431,8 @@ class KerridgeReplacement:
         btnoverdue = Button(Legendframe, text="Overdue", fg="White", bg="red", width=11, height=1, padx=2, pady=6,
                     command=lambda: self.populate_kerride_table(filter_type="overdue"))
         btnoverdue.grid(row=0, column=0)
+        self.entry_red_count = Entry(Legendframe, width=11)
+        self.entry_red_count.grid(row=1, column=0)
 
 # Half Hour Button
         bthalfhour = Button(Legendframe, text="1/2 Hour", fg="White", bg="Fuchsia", width=11, height=1, padx=2, pady=6,
@@ -1548,6 +1550,8 @@ class KerridgeReplacement:
      blue_rows = []
      dark_grey_rows = []
      violet_rows=[]
+
+     red_count = 0
      
      self.root.Kerride_table.delete(*self.root.Kerride_table.get_children())
     
@@ -1638,6 +1642,7 @@ class KerridgeReplacement:
             if filter_type == "overdue":
                 for row_data in red_rows:
                     self.root.Kerride_table.insert("", "end", values=row_data, tags=("red",))
+                    
             elif filter_type == "half_hour":
                 for row_data in fuchsia_rows:
                     self.root.Kerride_table.insert("", "end", values=row_data, tags=("Fuchsia",))
@@ -2562,6 +2567,9 @@ class KerridgeReplacement:
         # Pack the Treeview widget
         self.Table_treep.pack(fill="both", expand=True)
 
+        self.Table_treep.bind("<<TreeviewSelect>>", self.clicking_the_costlines)
+        self.populate_all_the_costlines()
+
         Addcostline= Frame(self.purchasehistory, bd=3,relief=tk.RIDGE)
         Addcostline.place(x=0,y=540,width=780,height=50)
 
@@ -2828,6 +2836,307 @@ class KerridgeReplacement:
      self.rechargecost.grid(row=0,column=0,sticky='w',padx=5)
      self.attach_context_menu(self.rechargecost)
 
+    def clicking_the_costlines(self,event):
+       selected_item = self.Table_treep.selection()
+       if selected_item:
+         # Extract the index of the selected item
+         item_index = self.Table_treep.index(selected_item[0])
+
+         Line_added = item_index + 1
+
+         PO_Number= self.Approvalentryp.get()
+
+         open_costline_details= KBACKEND.open_costlines_page(PO_Number,Line_added)
+
+         self.open_costlinespage_with_clickedrow(open_costline_details)
+    
+    def open_costlinespage_with_clickedrow(self,open_costline_details):
+     self.costline_windowclick = tk.Toplevel(self.root)
+     self.costline_windowclick.title("Cost Line Form")
+     self.costline_windowclick.geometry("800x600") 
+     self.costline_windowclick.resizable(False,False)
+
+      #Create a container (Frame) for the icons with a border
+     icon_box = tk.Frame(self.costline_windowclick, relief=tk.RIDGE, borderwidth=3)
+     icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw") 
+
+     # You can add icons below menus using PhotoImage or other methods.
+    # For demonstration purposes, let's create 13 small image icons.
+     image_paths = ["icon23.png"]
+     for idcost, path in enumerate(image_paths, start=1):
+         image = Image.open(path)
+         image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
+         photo = ImageTk.PhotoImage(image)
+         icon_button = tk.Button(icon_box, image=photo, command=lambda index=idcost: self.costline_iconsclick(index))
+         icon_button.image = photo
+         icon_button.pack(side=tk.LEFT, padx=5, pady=2)
+     
+     dataframe = Frame(self.costline_windowclick, bd=3, relief=tk.RIDGE)
+     dataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     dataframe.place(x=0, y=35, width=780, height=90)
+
+     Reg_details= self.Reg_no_entryp.get()
+     Reg_no = Label(dataframe, text="Registration No:")
+     Reg_no.grid(row=0, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.costlineregclick = ttk.Entry(dataframe,width=18)
+     self.costlineregclick.grid(row=0, column=1,padx=10,pady=3)
+     self.costlineregclick.insert(0,Reg_details)
+     self.attach_context_menu(self.costlineregclick)
+     self.costlineregclick.state(['disabled'])
+     
+     Repairer_name=self.Repairerentryp.get()
+     Repairer = Label(dataframe, text="Repairer:")
+     Repairer.grid(row=0, column=2)
+     self.costlinerepclick = ttk.Entry(dataframe, width=18)
+     self.costlinerepclick.grid(row=0, column=3,padx=10,pady=3)
+     self.costlinerepclick.insert(0,Repairer_name)
+     self.attach_context_menu(self.costlinerepclick)
+     self.costlinerepclick.state(['disabled'])
+     
+     System_number= self.Approvalentryp.get()
+     System = Label(dataframe, text="Po Number:")
+     System.grid(row=0, column=4)
+     self.systemcostclick = ttk.Entry(dataframe, width=18)
+     self.systemcostclick.grid(row=0, column=5,padx=10,pady=3)
+     self.systemcostclick.insert(0,System_number)
+     self.attach_context_menu(self.systemcostclick)
+     self.systemcostclick.state(['disabled'])
+     
+     Ododetails=self.Odometerentryp.get()
+     Odometerveh = Label(dataframe, text="Vehicle Odometer:")
+     Odometerveh.grid(row=1, column=0,pady=5)
+     self.odovehcostclick = ttk.Entry(dataframe, width=18)
+     self.odovehcostclick.grid(row=1, column=1)
+     self.odovehcostclick.insert(0,Ododetails)
+     self.attach_context_menu(self.odovehcostclick)
+     self.odovehcostclick.state(['disabled'])
+     
+     Repairer_accountdetails= self.Accountentryp.get()
+     Repaireraccount = Label(dataframe, text="Repairer account:")
+     Repaireraccount.grid(row=1, column=2,pady=5)
+     self.repaccocostclick = ttk.Entry(dataframe, width=18)
+     self.repaccocostclick.grid(row=1, column=3)
+     self.repaccocostclick.insert(0,Repairer_accountdetails)
+     self.attach_context_menu(self.repaccocostclick)
+     self.repaccocostclick.state(['disabled'])
+
+     Line_created= Label(dataframe,text="Line Created:")
+     Line_created.grid(row=1,column=4)
+     self.Line_createdentryclick=DateEntry(dataframe, width=12,background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Line_createdentryclick.grid(row=1,column=5)
+     if open_costline_details is not None:
+      self.Line_createdentryvalueclick= open_costline_details.get('Line_Added')
+     else:
+        self.Line_createdentryvalueclick= None
+     if self.Line_createdentryvalueclick:
+      self.Line_createdentryclick.set_date(self.Line_createdentryvalueclick)
+     else:
+      self.Line_createdentryclick.set_date(None)
+
+     self.Line_createdentryclick.state(['disabled'])
+
+     Line_createdby= Label(dataframe,text="Created_By:")
+     Line_createdby.grid(row=2,column=0)
+     self.Line_createdbyclick= ttk.Entry(dataframe,width=18)
+     self.Line_createdbyclick.grid(row=2,column=1)
+     if open_costline_details is not None:
+        self.Line_createdbyclickvalue= open_costline_details.get('Added_By')
+     else:
+        self.Line_createdbyclickvalue= None
+     self.Line_createdbyclick.insert(0, self.Line_createdbyclickvalue if self.Line_createdbyclickvalue is not None else"")
+     self.Line_createdbyclick.state(['disabled'])
+
+     Seconddataframe = Frame(self.costline_windowclick, bd=3, relief=tk.RIDGE)
+     Seconddataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Seconddataframe.place(x=0, y=125, width=780, height=70)
+
+     Reason = Label(Seconddataframe, text="RTS code:")
+     Reason.grid(row=0, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Reasoncostclick = ttk.Entry(Seconddataframe,width=18)
+     self.Reasoncostclick.grid(row=0, column=1,padx=15,pady=3)
+     if open_costline_details is not None:
+        self.Reasoncostclickvalue= open_costline_details.get('Rts_code')
+     else:
+        self.Reasoncostclickvalue= None
+     self.Reasoncostclick.insert(0,self.Reasoncostclickvalue if self.Reasoncostclickvalue is not None else"")
+     self.attach_context_menu(self.Reasoncostclick)
+     self.Reasoncostclick.state(['disabled'])
+
+     RTS = Label(Seconddataframe, text="RTS:")
+     RTS.grid(row=0, column=2)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.rtscostclick = ttk.Entry(Seconddataframe,width=70)
+     self.rtscostclick.grid(row=0, column=3,padx=10,pady=3)
+     if open_costline_details is not None:
+        self.rtscostclickvalue= open_costline_details.get('Rts_description')
+     else:
+        self.rtscostclickvalue= None
+     self.rtscostclick.insert(0,self.rtscostclickvalue if self.rtscostclickvalue is not None else"")
+     self.attach_context_menu(self.rtscostclick)
+     self.rtscostclick.state(['disabled'])
+     
+     Analysis = Label(Seconddataframe, text="PF Depot:")
+     Analysis.grid(row=1, column=0,pady=5)
+     self.analysiscostclick = ttk.Entry(Seconddataframe, width=18)
+     self.analysiscostclick.grid(row=1, column=1)
+     if open_costline_details is not None:
+        self.analysiscostclickvalue= open_costline_details.get('Pf_depot')
+     else:
+        self.analysiscostclickvalue=None
+     self.analysiscostclick.insert(0,self.analysiscostclickvalue if self.analysiscostclickvalue is not None else"")
+     self.attach_context_menu(self.analysiscostclick)
+     self.analysiscostclick.state(['disabled'])
+
+     Thirddataframe = LabelFrame(self.costline_windowclick, bd=3, relief=tk.RIDGE,text="Charges")
+     Thirddataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Thirddataframe.place(x=0, y=195, width=780, height=50)
+
+     Parts = Label(Thirddataframe, text="Parts:")
+     Parts.grid(row=0, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Partscostclick = ttk.Entry(Thirddataframe,width=18)
+     self.Partscostclick.grid(row=0, column=1,padx=15,pady=3)
+     if open_costline_details is not None:
+        self.Partscostclickvalue= open_costline_details.get('Parts_cost')
+     else:
+        self.Partscostclickvalue= None
+     self.Partscostclick.insert(0,self.Partscostclickvalue if self.Partscostclickvalue is not None else"")
+     self.attach_context_menu(self.Partscostclick)
+     self.Partscostclick.state(['disabled'])
+
+     Labour = Label(Thirddataframe, text="Labour:")
+     Labour.grid(row=0, column=2)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Labourcostclick = ttk.Entry(Thirddataframe,width=18)
+     self.Labourcostclick.grid(row=0, column=3,padx=15,pady=3)
+     if open_costline_details is not None:
+        self.Labourcostclickvalue= open_costline_details.get('labour_cost')
+     else:
+        self.Labourcostclickvalue= None
+     self.Labourcostclick.insert(0,self.Labourcostclickvalue if self.Labourcostclickvalue is not None else"")
+     self.attach_context_menu(self.Labourcostclick)
+     self.Labourcostclick.state(['disabled'])
+
+     fourthdataframe = LabelFrame(self.costline_windowclick, bd=3, relief=tk.RIDGE,text="Recharge")
+     fourthdataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     fourthdataframe.place(x=0, y=245, width=780, height=80)
+
+     RechParts = Label(fourthdataframe, text="Rech.Parts:")
+     RechParts.grid(row=0, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Rechcostclick = ttk.Entry(fourthdataframe,width=18)
+     self.Rechcostclick.grid(row=0, column=1,padx=15,pady=3)
+     if open_costline_details is not None:
+        self.Rechcostclickvalue= open_costline_details.get('Recharge_parts')
+     else:
+        self.Rechcostclickvalue= None
+     self.Rechcostclick.insert(0,self.Rechcostclickvalue if self.Rechcostclickvalue is not None else"")
+     self.attach_context_menu(self.Rechcostclick)
+     self.Rechcostclick.state(['disabled'])
+
+     Rechlabour = Label(fourthdataframe, text="Rech.labour:")
+     Rechlabour.grid(row=0, column=2)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Rechlabcostclick = ttk.Entry(fourthdataframe,width=18)
+     self.Rechlabcostclick.grid(row=0, column=3,padx=15,pady=3)
+     if open_costline_details is not None:
+        self.Rechlabcostclickvalue= open_costline_details.get('Recharge_labour')
+     else:
+        self.Rechlabcostclickvalue= None
+     self.Rechlabcostclick.insert(0,self.Rechlabcostclickvalue if self.Rechlabcostclickvalue is not None else"")
+     self.attach_context_menu(self.Rechlabcostclick)
+     self.Rechlabcostclick.state(['disabled'])
+
+     Rechposted = Label(fourthdataframe, text="Rech.posted:")
+     Rechposted.grid(row=0, column=4)
+     
+     self.rechposted_varclick = tk.BooleanVar()
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Rechpostedcostclick = ttk.Checkbutton(fourthdataframe,variable=self.rechposted_varclick)
+     self.Rechpostedcostclick.grid(row=0, column=5,padx=15,pady=3)
+     if open_costline_details is not None:
+        self.Rechpostedcostclickvalue= open_costline_details.get('Recharge_invoiced')
+     else:
+        self.Rechpostedcostclickvalue= None
+     if self.Rechpostedcostclickvalue == 'Y':
+        checkbox_checked = True
+     else:
+         checkbox_checked = False
+     self.rechposted_varclick.set(checkbox_checked)
+     self.Rechpostedcostclick.state(['disabled'])
+
+     Rechposteddate = Label(fourthdataframe, text="Rech.posted date:")
+     Rechposteddate.grid(row=1, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Rechposteddatecostclick = ttk.Entry(fourthdataframe, width=18)
+     self.Rechposteddatecostclick.grid(row=1, column=1,padx=15,pady=3)
+
+     if open_costline_details is not None:
+        self.Rechposteddatecostclickvalue= open_costline_details.get('Recharge_posted')
+     else:
+        self.Rechposteddatecostclickvalue= None
+     
+     self.Rechposteddatecostclick.insert(0,self.Rechposteddatecostclickvalue if self.Rechposteddatecostclickvalue is not None else"")
+     self.Rechposteddatecostclick.state(['disabled'])
+
+     Autorecharge = Label(fourthdataframe, text="Auto recharge:")
+     Autorecharge.grid(row=1, column=2)
+
+     self.autorechargecostclick = Entry(fourthdataframe,width=18)
+     self.autorechargecostclick.grid(row=1, column=3,padx=15,pady=3)
+     
+     Customer_PO= self.Customer_Ponum.get()
+     Customerreference = Label(fourthdataframe, text="Customer ref:")
+     Customerreference.grid(row=1, column=4)
+     self.customerreferencecostclick = ttk.Entry(fourthdataframe,width=18)
+     self.customerreferencecostclick.grid(row=1, column=5,padx=15,pady=3)
+     self.customerreferencecostclick.insert(0,Customer_PO if Customer_PO is not None else"")
+     self.customerreferencecostclick.state(['disabled'])
+
+     fifthdataframe = LabelFrame(self.costline_windowclick, bd=3, relief=tk.RIDGE,text="Notes")
+     fifthdataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     fifthdataframe.place(x=0, y=325, width=780, height=135)
+
+     self.notescostclick= tk.Text(fifthdataframe,width=80, height='6',wrap='word')
+     self.notescostclick.grid(row=0,column=0,sticky='w',padx=5)
+     if open_costline_details is not None:
+        self.notescostclickvalue= open_costline_details.get('Notes')
+     else:
+        self.notescostclickvalue= None
+     self.notescostclick.insert("1.0",self.notescostclickvalue if self.notescostclickvalue is not None else"")
+     self.attach_context_menu(self.notescostclick)
+     self.notescostclick['state']='disabled'
+
+     Sixthdataframe = LabelFrame(self.costline_windowclick, bd=3, relief=tk.RIDGE,text="Recharge text")
+     Sixthdataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Sixthdataframe.place(x=0, y=460, width=780, height=135)
+
+     self.rechargecostclick= tk.Text(Sixthdataframe,width=80, height='6',wrap='word')
+     self.rechargecostclick.grid(row=0,column=0,sticky='w',padx=5)
+     if open_costline_details is not None:
+        self.rechargecostclickvalue= open_costline_details.get('Recharge_text')
+     else:
+        self.rechargecostclickvalue= None
+     self.rechargecostclick.insert("1.0",self.rechargecostclickvalue if self.rechargecostclickvalue is not None else"")
+     self.rechargecostclick['state']='disabled'
+     
+
+    def costline_iconsclick(self,index):
+       if index==1:
+          self.close_the_windowclick()
+    
+    def close_the_windowclick(self):
+       self.costline_window()
     
     def clear_date_entry(self):
         # Clear the displayed date in the DateEntry widget
@@ -2884,6 +3193,16 @@ class KerridgeReplacement:
     
     def close_the_costline(self):
        self.costline_window.destroy()
+
+    def get_combined_datetime(self):
+        if not self.rechposted_var.get():
+            return None  # Return None if the checkbutton is not checked
+        
+        # Proceed with date retrieval and combination
+        date = self.Rechposteddatecost.get_date()
+        current_time = datetime.now().time()
+        combined_datetime = datetime.combine(date, current_time)
+        return combined_datetime
     
     def save_the_costlines(self):
        PO_Number=self.systemcost.get()
@@ -2902,9 +3221,7 @@ class KerridgeReplacement:
        Recharge_cost=self.Rechlabcost.get()
        Recharge_invoiced=self.rechposted_value.get()
 
-       Recharge_posted= self.Rechposteddatecost.get_date()
-       current_time = datetime.now().time()
-       combined_datetime = datetime.combine(Recharge_posted, current_time)
+       combined_datetime = self.get_combined_datetime()
        Notes=self.notescost.get("1.0", tk.END)
        Recharge_text= self.rechargecost.get("1.0", tk.END)
 
@@ -2931,8 +3248,6 @@ class KerridgeReplacement:
 
 
              self.Table_treep.insert("", "end", values=(Rts,Rtsd,Parts,Labour,Total_Cost,Rechargep,Rechargel,Totalrecharge))
-       self.populate_all_the_costlines()
-
        Insert_purchase= KBACKEND.retrieve_last_purchase_and_populate(Approval_number)
 
        self.costlinestable.delete(*self.costlinestable.get_children())
@@ -3348,7 +3663,7 @@ class KerridgeReplacement:
      #Creating a label and Entry for Number
 
      Number= Label(ThirdDataframe,text="Number:")
-     Number.grid(row=0,column=3,padx=5)
+     Number.grid(row=0,column=3,padx=3)
      self.Numberentryy=Entry(ThirdDataframe,width=15)
      self.Numberentryy.grid(row=0,column=4)
      self.attach_context_menu(self.Numberentryy)
@@ -3364,6 +3679,9 @@ class KerridgeReplacement:
      self.attach_context_menu(self.dateeentry)
      self.dateeentryvalue=incident_details.get('Date')
      self.dateeentry.set_date(self.dateeentryvalue if self.dateeentryvalue is not None else"")
+
+     self.timeforincident= Entry(ThirdDataframe, width=8)
+     self.timeforincident.grid(row=1,column=5,sticky='w')
      
      
      #Creating Label and Entry for Time 
@@ -4215,6 +4533,7 @@ class KerridgeReplacement:
         # Pack the Treeview widget
         self.Table_treepone.pack(fill="both", expand=True)
         self.populate_all_the_costlines_two()
+        self.Table_treepone.bind("<<TreeviewSelect>>", self.clicking_the_costlinestwo)
 
         Addcostline= Frame(self.purchasehistoryone, bd=3,relief=tk.RIDGE)
         Addcostline.place(x=0,y=540,width=780,height=50)
@@ -4534,6 +4853,15 @@ class KerridgeReplacement:
           self.close_the_costline_window()
        if index==2:
           self.save_the_costlines_two()
+    def get_combined_datetime_two(self):
+        if not self.rechposted_varone.get():
+            return None  # Return None if the checkbutton is not checked
+        
+        # Proceed with date retrieval and combination
+        date = self.Rechposteddatecostone.get_date()
+        current_time = datetime.now().time()
+        combined_datetime = datetime.combine(date, current_time)
+        return combined_datetime
     
     def close_the_costline_window(self):
        self.costline_windowone.destroy()
@@ -4552,17 +4880,62 @@ class KerridgeReplacement:
        Labour_cost=self.Labourcostone.get()
        Recharge_parts=self.Rechcostone.get()
        Recharge_cost=self.Rechlabcostone.get()
-       Recharge_invoiced=self.rechposted_valueone.get()
-
-       Recharge_posted= self.Rechposteddatecostone.get_date()
-       current_time = datetime.now().time()
-       combined_datetime = datetime.combine(Recharge_posted, current_time)
+       Recharge_invoiced=self.rechposted_valueone.get()       
+       combined_datetime = self.get_combined_datetime_two()
        Notes=self.notescostone.get("1.0", tk.END)
        Recharge_text= self.rechargecostone.get("1.0", tk.END)
 
        KBACKEND.store_cost_lines_two(PO_Number,bothdateandtime,Added_By,RTS_code,RTS_Desc,PF_Depot,Parts_Cost,
                                  Labour_cost,Recharge_parts,Recharge_cost,Recharge_invoiced,combined_datetime,
                                  Notes,Recharge_text)
+       
+       self.Table_treepone.delete(*self.Table_treepone.get_children())
+
+       Approval_number= self.Approvalentrypone.get()
+
+       Costlines= KBACKEND.populate_costlines(Approval_number)
+
+       if Costlines:
+          for incident in Costlines:
+             Rts= incident.get("RTS_code")
+             Rtsd= incident.get("RTS_Desc")
+             Parts= incident.get("Parts_Cost")
+             Labour= incident.get("Labour_Cost")
+             Total_Cost= Parts+ Labour
+             Rechargep= incident.get("Recharge_parts")
+             Rechargel= incident.get("Recharge_labour")
+             Totalrecharge= Rechargep+ Rechargel
+
+
+             self.Table_treepone.insert("", "end", values=(Rts,Rtsd,Parts,Labour,Total_Cost,Rechargep,Rechargel,Totalrecharge))
+       self.populate_all_the_costlines_two()
+
+       Insert_purchase= KBACKEND.retrieve_last_purchase_and_populate(Approval_number)
+
+       self.costlinestableone.delete(*self.costlinestableone.get_children())
+
+       if Insert_purchase:
+          for Purchase in Insert_purchase:
+            Repaired= Purchase.get("Repaired")
+            if Repaired is not None:
+             Repaired_date = Repaired.date()
+            else:
+             print("Repaired is None, cannot access 'date' attribute.")
+            Repaired_date = None  # or some default value           
+            Odometer=Purchase.get("Odometer")
+            Supplier_Name= Purchase.get("Supplier")
+            Incident_Link= Purchase.get("Incident_Link")
+            Total_Parts=Purchase.get("Total_parts")
+            Total_labours=Purchase.get("Total_labours")
+            Total_cost= Total_Parts + Total_labours
+            Recharge_parts= Purchase.get("Recharge_parts")
+            Recharge_labours= Purchase.get("Recharge_labours")
+            Total_Recharge= Recharge_parts+ Recharge_labours
+            PO_number= Purchase.get("Approval")
+
+            self.costlinestableone.insert("", "end", values=(Repaired_date,Odometer,Supplier_Name,Incident_Link,
+                                                         Total_cost,Total_Recharge,PO_number))
+       self.populate_top_purchase_order_two()
        
     
     
@@ -4990,6 +5363,310 @@ class KerridgeReplacement:
                 Notes,Last_updated_date,Last_updated_time,"",Follow_up_date,follow_up_time,"",Next_Event_Description))
         
              self.populate_events_tree()
+    
+    def clicking_the_costlinestwo(self,event):
+       selected_item = self.Table_treepone.selection()
+       if selected_item:
+         # Extract the index of the selected item
+         item_index = self.Table_treepone.index(selected_item[0])
+
+         Line_added = item_index + 1
+
+         PO_Number= self.Approvalentrypone.get()
+
+         open_costline_details= KBACKEND.open_costlines_page(PO_Number,Line_added)
+
+         self.open_costlinespage_with_clickedrowtwo(open_costline_details)
+    
+    def open_costlinespage_with_clickedrowtwo(self,open_costline_details):
+       
+     self.costline_windowclickone = tk.Toplevel(self.root)
+     self.costline_windowclickone.title("Cost Line Form")
+     self.costline_windowclickone.geometry("800x600") 
+     self.costline_windowclickone.resizable(False,False)
+
+      #Create a container (Frame) for the icons with a border
+     icon_box = tk.Frame(self.costline_windowclickone, relief=tk.RIDGE, borderwidth=3)
+     icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw") 
+
+     # You can add icons below menus using PhotoImage or other methods.
+    # For demonstration purposes, let's create 13 small image icons.
+     image_paths = ["icon23.png"]
+     for idcost, path in enumerate(image_paths, start=1):
+         image = Image.open(path)
+         image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
+         photo = ImageTk.PhotoImage(image)
+         icon_button = tk.Button(icon_box, image=photo, command=lambda index=idcost: self.costline_iconsclickone(index))
+         icon_button.image = photo
+         icon_button.pack(side=tk.LEFT, padx=5, pady=2)
+     
+     dataframe = Frame(self.costline_windowclickone, bd=3, relief=tk.RIDGE)
+     dataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     dataframe.place(x=0, y=35, width=780, height=90)
+
+     Reg_details= self.Reg_no_entrypone.get()
+     Reg_no = Label(dataframe, text="Registration No:")
+     Reg_no.grid(row=0, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.costlineregclickone = ttk.Entry(dataframe,width=18)
+     self.costlineregclickone.grid(row=0, column=1,padx=10,pady=3)
+     self.costlineregclickone.insert(0,Reg_details)
+     self.attach_context_menu(self.costlineregclickone)
+     self.costlineregclickone.state(['disabled'])
+     
+     Repairer_name=self.Repairerentrypone.get()
+     Repairer = Label(dataframe, text="Repairer:")
+     Repairer.grid(row=0, column=2)
+     self.costlinerepclickone = ttk.Entry(dataframe, width=18)
+     self.costlinerepclickone.grid(row=0, column=3,padx=10,pady=3)
+     self.costlinerepclickone.insert(0,Repairer_name)
+     self.attach_context_menu(self.costlinerepclickone)
+     self.costlinerepclickone.state(['disabled'])
+     
+     System_number= self.Approvalentrypone.get()
+     System = Label(dataframe, text="Po Number:")
+     System.grid(row=0, column=4)
+     self.systemcostclickone = ttk.Entry(dataframe, width=18)
+     self.systemcostclickone.grid(row=0, column=5,padx=10,pady=3)
+     self.systemcostclickone.insert(0,System_number)
+     self.attach_context_menu(self.systemcostclickone)
+     self.systemcostclickone.state(['disabled'])
+     
+     Ododetails=self.Odometerentrypone.get()
+     Odometerveh = Label(dataframe, text="Vehicle Odometer:")
+     Odometerveh.grid(row=1, column=0,pady=5)
+     self.odovehcostclickone = ttk.Entry(dataframe, width=18)
+     self.odovehcostclickone.grid(row=1, column=1)
+     self.odovehcostclickone.insert(0,Ododetails)
+     self.attach_context_menu(self.odovehcostclickone)
+     self.odovehcostclickone.state(['disabled'])
+     
+     Repairer_accountdetails= self.Accountentrypone.get()
+     Repaireraccount = Label(dataframe, text="Repairer account:")
+     Repaireraccount.grid(row=1, column=2,pady=5)
+     self.repaccocostclickone = ttk.Entry(dataframe, width=18)
+     self.repaccocostclickone.grid(row=1, column=3)
+     self.repaccocostclickone.insert(0,Repairer_accountdetails)
+     self.attach_context_menu(self.repaccocostclickone)
+     self.repaccocostclickone.state(['disabled'])
+
+     Line_created= Label(dataframe,text="Line Created:")
+     Line_created.grid(row=1,column=4)
+     self.Line_createdentryclickone=DateEntry(dataframe, width=12,background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
+     self.Line_createdentryclickone.grid(row=1,column=5)
+     if open_costline_details is not None:
+      self.Line_createdentryvalueclickone= open_costline_details.get('Line_Added')
+     else:
+        self.Line_createdentryvalueclickone= None
+     if self.Line_createdentryvalueclickone:
+      self.Line_createdentryclickone.set_date(self.Line_createdentryvalueclickone)
+     else:
+      self.Line_createdentryclickone.set_date(None)
+
+     self.Line_createdentryclickone.state(['disabled'])
+
+     Line_createdby= Label(dataframe,text="Created_By:")
+     Line_createdby.grid(row=2,column=0)
+     self.Line_createdbyclickone= ttk.Entry(dataframe,width=18)
+     self.Line_createdbyclickone.grid(row=2,column=1)
+     if open_costline_details is not None:
+        self.Line_createdbyclickvalueone= open_costline_details.get('Added_By')
+     else:
+        self.Line_createdbyclickvalueone= None
+     self.Line_createdbyclickone.insert(0, self.Line_createdbyclickvalueone if self.Line_createdbyclickvalueone is not None else"")
+     self.Line_createdbyclickone.state(['disabled'])
+
+     Seconddataframe = Frame(self.costline_windowclickone, bd=3, relief=tk.RIDGE)
+     Seconddataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Seconddataframe.place(x=0, y=125, width=780, height=70)
+
+     Reason = Label(Seconddataframe, text="RTS code:")
+     Reason.grid(row=0, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Reasoncostclickone = ttk.Entry(Seconddataframe,width=18)
+     self.Reasoncostclickone.grid(row=0, column=1,padx=15,pady=3)
+     if open_costline_details is not None:
+        self.Reasoncostclickvalueone= open_costline_details.get('Rts_code')
+     else:
+        self.Reasoncostclickvalueone= None
+     self.Reasoncostclickone.insert(0,self.Reasoncostclickvalueone if self.Reasoncostclickvalueone is not None else"")
+     self.attach_context_menu(self.Reasoncostclickone)
+     self.Reasoncostclickone.state(['disabled'])
+
+     RTS = Label(Seconddataframe, text="RTS:")
+     RTS.grid(row=0, column=2)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.rtscostclickone = ttk.Entry(Seconddataframe,width=70)
+     self.rtscostclickone.grid(row=0, column=3,padx=10,pady=3)
+     if open_costline_details is not None:
+        self.rtscostclickvalueone= open_costline_details.get('Rts_description')
+     else:
+        self.rtscostclickvalueone= None
+     self.rtscostclickone.insert(0,self.rtscostclickvalueone if self.rtscostclickvalueone is not None else"")
+     self.attach_context_menu(self.rtscostclickone)
+     self.rtscostclickone.state(['disabled'])
+     
+     Analysis = Label(Seconddataframe, text="PF Depot:")
+     Analysis.grid(row=1, column=0,pady=5)
+     self.analysiscostclickone = ttk.Entry(Seconddataframe, width=18)
+     self.analysiscostclickone.grid(row=1, column=1)
+     if open_costline_details is not None:
+        self.analysiscostclickvalueone= open_costline_details.get('Pf_depot')
+     else:
+        self.analysiscostclickvalueone=None
+     self.analysiscostclickone.insert(0,self.analysiscostclickvalueone if self.analysiscostclickvalueone is not None else"")
+     self.attach_context_menu(self.analysiscostclickone)
+     self.analysiscostclickone.state(['disabled'])
+
+     Thirddataframe = LabelFrame(self.costline_windowclickone, bd=3, relief=tk.RIDGE,text="Charges")
+     Thirddataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Thirddataframe.place(x=0, y=195, width=780, height=50)
+
+     Parts = Label(Thirddataframe, text="Parts:")
+     Parts.grid(row=0, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Partscostclickone = ttk.Entry(Thirddataframe,width=18)
+     self.Partscostclickone.grid(row=0, column=1,padx=15,pady=3)
+     if open_costline_details is not None:
+        self.Partscostclickvalueone= open_costline_details.get('Parts_cost')
+     else:
+        self.Partscostclickvalueone= None
+     self.Partscostclickone.insert(0,self.Partscostclickvalueone if self.Partscostclickvalueone is not None else"")
+     self.attach_context_menu(self.Partscostclickone)
+     self.Partscostclickone.state(['disabled'])
+
+     Labour = Label(Thirddataframe, text="Labour:")
+     Labour.grid(row=0, column=2)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Labourcostclickone = ttk.Entry(Thirddataframe,width=18)
+     self.Labourcostclickone.grid(row=0, column=3,padx=15,pady=3)
+     if open_costline_details is not None:
+        self.Labourcostclickvalueone= open_costline_details.get('labour_cost')
+     else:
+        self.Labourcostclickvalueone= None
+     self.Labourcostclickone.insert(0,self.Labourcostclickvalueone if self.Labourcostclickvalueone is not None else"")
+     self.attach_context_menu(self.Labourcostclickone)
+     self.Labourcostclickone.state(['disabled'])
+
+     fourthdataframe = LabelFrame(self.costline_windowclickone, bd=3, relief=tk.RIDGE,text="Recharge")
+     fourthdataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     fourthdataframe.place(x=0, y=245, width=780, height=80)
+
+     RechParts = Label(fourthdataframe, text="Rech.Parts:")
+     RechParts.grid(row=0, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Rechcostclickone = ttk.Entry(fourthdataframe,width=18)
+     self.Rechcostclickone.grid(row=0, column=1,padx=15,pady=3)
+     if open_costline_details is not None:
+        self.Rechcostclickvalueone= open_costline_details.get('Recharge_parts')
+     else:
+        self.Rechcostclickvalueone= None
+     self.Rechcostclickone.insert(0,self.Rechcostclickvalueone if self.Rechcostclickvalueone is not None else"")
+     self.attach_context_menu(self.Rechcostclickone)
+     self.Rechcostclickone.state(['disabled'])
+
+     Rechlabour = Label(fourthdataframe, text="Rech.labour:")
+     Rechlabour.grid(row=0, column=2)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Rechlabcostclickone = ttk.Entry(fourthdataframe,width=18)
+     self.Rechlabcostclickone.grid(row=0, column=3,padx=15,pady=3)
+     if open_costline_details is not None:
+        self.Rechlabcostclickvalueone= open_costline_details.get('Recharge_labour')
+     else:
+        self.Rechlabcostclickvalueone= None
+     self.Rechlabcostclickone.insert(0,self.Rechlabcostclickvalueone if self.Rechlabcostclickvalueone is not None else"")
+     self.attach_context_menu(self.Rechlabcostclickone)
+     self.Rechlabcostclickone.state(['disabled'])
+
+     Rechposted = Label(fourthdataframe, text="Rech.posted:")
+     Rechposted.grid(row=0, column=4)
+     
+     self.rechposted_varclickone = tk.BooleanVar()
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Rechpostedcostclickone = ttk.Checkbutton(fourthdataframe,variable=self.rechposted_varclickone)
+     self.Rechpostedcostclickone.grid(row=0, column=5,padx=15,pady=3)
+     if open_costline_details is not None:
+        self.Rechpostedcostclickvalueone= open_costline_details.get('Recharge_invoiced')
+     else:
+        self.Rechpostedcostclickvalueone= None
+     if self.Rechpostedcostclickvalueone == 'Y':
+        checkbox_checked = True
+     else:
+         checkbox_checked = False
+     self.rechposted_varclickone.set(checkbox_checked)
+     self.Rechpostedcostclickone.state(['disabled'])
+
+     Rechposteddate = Label(fourthdataframe, text="Rech.posted date:")
+     Rechposteddate.grid(row=1, column=0)
+
+    # Create a Combobox widget and pass the list of registration numbers as options 
+     self.Rechposteddatecostclickone = ttk.Entry(fourthdataframe, width=18)
+     self.Rechposteddatecostclickone.grid(row=1, column=1,padx=15,pady=3)
+
+     if open_costline_details is not None:
+        self.Rechposteddatecostclickvalueone= open_costline_details.get('Recharge_posted')
+     else:
+        self.Rechposteddatecostclickvalueone= None
+     
+     self.Rechposteddatecostclickone.insert(0,self.Rechposteddatecostclickvalueone if self.Rechposteddatecostclickvalueone is not None else"")
+     self.Rechposteddatecostclickone.state(['disabled'])
+
+     Autorecharge = Label(fourthdataframe, text="Auto recharge:")
+     Autorecharge.grid(row=1, column=2)
+
+     self.autorechargecostclickone = Entry(fourthdataframe,width=18)
+     self.autorechargecostclickone.grid(row=1, column=3,padx=15,pady=3)
+     
+     Customer_PO= self.Customer_Ponumone.get()
+     Customerreference = Label(fourthdataframe, text="Customer ref:")
+     Customerreference.grid(row=1, column=4)
+     self.customerreferencecostclickone = ttk.Entry(fourthdataframe,width=18)
+     self.customerreferencecostclickone.grid(row=1, column=5,padx=15,pady=3)
+     self.customerreferencecostclickone.insert(0,Customer_PO if Customer_PO is not None else"")
+     self.customerreferencecostclickone.state(['disabled'])
+
+     fifthdataframe = LabelFrame(self.costline_windowclickone, bd=3, relief=tk.RIDGE,text="Notes")
+     fifthdataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     fifthdataframe.place(x=0, y=325, width=780, height=135)
+
+     self.notescostclickone= tk.Text(fifthdataframe,width=80, height='6',wrap='word')
+     self.notescostclickone.grid(row=0,column=0,sticky='w',padx=5)
+     if open_costline_details is not None:
+        self.notescostclickvalueone= open_costline_details.get('Notes')
+     else:
+        self.notescostclickvalueone= None
+     self.notescostclickone.insert("1.0",self.notescostclickvalueone if self.notescostclickvalueone is not None else"")
+     self.attach_context_menu(self.notescostclickone)
+     self.notescostclickone['state']='disabled'
+
+     Sixthdataframe = LabelFrame(self.costline_windowclickone, bd=3, relief=tk.RIDGE,text="Recharge text")
+     Sixthdataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
+     Sixthdataframe.place(x=0, y=460, width=780, height=135)
+
+     self.rechargecostclickone= tk.Text(Sixthdataframe,width=80, height='6',wrap='word')
+     self.rechargecostclickone.grid(row=0,column=0,sticky='w',padx=5)
+     if open_costline_details is not None:
+        self.rechargecostclickvalueone= open_costline_details.get('Recharge_text')
+     else:
+        self.rechargecostclickvalueone= None
+     self.rechargecostclickone.insert("1.0",self.rechargecostclickvalueone if self.rechargecostclickvalueone is not None else"")
+     self.rechargecostclickone['state']='disabled'
+       
+       
+    def costline_iconsclickone(self,index):
+       if index==1:
+          self.close_the_Second_costline()
+    
+    def close_the_Second_costline(self):
+       self.costline_windowclickone.destroy()
+       
     
     def populate_top_purchase_order(self):
        self.costlinestable.delete(*self.costlinestable.get_children())
