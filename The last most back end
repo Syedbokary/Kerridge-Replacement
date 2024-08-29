@@ -287,21 +287,29 @@ def fetch_details_from_database(reg_no):
     conn = pyodbc.connect(conn_str2)
     cur = conn.cursor()
         # Define the SQL query to fetch details based on the registration number
-    query = """SELECT  TOP 1 IMMAT AS REG,
-	dbo.PARC.PARC_ID as FLEET_NO,
-	MARQUE+' '+CODE_MODELE+' '+CODE_TYPEMODELE as MAKE_MOD,
-	dbo.CONTRAT_VAR.NO_CONTRAT AS CONTRACT_NO, 
-	CONTRAT_VAR.ID_FICHE AS CUSTOMER_NO,
-	dbo.CLIENT_FICHE.NOM_SOC AS CUSTOMER_NAME,
-	dbo.CONTRAT_VAR.CODE_AGENCE AS PF_DEPOT,
+    query = """SELECT DISTINCT
+    IMMAT as REG,
+    PARC_CGRISE.PARC_ID as FLEET_NO,
+    PARC.MARQUE + ' ' + CODE_MODELE + ' ' + CODE_TYPEMODELE as MAKE_MOD,
+    POSITION_COURANTE.MISSION_NO_CONTRAT AS CONTRACT_NO,
+    CONTRAT_VAR.ID_FICHE AS CUSTOMER_NO,
+    dbo.CLIENT_FICHE.NOM_SOC AS CUSTOMER_NAME,
+	dbo.POSITION_COURANTE.CODE_AGENCE_DERNLOCAL AS PF_DEPOT,
 	dbo.CLIENT_ADRESSE.VILLE as CUSTOMER_DEPOT
-  FROM [IGLOO_UK].[dbo].[CONTRAT_VAR]
-  JOIN dbo.PARC_CGRISE ON dbo.CONTRAT_VAR.PARC_ID = dbo.PARC_CGRISE.PARC_ID
-  JOIN dbo.PARC ON dbo.PARC.PARC_ID = dbo.PARC_CGRISE.PARC_ID
-  JOIN dbo.CLIENT_ADRESSE ON dbo.CONTRAT_VAR.ID_FICHE = dbo.CLIENT_ADRESSE.ID_FICHE AND dbo.CONTRAT_VAR.CLIENT_ADRFACT = dbo.CLIENT_ADRESSE.ID_ADRESSE
-  JOIN dbo.CLIENT_FICHE ON CONTRAT_VAR.ID_FICHE=dbo.CLIENT_FICHE.ID_FICHE
-  WHERE dbo.PARC_CGRISE.IMMAT = ? AND dbo.CONTRAT_VAR.DTE_FIN is null
-  ORDER BY dbo.CONTRAT_VAR.NO_CONTRAT DESC"""
+FROM dbo.PARC_CGRISE
+JOIN PARC ON PARC.PARC_ID = PARC_CGRISE.PARC_ID
+JOIN dbo.POSITION_COURANTE ON PARC_CGRISE.PARC_ID = POSITION_COURANTE.PARC_ID
+LEFT JOIN CONTRAT_VAR ON 
+	CONTRAT_VAR.NO_CONTRAT = POSITION_COURANTE.MISSION_NO_CONTRAT 
+	OR CONTRAT_VAR.NO_CONTRAT = POSITION_COURANTE.NO_CONTRAT
+	AND CONTRAT_VAR.PARC_ID = CASE 
+        WHEN POSITION_COURANTE.CODE_MISSIONCNT = 'RELAIS' 
+        THEN POSITION_COURANTE.PARC_ID_REMPLACE 
+        ELSE PARC_CGRISE.PARC_ID 
+    END 
+LEFT JOIN CLIENT_FICHE ON CLIENT_FICHE.ID_FICHE = CONTRAT_VAR.ID_FICHE
+LEFT JOIN dbo.CLIENT_ADRESSE ON dbo.CONTRAT_VAR.ID_FICHE = dbo.CLIENT_ADRESSE.ID_FICHE AND dbo.CONTRAT_VAR.CLIENT_ADRFACT = dbo.CLIENT_ADRESSE.ID_ADRESSE
+WHERE IMMAT = ?"""
     cur.execute(query, (reg_no,))
     result = cur.fetchone()
 
@@ -410,21 +418,29 @@ def fetch_additional_details(registration_number):
     conn = pyodbc.connect(conn_str2)
     cur = conn.cursor()
     try:
-        query = """SELECT  TOP 1 IMMAT AS REG,
-	dbo.PARC.PARC_ID as FLEET_NO,
-	MARQUE+' '+CODE_MODELE+' '+CODE_TYPEMODELE as MAKE_MOD,
-	dbo.CONTRAT_VAR.NO_CONTRAT AS CONTRACT_NO, 
-	CONTRAT_VAR.ID_FICHE AS CUSTOMER_NO,
-	dbo.CLIENT_FICHE.NOM_SOC AS CUSTOMER_NAME,
-	dbo.CONTRAT_VAR.CODE_AGENCE AS PF_DEPOT,
+        query = """SELECT DISTINCT
+    IMMAT as REG,
+    PARC_CGRISE.PARC_ID as FLEET_NO,
+    PARC.MARQUE + ' ' + CODE_MODELE + ' ' + CODE_TYPEMODELE as MAKE_MOD,
+    POSITION_COURANTE.MISSION_NO_CONTRAT AS CONTRACT_NO,
+    CONTRAT_VAR.ID_FICHE AS CUSTOMER_NO,
+    dbo.CLIENT_FICHE.NOM_SOC AS CUSTOMER_NAME,
+	dbo.POSITION_COURANTE.CODE_AGENCE_DERNLOCAL AS PF_DEPOT,
 	dbo.CLIENT_ADRESSE.VILLE as CUSTOMER_DEPOT
-  FROM [IGLOO_UK].[dbo].[CONTRAT_VAR]
-  JOIN dbo.PARC_CGRISE ON dbo.CONTRAT_VAR.PARC_ID = dbo.PARC_CGRISE.PARC_ID
-  JOIN dbo.PARC ON dbo.PARC.PARC_ID = dbo.PARC_CGRISE.PARC_ID
-  JOIN dbo.CLIENT_ADRESSE ON dbo.CONTRAT_VAR.ID_FICHE = dbo.CLIENT_ADRESSE.ID_FICHE AND dbo.CONTRAT_VAR.CLIENT_ADRFACT = dbo.CLIENT_ADRESSE.ID_ADRESSE
-  JOIN dbo.CLIENT_FICHE ON CONTRAT_VAR.ID_FICHE=dbo.CLIENT_FICHE.ID_FICHE
-  WHERE dbo.PARC_CGRISE.IMMAT = ? AND dbo.CONTRAT_VAR.DTE_FIN is null
-  ORDER BY dbo.CONTRAT_VAR.NO_CONTRAT DESC"""
+FROM dbo.PARC_CGRISE
+JOIN PARC ON PARC.PARC_ID = PARC_CGRISE.PARC_ID
+JOIN dbo.POSITION_COURANTE ON PARC_CGRISE.PARC_ID = POSITION_COURANTE.PARC_ID
+LEFT JOIN CONTRAT_VAR ON 
+	CONTRAT_VAR.NO_CONTRAT = POSITION_COURANTE.MISSION_NO_CONTRAT 
+	OR CONTRAT_VAR.NO_CONTRAT = POSITION_COURANTE.NO_CONTRAT
+	AND CONTRAT_VAR.PARC_ID = CASE 
+        WHEN POSITION_COURANTE.CODE_MISSIONCNT = 'RELAIS' 
+        THEN POSITION_COURANTE.PARC_ID_REMPLACE 
+        ELSE PARC_CGRISE.PARC_ID 
+    END 
+LEFT JOIN CLIENT_FICHE ON CLIENT_FICHE.ID_FICHE = CONTRAT_VAR.ID_FICHE
+LEFT JOIN dbo.CLIENT_ADRESSE ON dbo.CONTRAT_VAR.ID_FICHE = dbo.CLIENT_ADRESSE.ID_FICHE AND dbo.CONTRAT_VAR.CLIENT_ADRFACT = dbo.CLIENT_ADRESSE.ID_ADRESSE
+WHERE IMMAT = ?"""
         cur.execute(query, (registration_number))
         row= cur.fetchone()
         if row:
@@ -1212,6 +1228,30 @@ def generate_purchase_order_number():
     conn.close()
     return max_purchase_ordernumber + 1
 
+def get_existing_approval_number(incident_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT PO_Number
+            FROM Purchase_Order_Headder
+            WHERE Incident_Link = ?
+        """, (incident_number,))
+
+        # Fetch the first row from the result
+        row = cur.fetchone()
+        if row:
+            return row.PO_Number  
+        else:
+            return None
+    except Exception as e:
+        print(f"Error fetching approval number: {e}")
+        return None
+    finally:
+        # Always close the database connection
+        cur.close()
+        conn.close()
+
 def generate_line_number(PO_Number):
     conn = pyodbc.connect(conn_str1)
     cur = conn.cursor()
@@ -1230,8 +1270,9 @@ def store_the_purchase_orderinfo(PO_Number,i_number,combined_datetime,Created_By
 
     try:
         # Check if a record with the same Registration_No already exists
-        cur.execute("""SELECT COUNT(*) FROM Purchase_Order_Headder WHERE PO_Number = ? AND Incident_Link=?"""
-                    , (PO_Number,i_number))
+        cur.execute("""SELECT COUNT(*) FROM Purchase_Order_Headder WHERE PO_Number = ?"""
+                    , (PO_Number))
+
         record_count = cur.fetchone()[0]
 
         if record_count > 0:
@@ -1277,16 +1318,16 @@ def store_the_purchase_orderinfo(PO_Number,i_number,combined_datetime,Created_By
 
 def store_cost_lines(PO_Number,bothdateandtime,Added_By,PF_Depot,Parts_Cost,Labour_Hours,Labour_Rate,
                             Labour_cost,Parts_Uplift,Labour_Uplift,Recharge_parts,Recharge_cost,Recharge_invoiced,combined_datetime,
-                                 Notes,Recharge_text,type_id,Category_id,Product_id):
+                                 Notes,Recharge_text,type_id,Category_id,Product_id,Supplier_Name):
     conn=pyodbc.connect(conn_str1)
     cur=conn.cursor()
     
     cur.execute("""Insert into Order_Cost_Lines(PO_Number,Line_Number,Line_Added,Added_By,PF_Depot,Parts_Cost,Labour_Hours,Labour_Rate,Labour_Cost,Parts_Uplift,
                 Labour_Uplift,Recharge_parts,Recharge_labour,
-                Recharge_invoiced,Recharge_posted,Notes,Recharge_Text,PO_Type_ID,PO_Category_ID,PO_Product_ID)
-                Values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(PO_Number,generate_line_number(PO_Number),bothdateandtime,Added_By,PF_Depot,Parts_Cost,Labour_Hours,
+                Recharge_invoiced,Recharge_posted,Notes,Recharge_Text,PO_Type_ID,PO_Category_ID,PO_Product_ID,Supplier_Name)
+                Values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(PO_Number,generate_line_number(PO_Number),bothdateandtime,Added_By,PF_Depot,Parts_Cost,Labour_Hours,
                                 Labour_Rate,Labour_cost,Parts_Uplift,Labour_Uplift,Recharge_parts,Recharge_cost,Recharge_invoiced,combined_datetime,
-                                 Notes,Recharge_text,type_id,Category_id,Product_id))
+                                 Notes,Recharge_text,type_id,Category_id,Product_id,Supplier_Name))
     conn.commit()
     cur.close()
     conn.close()
@@ -1296,7 +1337,7 @@ def retrieve_all_purchase_and_populate(Reg_Number):
     cur = conn.cursor()
 
     try:
-     cur.execute("""SELECT Pu.*,Line_Number,Parts_Cost,Labour_Cost,Recharge_parts,Recharge_labour,Registration_NO
+     cur.execute("""SELECT Pu.*,Line_Number,Parts_Cost,Labour_Cost,Recharge_parts,Recharge_labour,Registration_NO,costs.Supplier_Name
 		FROM
 		Purchase_Order_Headder Pu
 		JOIN
@@ -1317,10 +1358,10 @@ def retrieve_all_purchase_and_populate(Reg_Number):
                 "Odometer": row[7],
                 "Supplier": row[11],
                 "Incident_Link": row[1],
-                "Total_parts":row[-5],
-                "Total_labours":row[-4],
-                "Recharge_parts":row[-3],
-                "Recharge_labours":row[-2],
+                "Total_parts":row[-6],
+                "Total_labours":row[-5],
+                "Recharge_parts":row[-4],
+                "Recharge_labours":row[-3],
                 "Approval":row[0]
             }
             incidents.append(incident)
@@ -1340,7 +1381,7 @@ def retrieve_last_purchase_and_populate(Approval_number):
     cur = conn.cursor()
 
     try:
-     cur.execute("""SELECT TOP 1 Pu.*,Line_Number,Parts_Cost,Labour_Cost,Recharge_parts,Recharge_labour
+     cur.execute("""SELECT TOP 1 Pu.*,Line_Number,Parts_Cost,Labour_Cost,Recharge_parts,Recharge_labour,costs.Supplier_Name
 		FROM
 		Purchase_Order_Headder Pu
 		JOIN
@@ -1356,10 +1397,10 @@ def retrieve_last_purchase_and_populate(Approval_number):
                 "Odometer": row[7],
                 "Supplier": row[11],
                 "Incident_Link": row[1],
-                "Total_parts":row[-4],
-                "Total_labours":row[-3],
-                "Recharge_parts":row[-2],
-                "Recharge_labours":row[-1],
+                "Total_parts":row[-5],
+                "Total_labours":row[-4],
+                "Recharge_parts":row[-3],
+                "Recharge_labours":row[-2],
                 "Approval":row[0]
             }
             return[Purchase]  
@@ -1452,12 +1493,17 @@ def populate_all_the_cost_lines(Approval_number):
         cur.close()
         conn.close()
 
-def insert_purchase_details(incident_number):
+def insert_purchase_details(Reg_Number):
     conn = pyodbc.connect(conn_str1)
     cur = conn.cursor()
     try:
-     cur.execute("""SELECT * FROM Purchase_Order_Headder
-                WHERE Incident_Link= ?""",(incident_number))
+     cur.execute("""SELECT TOP 1 Pu.*
+                    FROM
+                    Purchase_Order_Headder Pu
+                    JOIN 
+                    Incident_Headder Incident ON Pu.Incident_Link= Incident.I_Number
+                    WHERE Registration_NO = ?
+                    ORDER BY PO_Number DESC""",(Reg_Number))
 
     # Fetch all rows of the result set
      row = cur.fetchone()
@@ -1475,7 +1521,7 @@ def insert_purchase_details(incident_number):
                 "Kofax_Scan_No": row[9],
                 "Igloo_Invoice_No":row[10],
                 "Supplier_Name":row[11],
-                "Repaired": row[2]
+                "Repaired": row[12]
             }
             return incident
     except Exception as e:
@@ -1576,16 +1622,16 @@ def update_the_purchase_orderinfo(PO_Number,i_number,combined_datetime,Created_B
 
 def store_cost_lines_two(PO_Number,bothdateandtime,Added_By,PF_Depot,Parts_Cost,Labour_Hours,
                                  Labour_Rate,Labour_cost,Parts_Uplift,Labour_Uplift,Recharge_parts,Recharge_cost,Recharge_invoiced,combined_datetime,
-                                 Notes,Recharge_text,type_id,Category_id,Product_id):
+                                 Notes,Recharge_text,type_id,Category_id,Product_id,Supplier_Name):
     conn=pyodbc.connect(conn_str1)
     cur=conn.cursor()
     
     cur.execute("""Insert into Order_Cost_Lines(PO_Number,Line_Number,Line_Added,Added_By,PF_Depot,Parts_Cost,Labour_Hours,Labour_Rate,
                 Labour_Cost,Parts_Uplift,Labour_Uplift,Recharge_parts,Recharge_labour,
-                Recharge_invoiced,Recharge_posted,Notes,Recharge_Text,PO_Type_ID,PO_Category_ID,PO_Product_ID)
-                Values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(PO_Number,generate_line_number(PO_Number),bothdateandtime,Added_By,PF_Depot,Parts_Cost,Labour_Hours,Labour_Rate,
+                Recharge_invoiced,Recharge_posted,Notes,Recharge_Text,PO_Type_ID,PO_Category_ID,PO_Product_ID,Supplier_Name)
+                Values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(PO_Number,generate_line_number(PO_Number),bothdateandtime,Added_By,PF_Depot,Parts_Cost,Labour_Hours,Labour_Rate,
                                  Labour_cost,Parts_Uplift,Labour_Uplift,Recharge_parts,Recharge_cost,Recharge_invoiced,combined_datetime,
-                                 Notes,Recharge_text,type_id,Category_id,Product_id))
+                                 Notes,Recharge_text,type_id,Category_id,Product_id,Supplier_Name))
     conn.commit()
     cur.close()
     conn.close()
@@ -2007,6 +2053,98 @@ def check_customer_specific(cust_id):
     cur.execute("""SELECT Customer_Notes FROM Customer_Specifics WHERE Customer_Number=?""",(cust_id))
     result=cur.fetchone()
     return result
+def fetch_approval_numbers(incident_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    
+    try:
+        cur.execute("""
+            SELECT PO_Number
+            FROM Purchase_Order_Headder
+            WHERE Incident_Link = ?
+        """, (incident_number,))
+        approval_numbers = [row.PO_Number for row in cur.fetchall()]
+        return approval_numbers
+    except Exception as e:
+        print(f"Error fetching approval numbers: {e}")
+        return []
+    finally:
+        cur.close()
+        conn.close()
+def fetching_selected_approvaldetails(approval_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+     cur.execute("""SELECT * FROM Purchase_Order_Headder
+                WHERE PO_Number= ?""",(approval_number))
+
+    # Fetch all rows of the result set
+     row = cur.fetchone()
+     if row:
+            incident = {
+                "PO_Number": row[0],
+                "Incident_Link": row[1],
+                "PO_Created": row[2],
+                "Created_By": row[3],
+                "Supplier_No":row[4],
+                "Order_Category":row[5],
+                "Fleet_No":row[6],
+                "Odometer":row[7],
+                "Customer_PO": row[8],
+                "Kofax_Scan_No": row[9],
+                "Igloo_Invoice_No":row[10],
+                "Supplier_Name":row[11],
+                "Repaired": row[12]
+            }
+            return incident
+    except Exception as e:
+        print("Error:", e)
+        return None
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetching_the_last_approval(Reg_Number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+     cur.execute("""SELECT TOP 1 Pu.*
+                    FROM
+                    Purchase_Order_Headder Pu
+                    JOIN 
+                    Incident_Headder Incident ON Pu.Incident_Link= Incident.I_Number
+                    WHERE Registration_NO = ?
+                    ORDER BY PO_Number DESC""",(Reg_Number))
+     row = cur.fetchone()
+     if row:
+            incident = {
+                "PO_Number": row[0],
+                "Incident_Link": row[1],
+                "PO_Created": row[2],
+                "Created_By": row[3],
+                "Supplier_No":row[4],
+                "Order_Category":row[5],
+                "Fleet_No":row[6],
+                "Odometer":row[7],
+                "Customer_PO": row[8],
+                "Kofax_Scan_No": row[9],
+                "Igloo_Invoice_No":row[10],
+                "Supplier_Name":row[11],
+                "Repaired": row[12]
+            }
+            return incident
+    except Exception as e:
+        print("Error:", e)
+        return None
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+     
+
+
+
 
 
 
