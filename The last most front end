@@ -412,8 +412,11 @@ class KerridgeReplacement:
             self.Depotentry.delete(0, tk.END)
 
             self.text1.insert(0, reg_no)
+            self.text1.state(['disabled'])
             self.Fleet_entry.insert(0, result[1])
+            self.Fleet_entry.state(['disabled'])
             self.text2.insert(0,result[2])
+            self.text2.state(['disabled'])
             self.Customer_Identry.insert(0, result[4])
             self.Cust_Name_Entry.insert(0,result[5]) 
             self.Contract_No_Entry.insert(0,result[3])
@@ -522,13 +525,13 @@ class KerridgeReplacement:
      Reg_no.grid(row=0, column=0)
 
     # Create a Combobox widget and pass the list of registration numbers as options 
-     self.text1 = Entry(dataframe,width=15)
-     self.text1.insert(0, reg_no)
+     self.text1 = ttk.Entry(dataframe,width=15)
+     #self.text1.insert(0, reg_no)
      self.text1.grid(row=0, column=1)
      self.attach_context_menu(self.text1)
      
      #Creating an Entry for page 2
-     self.text2 = Entry(dataframe, width=30)
+     self.text2 = ttk.Entry(dataframe, width=30)
      self.text2.grid(row=0, column=2,padx=70)
      self.attach_context_menu(self.text2)
      
@@ -543,7 +546,7 @@ class KerridgeReplacement:
      #Creating a Label and Entry for Fleet No:
      Fleet_No=Label(dataframe, text="Fleet No:")
      Fleet_No.grid(row=1, column=0,pady=6)
-     self.Fleet_entry=Entry(dataframe,width=15)
+     self.Fleet_entry=ttk.Entry(dataframe,width=15)
      self.Fleet_entry.grid(row=1,column=1)
      self.attach_context_menu(self.Fleet_entry)
 
@@ -561,9 +564,7 @@ class KerridgeReplacement:
      self.Vehicle_loaded.grid(row=2,column=2,sticky='w')
      
 
-     #Creating another Entry for page 2
-     text2 = Entry(dataframe, width=30)
-     text2.grid(row=1, column=2,padx=80)
+     
      
      #Creating a Label and Entry for Driver Phone:
 
@@ -791,22 +792,22 @@ class KerridgeReplacement:
      #Creating Label and Entry for Attendance Deferred
      
 
-     Attendance_Def= Label(Incident_details, text="Attendance_Deferred")
-     Attendance_Def.grid(row=6,column=0)
+     self.Attendance_Def= Label(Incident_details, text="Attendance_Deferred")
+     #Attendance_Def.grid(row=6,column=0)
      self.attendance_var=tk.BooleanVar()
      self.AttendanceEntry= ttk.Checkbutton(Incident_details, variable=self.attendance_var)
-     self.AttendanceEntry.grid(row=6, column=1, sticky='w')
+     #self.AttendanceEntry.grid(row=6, column=1, sticky='w')
      
-     Deff = Label(Incident_details, text='Deferred To')
-     Deff.grid(row=7, column=0, padx=2, sticky='w')
+     self.Deff = Label(Incident_details, text='Deferred To')
+     #Deff.grid(row=7, column=0, padx=2, sticky='w')
      self.Deferred_To = DateEntry(Incident_details, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-     self.Deferred_To.grid(row=7, column=1, padx=2, sticky='w')
+     #self.Deferred_To.grid(row=7, column=1, padx=2, sticky='w')
      self.attach_context_menu(self.Deferred_To)
 
-     Deff_time=Label(Incident_details,text='Deferred To Time')
-     Deff_time.grid(row=8,column=0,padx=2, sticky='w')
+     self.Deff_time=Label(Incident_details,text='Deferred To Time')
+     #Deff_time.grid(row=8,column=0,padx=2, sticky='w')
      self.Deferred_Time= Entry(Incident_details,width=15)
-     self.Deferred_Time.grid(row=8,column=1,sticky='w')
+     #self.Deferred_Time.grid(row=8,column=1,sticky='w')
      current_time = datetime.now().strftime("%H:%M")
      self.Deferred_Time.insert(0,current_time)
      self.attach_context_menu(self.Deferred_Time)
@@ -821,7 +822,7 @@ class KerridgeReplacement:
      self.what.grid(row=8, column=4, columnspan=2, pady=5)
      self.what_url = "https://what3words.com"
 
-
+     self.on_location_selected()
    
     #Creating Frame for Supplier details
      Supplier_details=LabelFrame(self.main_page,bd=3,relief=tk.RIDGE,text="Supplier Details")
@@ -1161,7 +1162,7 @@ class KerridgeReplacement:
            else:
                self.StatussEntry.set("Closed")
                #self.StatussEntry.state(['disabled'])
-    def on_location_selected(self, event):
+    def on_location_selected(self, event=None):
         selected_location = self.LolEntry.get()
         
         if selected_location == "Roadside":
@@ -1169,12 +1170,26 @@ class KerridgeReplacement:
             self.Driverentry.grid(row=0, column=4)
             self.lb3phone.grid(row=1, column=3)
             self.Driverphone.grid(row=1, column=4)
+            self.Attendance_Def.grid_remove()
+            self.AttendanceEntry.grid_remove()
+            self.Deff_time.grid_remove()
+            self.Deferred_Time.grid_remove()
+            self.Deff.grid_remove()
+            self.Deferred_To.grid_forget()
 
         else:
             self.lb3.grid_remove()
             self.Driverentry.grid_remove()
             self.lb3phone.grid_remove()
             self.Driverphone.grid_remove()
+            self.Attendance_Def.grid(row=6,column=0)
+            self.AttendanceEntry.grid(row=6, column=1, sticky='w')
+            self.Deff.grid(row=7, column=0, padx=2, sticky='w')
+            self.Deferred_To.grid(row=7, column=1, padx=2, sticky='w')
+            self.Deff_time.grid(row=8,column=0,padx=2, sticky='w')
+            self.Deferred_Time.grid(row=8,column=1,sticky='w')
+     
+
     def clicking_the_postreportsone(self,event):
        selected_item = self.Post_incident_tree.selection()
        if selected_item:
@@ -2296,7 +2311,7 @@ class KerridgeReplacement:
         icon_box = tk.Frame(self.purchasehistory, relief=tk.RIDGE, borderwidth=3)
         icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
 
-        image_paths = ["icon 18.png","icon 19.png"]
+        image_paths = ["icon 18.png","icon 19.png","newicon.png"]
         for idcost, path in enumerate(image_paths, start=1):
             image = Image.open(path)
             image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
@@ -2426,17 +2441,26 @@ class KerridgeReplacement:
         Invoicedataframe = tk.Frame(self.Invoice_Detailsp, bd=3, relief=tk.RIDGE)
         Invoicedataframe.place(x=0, y=0, width=765, height=100)
 
+        Reg_Number=self.text1.get()
+        lastapproval_details=KBACKEND.fetching_the_last_approval(Reg_Number)
+
      
         #Creating a label and combobox entry for Repairer 
         sup=KBACKEND.fetch_supplier_details()
         self.supplierp = [row[1] for row in sup]
         Repairer= Label(Repairerdataframe, text="Supplier Name:")
         Repairer.grid(row=0,column=0,padx=5,pady=5)
-        insert_supplier=self.Contactentry.get()
+        
         self.Repairerentryp= ttk.Combobox(Repairerdataframe,values=self.supplierp,width=20)
         self.Repairerentryp.grid(row=0,column=1,sticky="w",padx=5,pady=5)
+        if lastapproval_details is not None:
+           self.Repairerentrypvalue= lastapproval_details.get('Supplier_Name')
+        else:
+           self.Repairerentrypvalue=None
+        self.Repairerentryp.insert(0,self.Repairerentrypvalue if self.Repairerentrypvalue is not None else"")
         self.attach_context_menu(self.Repairerentryp)
-        self.Repairerentryp.insert(0,insert_supplier if insert_supplier is not None else"")
+        
+        
         self.Repairerentryp.bind("<KeyRelease>", self.filter_supplier_list_three)
         self.Repairerentryp.bind("<<ComboboxSelected>>", self.populate_supplier_detailsp)
         
@@ -2447,17 +2471,25 @@ class KerridgeReplacement:
         Account.grid(row=0,column=2,padx=5,pady=5)
         self.Accountentryp= ttk.Entry(Repairerdataframe,width=20)
         self.Accountentryp.grid(row=0,column=3,sticky="w",padx=5,pady=5)
+        if lastapproval_details is not None:
+           self.Accountentrypvalue=lastapproval_details.get('Supplier_No')
+        else:
+           self.Accountentrypvalue=None
+        self.Accountentryp.insert(0,self.Accountentrypvalue if self.Accountentrypvalue is not None else"")
         self.attach_context_menu(self.Accountentryp)
         self.populate_supplier_detailsp()
 
         
         #Creating a Label and Entry for Approval
-        Approval_number= KBACKEND.generate_purchase_order_number()
         Approval= Label(Repairerdataframe,text="Approval:")
         Approval.grid(row=0,column=4,padx=5,pady=5)
         self.Approvalentryp= ttk.Entry(Repairerdataframe,width= 20)
         self.Approvalentryp.grid(row=0,column=5,sticky="w",padx=5,pady=3)
-        self.Approvalentryp.insert(0,Approval_number)
+        if lastapproval_details is not None:
+           self.Approvalentrypvalue= lastapproval_details.get('PO_Number')
+        else:
+           self.Approvalentrypvalue=None
+        self.Approvalentryp.insert(0,self.Approvalentrypvalue if self.Approvalentrypvalue is not None else"")
         self.attach_context_menu(self.Approvalentryp)
         self.Approvalentryp.state(['disabled'])
 
@@ -2466,32 +2498,48 @@ class KerridgeReplacement:
         Issued.grid(row=1, column=0,padx=5,pady=5)
         self.Issuedentryp= DateEntry(Repairerdataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
         self.Issuedentryp.grid(row=1, column=1,padx=5,pady=5,sticky='w')
+        if lastapproval_details is not None:
+           self.Issuedentryvalue= lastapproval_details.get('PO_Created')
+        else:
+           self.Issuedentryvalue= None
+        self.Issuedentryp.set_date(self.Issuedentryvalue if self.Issuedentryvalue is not None else None)
         self.attach_context_menu(self.Issuedentryp)
         
-        current_user=getuser()
+        
         Po_created= Label(Repairerdataframe,text="Created_By:")
         Po_created.grid(row=1,column=2,padx=5,pady=5)
         self.Po_createdby= ttk.Entry(Repairerdataframe,width=20)
         self.Po_createdby.grid(row=1,column=3,padx=5,pady=5)
-        self.Po_createdby.insert(0,current_user)
+        if lastapproval_details is not None:
+           self.Po_createdbyvalue= lastapproval_details.get('Created_By')
+        else:
+           self.Po_createdbyvalue= None
+        self.Po_createdby.insert(0, self.Po_createdbyvalue if self.Po_createdbyvalue is not None else "")
         self.Po_createdby.state(['disabled'])
         self.attach_context_menu(self.Po_createdby)
 
-        Fleet_details= self.Fleet_entry.get()
+        
         Fleet_Number=Label(Repairerdataframe, text="Fleet_No:")
         Fleet_Number.grid(row=1,column=4,padx=5,pady=5)
         self.fleetnumbercost= Entry(Repairerdataframe,width=20)
         self.fleetnumbercost.grid(row=1,column=5,padx=5,pady=5)
-        self.fleetnumbercost.insert(0,Fleet_details)
+        if lastapproval_details is not None:
+           self.fleetnumbercostvalue= lastapproval_details.get('Fleet_No')
+        else:
+           self.fleetnumbercostvalue= None
+        self.fleetnumbercost.insert(0,self.fleetnumbercostvalue if self.fleetnumbercostvalue is not None else "")
         self.attach_context_menu(self.fleetnumbercost)
 
         #Creating a Label and Entry for Odometer
-        Ododetails=self.Odo.get()
         Odometer= Label(Repairerdataframe,text="Odometer:")
         Odometer.grid(row=2,column=0,padx=5,pady=5)
         self.Odometerentryp= ttk.Entry(Repairerdataframe,width= 20)
         self.Odometerentryp.grid(row=2,column=1,padx=5,pady=5,sticky="w")
-        self.Odometerentryp.insert(0,Ododetails)
+        if lastapproval_details is not None:
+           self.Odometerentrypvalue= lastapproval_details.get('Odometer')
+        else:
+           self.Odometerentrypvalue= None
+        self.Odometerentryp.insert(0,self.Odometerentrypvalue if self.Odometerentrypvalue is not None else "")
         self.attach_context_menu(self.Odometerentryp)
         self.Odometerentryp.state(['disabled'])
 
@@ -2500,12 +2548,22 @@ class KerridgeReplacement:
         Repaired.grid(row=2, column=2,padx=5,pady=5)
         self.Repairedentryp= DateEntry(Repairerdataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
         self.Repairedentryp.grid(row=2, column=3,padx=5,pady=5,sticky='w')
+        if lastapproval_details:
+           self.Repairedentrypvalue=lastapproval_details.get('Repaired')
+        else:
+           self.Repairedentrypvalue= None
+        self.Repairedentryp.set_date(self.Repairedentrypvalue if self.Repairedentrypvalue is not None else None)
         self.attach_context_menu(self.Repairedentryp)
 
         Order_Category= Label(Repairerdataframe,text="Order_Category")
         Order_Category.grid(row=2,column=4,padx=5,pady=5,sticky='w')
         self.Order_cat= Entry(Repairerdataframe,width=20)
         self.Order_cat.grid(row=2,column=5,padx=5,pady=5,sticky='w')
+        if lastapproval_details is not None:
+           self.Order_catvalue=lastapproval_details.get('Order_Category')
+        else:
+           self.Order_catovalue = None
+        self.Order_cat.insert(0, self.Order_catvalue if self.Order_catvalue is not None else"")
         self.attach_context_menu(self.Order_cat)
 
         #Creating fields for the Invoice details dataframe
@@ -2514,18 +2572,33 @@ class KerridgeReplacement:
         Customer_Po.grid(row=0,column=0,padx=5,pady=5,sticky='w')
         self.Customer_Ponum= Entry(Invoicedataframe,width=20)
         self.Customer_Ponum.grid(row=0,column=1,padx=5,pady=5,sticky='w')
+        if lastapproval_details is not None:
+           self.Customer_Ponumvalue= lastapproval_details.get('Customer_PO')
+        else:
+           self.Customer_Ponumvalue= None
+        self.Customer_Ponum.insert(0,self.Customer_Ponumvalue if self.Customer_Ponumvalue is not None else"")
         self.attach_context_menu(self.Customer_Ponum)
 
         kofax= Label(Invoicedataframe,text="Kofax Scan_No:")
         kofax.grid(row=0,column=2,padx=5,pady=5,sticky='w')
         self.Kofaxno= Entry(Invoicedataframe,width=20)
         self.Kofaxno.grid(row=0,column=3,padx=5,pady=5,sticky='w')
+        if lastapproval_details is not None:
+           self.Kofaxnovalue= lastapproval_details.get('Kofax_Scan_No')
+        else:
+           self.Kofaxnovalue= None
+        self.Kofaxno.insert(0,self.Kofaxnovalue if self.Kofaxnovalue is not None else"")
         self.attach_context_menu(self.Kofaxno)
 
         Igloo= Label(Invoicedataframe,text="Igloo Invoice_No:")
         Igloo.grid(row=0,column=4,padx=5,pady=5,sticky='w')
         self.Igloono= Entry(Invoicedataframe,width=20)
         self.Igloono.grid(row=0,column=5,padx=5,pady=5,sticky='w')
+        if lastapproval_details is not None:
+           self.Igloonovalue=lastapproval_details.get('Igloo_Invoice_No')
+        else:
+           self.Igloonovalue=None
+        self.Igloono.insert(0,self.Igloonovalue if self.Igloonovalue is not None else"")
         self.attach_context_menu(self.Igloono)
 
         Table= Frame(self.purchasehistory, bd=3,relief=tk.RIDGE)
@@ -2581,8 +2654,7 @@ class KerridgeReplacement:
         Invoice_details_button = tk.Button(Addcostline, text="Add Costline",command=self.add_costline)
         Invoice_details_button.pack(side=tk.RIGHT, padx=1, pady=2)
 
-        #Delete_details_button = tk.Button(Addcostline, text="Delete Costline", command=self.delete_costline)
-        #Delete_details_button.pack(side=tk.RIGHT, padx=1, pady=2)
+      
 
         ##############----###########Creating Entries for Maintainence Control####################
 
@@ -2631,6 +2703,19 @@ class KerridgeReplacement:
         self.Customerentryp.grid(row=0, column=3, padx=5, pady=5)
         self.Customerentryp.insert(0,Customer_name)
         self.attach_context_menu(self.Customerentryp)
+    def add_new_po(self):
+     # Generate a new purchase order number
+     self.Approvalentryp.state(['!disabled'])
+
+     new_po_number = KBACKEND.generate_purchase_order_number()
+
+     # Clear the existing number in self.Approvalentryp
+     self.Approvalentryp.delete(0, tk.END)
+
+     # Insert the new purchase order number
+     self.Approvalentryp.insert(0, new_po_number)
+
+     self.Approvalentryp.state(['disabled'])
 
     def filter_supplier_list_three(self, event):
         # Function to filter supplier list based on user input
@@ -2644,9 +2729,28 @@ class KerridgeReplacement:
 
        
     def add_costline(self):
-     
      self.save_the_purchase_information()
-        
+     
+    
+     approval_number = self.Approvalentryp.get()
+
+     fetch_incidentnumber = KBACKEND.fetching_selected_approvaldetails(approval_number)
+    
+     if fetch_incidentnumber is not None:
+        incidentnumber = fetch_incidentnumber.get('Incident_Link')
+        print(f"Fetched Incident Number: '{incidentnumber}'")  # Debugging print
+    
+     numberentry = self.Numberentry.get()
+     print(f"Number Entry: '{numberentry}'")  # Debugging print
+    
+     
+      # Ensure both values are strings and strip any whitespace
+     if str(incidentnumber).strip() == str(numberentry).strip():
+        self.open_costlines_to_create()
+     else:
+        messagebox.showwarning("Warning", "The current incident is not linked with the selected PO Number")
+
+    def open_costlines_to_create(self): 
         # Add a new row with default values
      self.costline_window = tk.Toplevel(self.root)
      self.costline_window.title("Cost Line Form")
@@ -2997,6 +3101,7 @@ class KerridgeReplacement:
      self.Labour_Rate.delete(0, tk.END)
      self.Labour_Rate.insert(0, "{:.2f}".format(labour_rate))
      self.Labour_Hours.bind("<KeyRelease>", self.calculate_labour_cost_for_pp_holding)
+     self.Labour_Rate.bind("<KeyRelease>", self.calculate_labour_cost_for_pp_holding)
      self.original_labour_uplift_percentage = 0.0
      self.calculate_labour_cost_for_pp_holding()
 
@@ -3654,9 +3759,12 @@ class KerridgeReplacement:
        Notes=self.notescost.get("1.0", tk.END)
        Recharge_text= self.rechargecost.get("1.0", tk.END)
 
+       Supplier_Name=self.Repairerentryp.get()
+
        KBACKEND.store_cost_lines(PO_Number,bothdateandtime,Added_By,PF_Depot,Parts_Cost,Labour_Hours,Labour_Rate,
                             Labour_cost,Parts_Uplift,Labour_Uplift,Recharge_parts,Recharge_cost,Recharge_invoiced,combined_datetime,
-                                 Notes,Recharge_text,type_id,Category_id,Product_id)
+                                 Notes,Recharge_text,type_id,Category_id,Product_id,Supplier_Name)
+       self.costline_window.destroy()
        
        self.Table_treep.delete(*self.Table_treep.get_children())
 
@@ -3673,8 +3781,7 @@ class KerridgeReplacement:
              Labour= incident.get("Labour_Cost")
              Total_Cost= Parts+ Labour
              Rechargep= incident.get("Recharge_parts")
-             Rechargel= incident.get("Recharge_labour")
-             Totalrecharge= Rechargep+ Rechargel
+             Rechargel= incident.get("Recharge_labour")     
 
 
              self.Table_treep.insert("", "end", values=(Rts,Rtsd,Product,Parts,Labour,Total_Cost,Rechargep,Rechargel,Totalrecharge))
@@ -3727,6 +3834,8 @@ class KerridgeReplacement:
           self.exit_the_purchaseorders()
        if index==2:
           self.save_the_purchase_information()
+       if index==3:
+          self.add_new_ponumberfirst()
     
     def exit_the_purchaseorders(self):
        self.purchasehistory.destroy()
@@ -3770,6 +3879,46 @@ class KerridgeReplacement:
 
         KBACKEND.store_the_purchase_orderinfo(PO_Number,i_number,combined_datetime,Created_By,Supplier_No,
                                               Order_Category,Fleet_No,Odometer,Customer_PO,Kofax_Scan,Igloo_invoice,Supplier_Name,Repaired_Datetime)
+    def add_new_ponumberfirst(self):
+       self.Repairerentryp.delete(0,"end")
+       self.Accountentryp.delete(0,"end")
+       self.Approvalentryp.state(['!disabled'])
+       self.Approvalentryp.delete(0,"end")
+       self.Issuedentryp.delete(0,"end")
+       self.Po_createdby.state(['!disabled'])
+       self.Po_createdby.delete(0,"end")
+       self.fleetnumbercost.delete(0,"end")
+       self.Odometerentryp.state(['!disabled'])
+       self.Odometerentryp.delete(0,"end")
+       self.Repairedentryp.delete(0,"end")
+       self.Order_cat.delete(0,"end")
+       self.Customer_Ponum.delete(0,"end")
+       self.Kofaxno.delete(0,"end")
+       self.Igloono.delete(0,"end")
+
+       self.Repairerentryp.insert(0,"")
+       self.Accountentryp.insert(0,"")
+       Approval_number=KBACKEND.generate_purchase_order_number()
+       self.Approvalentryp.insert(0,Approval_number)
+       self.Approvalentryp.state(['disabled'])
+       current_date = datetime.now().strftime("%d/%m/%Y")
+       self.Issuedentryp.set_date(current_date)
+       current_user=getuser()
+       self.Po_createdby.insert(0,current_user)
+       self.Po_createdby.state(['disabled'])
+       fleet_no=self.Fleet_entry.get()
+       self.fleetnumbercost.insert(0,fleet_no)
+       Odo=self.Odo.get()
+       self.Odometerentryp.insert(0,Odo)
+       self.Odometerentryp.state(['disabled'])
+       self.Repairedentryp.set_date(current_date)
+       self.Order_cat.insert(0,"")
+       self.Customer_Ponum.insert(0,"")
+       self.Kofaxno.insert(0,"")
+       self.Igloono.insert(0,"")
+
+       self.Table_treep.delete(*self.Table_treep.get_children())
+
     
     def onclick_for_purchaseorder_table(self,event):
        item = self.costlinestable.identify_row(event.y)
@@ -3799,63 +3948,65 @@ class KerridgeReplacement:
        
        if costline_details:
        
-        self.open_costlines_for_purchaseorder_number(costline_details)
+        self.open_costlines_for_purchaseorder_number(costline_details,approval_number)
        
        else:
         print("NO DETAILS FOUND")
     
-    def open_costlines_for_purchaseorder_number(self,costline_details):
-        self.tablewindow = tk.Toplevel(self.root)
-        self.tablewindow.title("Cost lines for the PO Number")
-        self.tablewindow.geometry("800x400") 
-        self.tablewindow.resizable(False,False)
+    def open_costlines_for_purchaseorder_number(self,costline_details,approval_number):
+        fetch_details=KBACKEND.fetching_selected_approvaldetails(approval_number)
+        if fetch_details:
+           
+           self.Repairerentryp.delete(0, "end")
+           self.Accountentryp.delete(0,"end")
+           self.Approvalentryp.state(['!disabled'])
+           self.Approvalentryp.delete(0,"end")
+           self.Issuedentryp.delete(0,"end")
+           self.Po_createdby.delete(0,"end")
+           self.fleetnumbercost.delete(0,"end")
+           self.Odometerentryp.delete(0,"end")
+           self.Repairedentryp.delete(0,"end")
+           self.Order_cat.delete(0,"end")
+           self.Customer_Ponum.delete(0,"end")
+           self.Kofaxno.delete(0,"end")
+           self.Igloono.delete(0,"end")
+           
+           Repairervalue=fetch_details.get('Supplier_Name')
+           self.Repairerentryp.insert(0, Repairervalue if Repairervalue is not None else "")
+           Accountvalue= fetch_details.get('Supplier_No')
+           self.Accountentryp.insert(0,Accountvalue if Accountvalue is not None else"")
+           Approvalvalue= fetch_details.get('PO_Number')
+           self.Approvalentryp.insert(0,Approvalvalue if Approvalvalue is not None else"")
+           self.Approvalentryp.state(['disabled'])
+           Issuedvalue= fetch_details.get('PO_Created')
+           self.Issuedentryp.set_date(Issuedvalue if Issuedvalue is not None else None)
+           Po_createdvalue=fetch_details.get('Created_By')#current_user= getuser()
+           self.Po_createdby.insert(0,Po_createdvalue if Po_createdvalue is not None else "")
+           fleetvalue=fetch_details.get('Fleet_No')
+           self.fleetnumbercost.insert(0,fleetvalue if fleetvalue is not None else"")
+           Odometervalue= fetch_details.get('Odometer')
+           self.Odometerentryp.insert(0,Odometervalue if Odometervalue is not None else"")
 
-        dataframe = Label(self.tablewindow, bd=3, relief=tk.RIDGE)
-        dataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
-        dataframe.place(x=0, y=29, width=780, height=180) 
+           Repairervaluep= fetch_details.get('Repaired') 
+           if Repairervalue is not None:
+               self.Repairedentryp.set_date(Repairervaluep)
+           else:
+               self.Repairedentryp.set_date(None)
 
-        scrollbar_x = ttk.Scrollbar(dataframe, orient=HORIZONTAL)
-        scrollbar_y = ttk.Scrollbar(dataframe, orient=VERTICAL)
+           Categoryvalue=fetch_details.get('Order_Category')
+           self.Order_cat.insert(0,Categoryvalue if Categoryvalue is not None else"")
 
-        self.Table_treepwindow = ttk.Treeview(dataframe, columns=("Types", "Category","Products", "Parts_Cost", "Labour_Cost", "Total_Cost", "Rech_Parts","Rech_Labour" ,"Total_Recharge"),
-                                       xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set,selectmode="browse")
-        
-        self.Table_treepwindow.configure(xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set)
+            
+           Customervalue=fetch_details.get('Customer_PO')
+           self.Customer_Ponum.insert(0,Customervalue if Customervalue is not None else"")
 
-        scrollbar_x.config(command=self.Table_treepwindow.xview)
-        scrollbar_y.config(command=self.Table_treepwindow.yview)
+           Kofaxvalue=fetch_details.get('Kofax_Scan_No')
+           self.Kofaxno.insert(0,Kofaxvalue if Kofaxvalue is not None else"")
 
-        
+           Igloovalue=fetch_details.get('Igloo_Invoice_No')
+           self.Igloono.insert(0,Igloovalue if Igloovalue is not None else"")
 
-        self.Table_treepwindow.heading("Types", text="Types")
-        self.Table_treepwindow.heading("Category", text="Category")
-        self.Table_treepwindow.heading("Products", text="Products")
-        self.Table_treepwindow.heading("Parts_Cost", text="Parts_Cost")
-        self.Table_treepwindow.heading("Labour_Cost", text="Labour_Cost")
-        self.Table_treepwindow.heading("Total_Cost",text="Total_Cost")
-        self.Table_treepwindow.heading("Rech_Parts", text="Rech_Parts")
-        self.Table_treepwindow.heading("Rech_Labour", text="Rech_Labour")
-        self.Table_treepwindow.heading("Total_Recharge", text="Total_Recharge")
-
-        self.Table_treepwindow["show"] = "headings"
-    
-        self.Table_treepwindow.column("Types", width=90)
-        self.Table_treepwindow.column("Category", width=90)
-        self.Table_treepwindow.column("Products", width=90)
-        self.Table_treepwindow.column("Parts_Cost", width=90)
-        self.Table_treepwindow.column("Labour_Cost", width=90)
-        self.Table_treepwindow.column("Total_Cost", width=90)
-        self.Table_treepwindow.column("Rech_Parts", width=90)
-        self.Table_treepwindow.column("Rech_Labour", width=90)
-        self.Table_treepwindow.column("Total_Recharge", width=90)
-
-        # Pack the scrollbars
-        scrollbar_y.pack(side=RIGHT, fill=Y)
-        scrollbar_x.pack(side=BOTTOM, fill=X)
-        # Pack the Treeview widget
-        self.Table_treepwindow.pack(fill="both", expand=True)
-
-        self.Table_treepwindow.delete(*self.Table_treepwindow.get_children())
+        self.Table_treep.delete(*self.Table_treep.get_children())
         if costline_details:
          for incident in costline_details:
              Rts= incident.get("RTS_code")
@@ -3868,7 +4019,7 @@ class KerridgeReplacement:
              Rechargel= incident.get("Recharge_labour")
              Totalrecharge= Rechargep+ Rechargel
 
-             self.Table_treepwindow.insert("", "end", values=(Rts,Rtsd,Product,Parts,Labour,Total_Cost,Rechargep,Rechargel,Totalrecharge))
+             self.Table_treep.insert("", "end", values=(Rts,Rtsd,Product,Parts,Labour,Total_Cost,Rechargep,Rechargel,Totalrecharge))
         else:
            print("NO DETAILS FOUND")
 
@@ -4253,15 +4404,17 @@ class KerridgeReplacement:
      Reg_no = tk.Label(firstdataframe, text="Registration No:")
      Reg_no.grid(row=0, column=0)
     
-     self.reistrationentry = tk.Entry(firstdataframe, width=15)
+     self.reistrationentry = ttk.Entry(firstdataframe, width=15)
      self.reistrationentry.insert(0, incident_details.get('Registration', ''))
      self.reistrationentry.grid(row=0, column=1)
+     self.reistrationentry.state(['disabled'])
      self.attach_context_menu(self.reistrationentry)
 
       #Creating an Entry for page 2
-     self.Make_Mod = Entry(firstdataframe, width=30)
+     self.Make_Mod = ttk.Entry(firstdataframe, width=30)
      self.Make_Mod.insert(0,additional_details.get('Make_Mod'))
      self.Make_Mod.grid(row=0, column=2,padx=70)
+     self.Make_Mod.state(['disabled'])
      self.attach_context_menu(self.Make_Mod)
 
      self.lb3one = Label(firstdataframe, text="Driver name:",fg="Red")
@@ -4280,11 +4433,12 @@ class KerridgeReplacement:
      #Creating a Label and Entry for Fleet No:
      Fleett_No=Label(firstdataframe, text="Fleet No:")
      Fleett_No.grid(row=1, column=0,pady=6)
-     self.fleett=Entry(firstdataframe,width=15)
+     self.fleett=ttk.Entry(firstdataframe,width=15)
      self.fleett.grid(row=1,column=1)
      self.attach_context_menu(self.fleett)
      self.fleettvalue=additional_details.get('fleet_no')
      self.fleett.insert(0,self.fleettvalue if self.fleettvalue is not None else"")
+     self.fleett.state(['disabled'])
      
      self.view_fleett = Button(firstdataframe, text="View fleet info",width=12,command=self.open_fleet_infotwo)
      self.view_fleett.grid(row=2, column=0,padx=20)
@@ -4305,10 +4459,8 @@ class KerridgeReplacement:
 
      # Set the state of the Checkbutton based on the retrieved value
      self.vehiclevar.set(self.vehiclevalue)
-     #Creating another Entry for page 2
-     self.empty = Entry(firstdataframe, width=30)
-     self.empty.grid(row=1, column=2,padx=80)
-     self.attach_context_menu(self.empty)
+    
+   
 
      #Creating a Label and Entry for Driver Phone:
 
@@ -4563,7 +4715,7 @@ class KerridgeReplacement:
      self.LolEntryyvalue=incident_details.get('Loca')
      self.LolEntryy.insert(0,self.LolEntryyvalue if self.LolEntryyvalue is not None else"")
      self.LolEntryy.bind("<<ComboboxSelected>>", self.on_location_selectedone)
-     self.on_location_selectedone()
+     #self.on_location_selectedone()
 
      Chartype= Label(ThirdDataframe, text="Recharge *:",fg="red")
      Chartype.grid(row=3,column=0,padx=5,pady=2)
@@ -4601,21 +4753,21 @@ class KerridgeReplacement:
      self.StatussEntryy.bind('<<ComboboxSelected>>', self.on_status_selectedone)
      self.on_status_selectedone()
 
-     Attendance_Deff= Label(ThirdDataframe, text="Attendance_Deferred")
-     Attendance_Deff.grid(row=6,column=0)
+     self.Attendance_Deffone= Label(ThirdDataframe, text="Attendance_Deferred")
+     #self.Attendance_Deff.grid(row=6,column=0)
      self.attendance_vari=tk.BooleanVar()
      self.AttendanceEntryy= ttk.Checkbutton(ThirdDataframe, variable=self.attendance_vari)
-     self.AttendanceEntryy.grid(row=6, column=1, sticky='w')
+     #self.AttendanceEntryy.grid(row=6, column=1, sticky='w')
      self.attach_context_menu(self.AttendanceEntryy)
      self.AttendanceEntryvalue= incident_details.get('Attendance',0)
      
      self.AttendanceEntryvalue=bool(self.AttendanceEntryvalue)
      self.attendance_vari.set(self.AttendanceEntryvalue)
      
-     Deffered = Label(ThirdDataframe, text='Deferred To')
-     Deffered.grid(row=7, column=0, padx=2, sticky='w')
+     self.Deffered = Label(ThirdDataframe, text='Deferred To')
+     #self.Deffered.grid(row=7, column=0, padx=2, sticky='w')
      self.Deferred_Too = DateEntry(ThirdDataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-     self.Deferred_Too.grid(row=7, column=1, padx=2, sticky='w')
+     #self.Deferred_Too.grid(row=7, column=1, padx=2, sticky='w')
      self.attach_context_menu(self.Deferred_Too)
      self.Deferred_Tovalue= incident_details.get('Deferred')
      if self.Deferred_Tovalue is not None:
@@ -4624,10 +4776,10 @@ class KerridgeReplacement:
           self.Deferred_Tovaluedate=None
      self.Deferred_Too.set_date(self.Deferred_Tovaluedate)
 
-     Deff_time=Label(ThirdDataframe,text='Deferred To Time')
-     Deff_time.grid(row=8,column=0,padx=2, sticky='w')
+     self.Deff_timeee=Label(ThirdDataframe,text='Deferred To Time')
+     #self.Deff_time.grid(row=8,column=0,padx=2, sticky='w')
      self.Deferred_Timetwo= Entry(ThirdDataframe,width=15)
-     self.Deferred_Timetwo.grid(row=8,column=1,sticky='w')
+     #self.Deferred_Timetwo.grid(row=8,column=1,sticky='w')
      self.Deferred_Timetwovalue=incident_details.get('Deferred')
      current_time= datetime.now().strftime("%H:%M")
      if self.Deferred_Timetwovalue is not None:
@@ -4649,7 +4801,8 @@ class KerridgeReplacement:
      self.whatt= tk.Button(ThirdDataframe, text="View map", width=12,command=self.open_what_maptwo)
      self.whatt.grid(row=8, column=4, columnspan=2, pady=5)
      self.whatt_url = "https://what3words.com"
-
+     
+     self.on_location_selectedone()
      
      #Creating Frame for Supplier details
      Fourthdataframe=LabelFrame(self.mainn_page,bd=3,relief=tk.RIDGE,text="Supplier Details")
@@ -5040,12 +5193,24 @@ class KerridgeReplacement:
         self.Driverrentry.grid(row=0, column=4)
         self.lb3phoneone.grid(row=1, column=3)
         self.Driverrphone.grid(row=1, column=4)
+        self.Attendance_Deffone.grid_remove()
+        self.AttendanceEntryy.grid_remove()
+        self.Deff_timeee.grid_remove()
+        self.Deferred_Timetwo.grid_remove()
+        self.Deffered.grid_remove()
+        self.Deferred_Too.grid_forget()
 
     def hide_driver_fields(self):
         self.lb3one.grid_remove()
         self.Driverrentry.grid_remove()
         self.lb3phoneone.grid_remove()
         self.Driverrphone.grid_remove()
+        self.Attendance_Deffone.grid(row=6,column=0)
+        self.AttendanceEntryy.grid(row=6, column=1, sticky='w')
+        self.Deff_timeee.grid(row=8,column=0,padx=2, sticky='w')
+        self.Deferred_Timetwo.grid(row=8,column=1,sticky='w')
+        self.Deffered.grid(row=7, column=0, padx=2, sticky='w')
+        self.Deferred_Too.grid(row=7, column=1, padx=2, sticky='w')
 
     #def on_location_selectedone(self, event):
         #selected_location = self.LolEntryy.get()
@@ -5401,7 +5566,7 @@ class KerridgeReplacement:
         icon_box = tk.Frame(self.purchasehistoryone, relief=tk.RIDGE, borderwidth=3)
         icon_box.pack(side=tk.TOP, padx=8, pady=2, anchor="nw")  # Start from left corner
 
-        image_paths = ["icon 18.png", "icon 19.png"]
+        image_paths = ["icon 18.png", "icon 19.png","newicon.png"]
         for idpurcost, path in enumerate(image_paths, start=1):
             image = Image.open(path)
             image = image.resize((15, 15), Image.BILINEAR)  # Change to Image.LANCZOS if preferred
@@ -5530,19 +5695,22 @@ class KerridgeReplacement:
         Invoicedataframe.place(x=0, y=0, width=765, height=100)
 
 
-        incident_number=self.Numberentryy.get()
+        Reg_Number=self.reistrationentry.get()
 
-        purchase_details= KBACKEND.insert_purchase_details(incident_number)
+        purchase_details= KBACKEND.insert_purchase_details(Reg_Number)
 
         #Creating a label and combobox entry for Repairer 
         sup=KBACKEND.fetch_supplier_details()
         self.supplierpname = [row[1] for row in sup]
         Repairer= Label(Repairerdataframe, text="Supplier Name:")
         Repairer.grid(row=0,column=0,padx=5,pady=5)
-        insert_supplier=self.Contactentryy.get()
         self.Repairerentrypone= ttk.Combobox(Repairerdataframe,values=self.supplierpname,width=20)
         self.Repairerentrypone.grid(row=0,column=1,sticky="w",padx=5,pady=5)
-        self.Repairerentrypone.insert(0, insert_supplier if insert_supplier is not None else "")
+        if purchase_details is not None:
+           self.Repairerentryponevaluesup= purchase_details.get('Supplier_Name')
+        else:
+           self.Repairerentryponevaluesup=None
+        self.Repairerentrypone.insert(0, self.Repairerentryponevaluesup if self.Repairerentryponevaluesup is not None else "")
         self.attach_context_menu(self.Repairerentrypone)
         self.Repairerentrypone.bind("<KeyRelease>", self.filter_supplier_list_four)
         self.Repairerentrypone.bind("<<ComboboxSelected>>", self.populate_supplier_detailspinsert)
@@ -5551,6 +5719,11 @@ class KerridgeReplacement:
         Account.grid(row=0,column=2,padx=5,pady=5)
         self.Accountentrypone= ttk.Entry(Repairerdataframe,width=20)
         self.Accountentrypone.grid(row=0,column=3,sticky="w",padx=5,pady=5)
+        if purchase_details is not None:
+           self.Accountentryponevalue=purchase_details.get('Supplier_No')
+        else:
+           self.Accountentryponevalue=None
+        self.Accountentrypone.insert(0,self.Accountentryponevalue if self.Accountentryponevalue is not None else"")
         self.attach_context_menu(self.Accountentrypone)
         self.populate_supplier_detailspinsert()
 
@@ -5558,12 +5731,11 @@ class KerridgeReplacement:
         Approval.grid(row=0,column=4,padx=5,pady=5)
         self.Approvalentrypone= ttk.Entry(Repairerdataframe,width= 20)
         self.Approvalentrypone.grid(row=0,column=5,sticky="w",padx=5,pady=3)
-        Approval_Number= KBACKEND.generate_purchase_order_number()
         if purchase_details is not None:
            self.Approvalentryponevalue= purchase_details.get('PO_Number')
         else:
            self.Approvalentryponevalue= None
-        self.Approvalentrypone.insert(0,self.Approvalentryponevalue if self.Approvalentryponevalue is not None else Approval_Number)
+        self.Approvalentrypone.insert(0,self.Approvalentryponevalue if self.Approvalentryponevalue is not None else "")
         self.attach_context_menu(self.Approvalentrypone)
         self.Approvalentrypone.state(['disabled'])
 
@@ -5623,22 +5795,13 @@ class KerridgeReplacement:
         Repaired.grid(row=2, column=2,padx=5,pady=5)
         self.Repairedentrypone= DateEntry(Repairerdataframe, width=10, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
         self.Repairedentrypone.grid(row=2, column=3,padx=5,pady=5,sticky='w')
-        self.Repairerentryponevalue = purchase_details.get('Purchase_Date') if purchase_details else None
-
-        # Convert the date string to a datetime object if it is not empty
-        try:
-         if self.Repairerentryponevalue:
-          self.Repairerentryponevalue = datetime.strptime(self.Repairerentryponevalue, "%Y-%m-%d").date()
-         else:
-          self.Repairerentryponevalue = None
-        except ValueError:
-         self.Repairerentryponevalue = None  # or handle the error as needed
-
-        # Set the date in the DateEntry widget
-        if self.Repairerentryponevalue:
-         self.Repairedentrypone.set_date(self.Repairerentryponevalue)
+        if purchase_details is not None:
+         self.Repairedentryponevalue = purchase_details.get('Repaired') 
         else:
-         self.Repairedentrypone.set_date(None)
+           self.Repairedentryponevalue= None
+        self.Repairedentrypone.set_date(self.Repairedentryponevalue if self.Repairedentryponevalue is not None else None)
+        
+        
 
         Order_Category= Label(Repairerdataframe,text="Order_Category")
         Order_Category.grid(row=2,column=4,padx=5,pady=5,sticky='w')
@@ -5792,6 +5955,25 @@ class KerridgeReplacement:
 
     def add_costline_two(self):
      self.update_the_information()
+     
+     approval_number = self.Approvalentrypone.get()
+
+     fetch_incidentnumber = KBACKEND.fetching_selected_approvaldetails(approval_number)
+    
+     if fetch_incidentnumber is not None:
+        incidentnumber = fetch_incidentnumber.get('Incident_Link')
+        print(f"Fetched Incident Number: '{incidentnumber}'")  # Debugging print
+    
+     numberentry = self.Numberentryy.get()
+     print(f"Number Entry: '{numberentry}'")  # Debugging print
+    
+     
+      # Ensure both values are strings and strip any whitespace
+     if str(incidentnumber).strip() == str(numberentry).strip():
+        self.open_costlines_to_createtwo()
+     else:
+        messagebox.showwarning("Warning", "The current incident is not linked with the selected PO Number")
+    def open_costlines_to_createtwo(self):
      self.costline_windowone = tk.Toplevel(self.root)
      self.costline_windowone.title("Cost Line Form")
      self.costline_windowone.geometry("800x620") 
@@ -6126,6 +6308,7 @@ class KerridgeReplacement:
      self.Labour_Rateone.delete(0, tk.END)
      self.Labour_Rateone.insert(0, "{:.2f}".format(labour_rate))
      self.Labour_Hoursone.bind("<KeyRelease>", self.calculate_labour_cost_for_pp_holdingone)
+     self.Labour_Rateone.bind("<KeyRelease>", self.calculate_labour_cost_for_pp_holdingone)
      self.original_labour_uplift_percentageone = 0.0
      self.calculate_labour_cost_for_pp_holdingone()
     
@@ -6336,6 +6519,8 @@ class KerridgeReplacement:
           self.Close_the_purchase_window()
        if index==2:
           self.update_the_information()
+       if index==3:
+          self.add_new_ponumber()
     
     def Close_the_purchase_window(self):
        self.purchasehistoryone.destroy()
@@ -6378,7 +6563,47 @@ class KerridgeReplacement:
         Repaired_Datetime= datetime.combine(Repaired_Date,Time)
 
         KBACKEND.update_the_purchase_orderinfo(PO_Number,i_number,combined_datetime,Created_By,Supplier_No,
-                                              Order_Category,Fleet_No,Odometer,Customer_PO,Kofax_Scan,Igloo_invoice,Supplier_Name,Repaired_Datetime)        
+                                             Order_Category,Fleet_No,Odometer,Customer_PO,Kofax_Scan,Igloo_invoice,Supplier_Name,Repaired_Datetime)        
+    def add_new_ponumber(self):
+       self.Repairerentrypone.delete(0,"end")
+       self.Accountentrypone.delete(0,"end")
+       self.Approvalentrypone.state(['!disabled'])
+       self.Approvalentrypone.delete(0,"end")
+       self.Issuedentrypone.delete(0,"end")
+       self.Po_createdbyone.state(['!disabled'])
+       self.Po_createdbyone.delete(0,"end")
+       self.fleetnumbercostone.delete(0,"end")
+       self.Odometerentrypone.state(['!disabled'])
+       self.Odometerentrypone.delete(0,"end")
+       self.Repairedentrypone.delete(0,"end")
+       self.Order_catone.delete(0,"end")
+       self.Customer_Ponumone.delete(0,"end")
+       self.Kofaxnoone.delete(0,"end")
+       self.Igloonoone.delete(0,"end")
+
+       self.Repairerentrypone.insert(0,"")
+       self.Accountentrypone.insert(0,"")
+       Approval_number=KBACKEND.generate_purchase_order_number()
+       self.Approvalentrypone.insert(0,Approval_number)
+       self.Approvalentrypone.state(['disabled'])
+       current_date = datetime.now().strftime("%d/%m/%Y")
+       self.Issuedentrypone.set_date(current_date)
+       current_user=getuser()
+       self.Po_createdbyone.insert(0,current_user)
+       self.Po_createdbyone.state(['disabled'])
+       fleet_no=self.fleett.get()
+       self.fleetnumbercostone.insert(0,fleet_no)
+       Odo=self.Odoentry.get()
+       self.Odometerentrypone.insert(0,Odo)
+       self.Odometerentrypone.state(['disabled'])
+       self.Repairedentrypone.set_date(current_date)
+       self.Order_catone.insert(0,"")
+       self.Customer_Ponumone.insert(0,"")
+       self.Kofaxnoone.insert(0,"")
+       self.Igloonoone.insert(0,"")
+
+       self.Table_treepone.delete(*self.Table_treepone.get_children())
+
     def costline_icons_two(self,index):
        if index==1:
           self.close_the_costline_window()
@@ -6435,9 +6660,13 @@ class KerridgeReplacement:
        Notes=self.notescostone.get("1.0", tk.END)
        Recharge_text= self.rechargecostone.get("1.0", tk.END)
 
+       Supplier_Name=self.Repairerentrypone.get()
+
        KBACKEND.store_cost_lines_two(PO_Number,bothdateandtime,Added_By,PF_Depot,Parts_Cost,Labour_Hours,
                                  Labour_Rate,Labour_cost,Parts_Uplift,Labour_Uplift,Recharge_parts,Recharge_cost,Recharge_invoiced,combined_datetime,
-                                 Notes,Recharge_text,type_id,Category_id,Product_id)
+                                 Notes,Recharge_text,type_id,Category_id,Product_id,Supplier_Name)
+       
+       self.costline_windowone.destroy()
        
        self.Table_treepone.delete(*self.Table_treepone.get_children())
 
@@ -6516,61 +6745,64 @@ class KerridgeReplacement:
        
        if costline_details:
        
-        self.open_costlines_for_purchaseorder_numberone(costline_details) 
+        self.open_costlines_for_purchaseorder_numberone(costline_details,approval_number) 
        else:
         print("NO DETAILS FOUND")
-    def open_costlines_for_purchaseorder_numberone(self,costline_details):
-        self.tablewindowone = tk.Toplevel(self.root)
-        self.tablewindowone.title("Cost lines for the PO Number")
-        self.tablewindowone.geometry("800x400") 
-        self.tablewindowone.resizable(False,False)
+    def open_costlines_for_purchaseorder_numberone(self,costline_details,approval_number):
+        fetch_details=KBACKEND.fetching_selected_approvaldetails(approval_number)
+        if fetch_details:
+           
+           self.Repairerentrypone.delete(0, "end")
+           self.Accountentrypone.delete(0,"end")
+           self.Approvalentrypone.state(['!disabled'])
+           self.Approvalentrypone.delete(0,"end")
+           self.Issuedentrypone.delete(0,"end")
+           self.Po_createdbyone.delete(0,"end")
+           self.fleetnumbercostone.delete(0,"end")
+           self.Odometerentrypone.delete(0,"end")
+           self.Repairedentrypone.delete(0,"end")
+           self.Order_catone.delete(0,"end")
+           self.Customer_Ponumone.delete(0,"end")
+           self.Kofaxnoone.delete(0,"end")
+           self.Igloonoone.delete(0,"end")
+           
+           Repairervalue=fetch_details.get('Supplier_Name')
+           self.Repairerentrypone.insert(0, Repairervalue if Repairervalue is not None else "")
+           Accountvalue= fetch_details.get('Supplier_No')
+           self.Accountentrypone.insert(0,Accountvalue if Accountvalue is not None else"")
+           Approvalvalue= fetch_details.get('PO_Number')
+           self.Approvalentrypone.insert(0,Approvalvalue if Approvalvalue is not None else"")
+           self.Approvalentrypone.state(['disabled'])
+           Issuedvalue= fetch_details.get('PO_Created')
+           self.Issuedentrypone.set_date(Issuedvalue if Issuedvalue is not None else None)
+           Po_createdvalue=fetch_details.get('Created_By')#current_user= getuser()
+           self.Po_createdbyone.insert(0,Po_createdvalue if Po_createdvalue is not None else "")
+           fleetvalue=fetch_details.get('Fleet_No')
+           self.fleetnumbercostone.insert(0,fleetvalue if fleetvalue is not None else"")
+           Odometervalue= fetch_details.get('Odometer')
+           self.Odometerentrypone.insert(0,Odometervalue if Odometervalue is not None else"")
 
-        dataframe = Label(self.tablewindowone, bd=3, relief=tk.RIDGE)
-        dataframe.pack(side=tk.TOP, padx=8, pady=3, anchor="nw")  # Start from left corner
-        dataframe.place(x=0, y=29, width=780, height=180) 
+           Repairervaluep= fetch_details.get('Repaired') 
+           if Repairervalue is not None:
+               self.Repairedentrypone.set_date(Repairervaluep)
+           else:
+               self.Repairedentrypone.set_date(None)
 
-        scrollbar_x = ttk.Scrollbar(dataframe, orient=HORIZONTAL)
-        scrollbar_y = ttk.Scrollbar(dataframe, orient=VERTICAL)
+           Categoryvalue=fetch_details.get('Order_Category')
+           self.Order_catone.insert(0,Categoryvalue if Categoryvalue is not None else"")
 
-        self.Table_treepwindowone = ttk.Treeview(dataframe, columns=("Types","Category","Products", "Parts_Cost", "Labour_Cost", "Total_Cost", "Rech_Parts","Rech_Labour" ,"Total_Recharge"),
-                                       xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set,selectmode="browse")
+            
+           Customervalue=fetch_details.get('Customer_PO')
+           self.Customer_Ponumone.insert(0,Customervalue if Customervalue is not None else"")
+
+           Kofaxvalue=fetch_details.get('Kofax_Scan_No')
+           self.Kofaxnoone.insert(0,Kofaxvalue if Kofaxvalue is not None else"")
+
+           Igloovalue=fetch_details.get('Igloo_Invoice_No')
+           self.Igloonoone.insert(0,Igloovalue if Igloovalue is not None else"")
         
-        self.Table_treepwindowone.configure(xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set)
 
-        scrollbar_x.config(command=self.Table_treepwindowone.xview)
-        scrollbar_y.config(command=self.Table_treepwindowone.yview)
-
-        
-
-        self.Table_treepwindowone.heading("Types", text="Types")
-        self.Table_treepwindowone.heading("Category", text="Category")
-        self.Table_treepwindowone.heading("Products", text="Products")
-        self.Table_treepwindowone.heading("Parts_Cost", text="Parts_Cost")
-        self.Table_treepwindowone.heading("Labour_Cost", text="Labour_Cost")
-        self.Table_treepwindowone.heading("Total_Cost",text="Total_Cost")
-        self.Table_treepwindowone.heading("Rech_Parts", text="Rech_Parts")
-        self.Table_treepwindowone.heading("Rech_Labour", text="Rech_Labour")
-        self.Table_treepwindowone.heading("Total_Recharge", text="Total_Recharge")
-
-        self.Table_treepwindowone["show"] = "headings"
-    
-        self.Table_treepwindowone.column("Types", width=90)
-        self.Table_treepwindowone.column("Category", width=90)
-        self.Table_treepwindowone.column("Products", width=90)
-        self.Table_treepwindowone.column("Parts_Cost", width=90)
-        self.Table_treepwindowone.column("Labour_Cost", width=90)
-        self.Table_treepwindowone.column("Total_Cost", width=90)
-        self.Table_treepwindowone.column("Rech_Parts", width=90)
-        self.Table_treepwindowone.column("Rech_Labour", width=90)
-        self.Table_treepwindowone.column("Total_Recharge", width=90)
-
-        # Pack the scrollbars
-        scrollbar_y.pack(side=RIGHT, fill=Y)
-        scrollbar_x.pack(side=BOTTOM, fill=X)
-        # Pack the Treeview widget
-        self.Table_treepwindowone.pack(fill="both", expand=True)
-
-        self.Table_treepwindowone.delete(*self.Table_treepwindowone.get_children())
+        self.Table_treepone.delete(*self.Table_treepone.get_children())
         if costline_details:
          for incident in costline_details:
              Rts= incident.get("RTS_code")
@@ -6583,7 +6815,7 @@ class KerridgeReplacement:
              Rechargel= incident.get("Recharge_labour")
              Totalrecharge= Rechargep+ Rechargel
 
-             self.Table_treepwindowone.insert("", "end", values=(Rts,Rtsd,Product,Parts,Labour,Total_Cost,Rechargep,Rechargel,Totalrecharge))
+             self.Table_treepone.insert("", "end", values=(Rts,Rtsd,Product,Parts,Labour,Total_Cost,Rechargep,Rechargel,Totalrecharge))
         else:
            print("NO DETAILS FOUND")
     
