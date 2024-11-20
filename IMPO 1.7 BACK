@@ -1,0 +1,3660 @@
+import pyodbc
+import pandas as pd
+from tkinter import messagebox
+from sqlalchemy import create_engine,inspect
+from datetime import datetime
+
+conn_str1 = (
+        "DRIVER={ODBC Driver 17 for SQL Server};"
+        "SERVER=172.41.0.43\\IMPO_SQL_INST;"
+        "DATABASE=IMPO;"
+        "uid=IMPO_App;"
+        "pwd=s847cn27;"
+        #"Trusted_Connection=yes;"
+) 
+conn = pyodbc.connect(conn_str1)
+print("Connection Successful")
+
+conn_str2=(
+        "DRIVER={ODBC Driver 17 for SQL Server};"
+        "SERVER=S0SQL05\\STAT;"
+        "DATABASE=IGLOO_UK;"
+        "uid=ExcelUK_user;"
+        "pwd=m_UArLN$;"
+        )
+#print(conn_str2)
+conn2= pyodbc.connect(conn_str2)
+print("Connection Successful")
+
+
+import datetime
+
+def store_registration(reg_no, I_number,driver_name,created,combined_datetime,contact_methodd,contactname,
+                       contacttel,contactemail,drivertel,Defect_loc,faultdesc,cat_value_to_store,lol_value_to_store,
+                                 char_value_to_store,stat_value_store,odo,attendance,combined_deferred,what3,fleet,custid,contractno,locat,defectno,supplier_no,vehicle_loaded,
+                                 customer_name,depot_name,InciType_value_to_store,Vor,Customer_Depot):
+    # Connect to the database
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    try:
+        # Check if a record with the same Registration_No already exists
+        cur.execute("SELECT COUNT(*) FROM Incident_Headder WHERE Registration_No = ? AND I_number=?", (reg_no,I_number))
+        record_count = cur.fetchone()[0]
+        current_datetime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        if record_count > 0:
+            # If a record exists, update it
+            cur.execute("""UPDATE Incident_Headder 
+                        SET 
+                        Driver_Name = ? ,
+                        I_Created=?,
+                        Created_BY=?,
+                        Defect_occurred=?,
+                        Contact_Method_ID=?,
+                        Contact_Name=?,
+                        Contact_Tel=?,
+                        Contact_Email=?,
+                        Driver_Tel=?,
+                        Defect_Loc_Address=?,
+                        Reported_Defect=?,
+                        Cat_ID=?,
+                        Location_ID=?,
+                        Charge_ID=?,
+                        Status_ID=?,
+                        Odometer=?,
+                        Attendance_Deferred=?,
+                        Deferred_To=?,
+                        Defect_loc_W3W=?,
+                        Fleet_No=?,
+                        Customer_ID=?,
+                        Customer_Contract_NO=?,
+                        Depot_No=?,
+                        Customer_Defect_NO=?,
+                        Supplier_No=?,
+                        Vehicle_loaded=?,
+                        Customer_Name=?,
+                        Depot_Name=?,
+                        Inc_Type_ID=?,
+                        VOR_INFO=?,
+                        Customer_Depot=?
+                        WHERE Registration_No = ? AND I_Number=?""", 
+                        (driver_name,current_datetime,created,combined_datetime,contact_methodd,contactname,
+                                 contacttel,contactemail,drivertel,Defect_loc,faultdesc,cat_value_to_store,lol_value_to_store,
+                                 char_value_to_store,stat_value_store,odo,attendance,combined_deferred,what3,fleet,custid,contractno,locat,defectno,supplier_no,vehicle_loaded,
+                                 customer_name,depot_name,InciType_value_to_store,Vor,Customer_Depot,reg_no, I_number))
+            print("Record updated successfully")
+        else:
+            # If no record exists, insert a new one
+            # Get the current date and time
+            current_datetime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            # Insert the new record
+            cur.execute("""INSERT INTO Incident_Headder(I_Number, I_Created,Created_BY,Defect_occurred, Driver_Name, Registration_No, Contact_Method_ID,Contact_Name,
+                        Contact_Tel, Contact_Email,Driver_Tel,Defect_Loc_Address,Reported_Defect,Cat_ID,Location_ID,
+                        Charge_ID,Status_ID,Odometer,Attendance_Deferred,Deferred_To,Defect_loc_W3W,Fleet_No,Customer_ID,
+                        Customer_Contract_NO,Depot_No,Customer_Defect_NO,Supplier_No,Vehicle_loaded,Customer_Name,Depot_Name,Inc_Type_ID,VOR_INFO,Customer_Depot
+
+                        ) 
+                        VALUES (?, ?, ?, ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", 
+                        (generate_new_i_number(), current_datetime,created,combined_datetime,driver_name, 
+                         reg_no,contact_methodd,contactname,contacttel,contactemail,drivertel,Defect_loc,faultdesc,
+                         cat_value_to_store,lol_value_to_store,
+                         char_value_to_store,stat_value_store,odo,attendance,combined_deferred,what3,
+                         fleet,custid,contractno,locat,defectno,supplier_no,vehicle_loaded,customer_name,depot_name,InciType_value_to_store,Vor,Customer_Depot))
+            print("Record inserted successfully")
+
+        # Commit the transaction
+        conn.commit()
+
+    except Exception as e:
+        print("Error:", e)
+        conn.rollback()  # Rollback the transaction in case of error
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+#def generate_new_i_number():
+    #conn = pyodbc.connect(conn_str1)
+    #cur = conn.cursor()
+    # Get max I_Number from Incident_Headder
+    #cur.execute("SELECT MAX(I_Number) FROM Incident_Headder")
+    #max_i_number_headder = cur.fetchone()[0] or 0  # If no records, default to 0
+    
+    # Get max I_Number from Incident_Headder_Archive
+    #cur.execute("SELECT MAX(I_Number) FROM Incident_Headder_Archive")
+    #max_i_number_archive = cur.fetchone()[0] or 0  # If no records, default to 0
+    
+    # Check if max_i_number_headder exists in Incident_Headder_Archive
+    #if max_i_number_headder <= max_i_number_archive:
+        #next_i_number = max_i_number_archive + 1
+    #else:
+        #next_i_number = max_i_number_headder + 1
+    
+    # Close the cursor and connection
+    #cur.close()
+    #conn.close()
+    
+    #return next_i_number
+
+def generate_new_i_number():
+    # Connect to the database
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    # Get max I_Number from Incident_Headder
+    cur.execute("SELECT MAX(I_Number) FROM Incident_Headder")
+    max_i_number_headder = cur.fetchone()[0] or 0  # If no records, default to 0
+
+    # Get max I_Number from Incident_Headder_Archive
+    cur.execute("SELECT MAX(I_Number) FROM Incident_Headder_Archive")
+    max_i_number_archive = cur.fetchone()[0] or 0  # If no records, default to 0
+
+    # Get max Incident_Link from Purchase_Order_Headder
+    cur.execute("SELECT MAX(Incident_Link) FROM Purchase_Order_Headder")
+    max_incident_link = cur.fetchone()[0] or 0  # If no records, default to 0
+
+    # Find the maximum value across all tables
+    max_value = max(max_i_number_headder, max_i_number_archive, max_incident_link)
+
+    # Generate the next I_Number
+    next_i_number = max_value + 1
+
+    # Close the cursor and connection
+    cur.close()
+    conn.close()
+
+    return next_i_number
+
+def generate_event_number(Incident_No):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    #i_number=generate_new_i_number()
+    cur.execute("SELECT COUNT(*) FROM Incident_Events WHERE I_Number=?",(Incident_No))
+    event_number = cur.fetchone()[0] or 0  # If there are no existing records, set max_i_number to 0
+    cur.close()
+    conn.close()
+    return event_number + 1
+
+def save_the_incidentnumber(result,reg_no):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("""Insert into Incident_Headder(I_Number,Registration_No) VALUES(?,?)""",(result,reg_no))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def save_the_Purchasenumber(result,I_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("""Insert into Purchase_Order_Headder(PO_Number,Incident_Link) VALUES(?,?)""",(result,I_number))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def retrieve_all_incidents():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    conn2=pyodbc.connect(conn_str2)
+    cur2=conn2.cursor()
+
+
+    try:
+     # Execute a SELECT query to retrieve all incidents
+     cur.execute("""WITH LatestEvent AS (
+    SELECT 
+        I_Number, 
+        Event_Owner, 
+        Next_Event_DT,
+		Created_By,
+        ROW_NUMBER() OVER (PARTITION BY I_Number ORDER BY E_Number DESC) as rn
+    FROM Incident_Events
+    )
+    SELECT 
+    ih.Defect_occurred,ih.Customer_Name,ih.Customer_Depot,REPLACE(Ih.Reported_Defect , '\n', ''),ih.Depot_Name,ih.Registration_NO,ih.I_Number,ih.VOR_INFO,
+	Cat_Description,Location_Description,
+	Charge_Description,stat.Status_ID,Status_Description,Inc_Type_Description,
+    le.Event_Owner, le.Created_By,
+    le.Next_Event_DT
+    FROM 
+    Incident_Headder ih
+	JOIN 
+    I_Defect_Cats cats ON ih.Cat_ID = cats.Cat_ID
+    JOIN 
+    I_Locations loc ON ih.Location_ID= loc.Location_ID
+	JOIN
+	I_Charge_Types charge ON ih.Charge_ID = charge.Charge_ID
+	JOIN
+	Contact_Methods con ON ih.Contact_Method_ID= con.Contact_Method_ID
+	JOIN
+	I_Status stat ON ih.Status_ID= stat.Status_ID
+	JOIN
+	Incident_Types Typeinci ON ih.Inc_Type_ID= Typeinci.Inc_Type_ID
+    LEFT JOIN 
+    LatestEvent le 
+    ON ih.I_Number = le.I_Number
+    AND le.rn = 1
+    ORDER BY 
+    le.Next_Event_DT """)
+
+    # Fetch all rows of the result set
+     rows = cur.fetchall()
+
+        # Convert the rows into a list of dictionaries
+     incidents = []
+     for row in rows:
+
+            incident = {
+                "Incident Date": row[0],
+                "Registration": row[5],
+                "Incident No": row[6],
+                "Status Desc": row[12],
+                "VOR":row[7],
+                "Category":row[8],
+                "Location":row[9],
+                "Charge":row[10],
+                "Type_Desc":row[13],
+                "Customer":row[1],
+                "Customer Depot":row[2],
+                "Locationn":row[4],
+                "Owner":row[14],
+                "Creator":row[15],
+                "Next_Event_Date":row[16],
+                "Fault_Desc":row[3],
+                "Status":row[11]
+                # Add other columns as needed
+            }
+            incidents.append(incident)
+
+     return incidents    
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def retrieve_all_closed_incidents():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    conn2=pyodbc.connect(conn_str2)
+    cur2=conn2.cursor()
+
+
+    try:
+     # Execute a SELECT query to retrieve all incidents
+     cur.execute("""WITH LatestEvent AS (
+    SELECT 
+        I_Number, 
+        Event_Owner, 
+        Next_Event_DT,
+		Created_By,
+        ROW_NUMBER() OVER (PARTITION BY I_Number ORDER BY E_Number DESC) as rn
+    FROM Incident_Events_Archive
+    )
+    SELECT TOP 1000
+    ih.Defect_occurred,ih.Customer_Name,ih.Customer_Depot,Ih.Reported_Defect,ih.Depot_Name,ih.Registration_NO,ih.I_Number,ih.VOR_INFO,
+	Cat_Description,Location_Description,
+	Charge_Description,stat.Status_ID,Status_Description,Inc_Type_Description,
+    le.Event_Owner, le.Created_By,
+    le.Next_Event_DT
+    FROM 
+    Incident_Headder_Archive ih
+	LEFT JOIN 
+    I_Defect_Cats cats ON ih.Cat_ID = cats.Cat_ID
+    LEFT JOIN 
+    I_Locations loc ON ih.Location_ID= loc.Location_ID
+	JOIN
+	I_Charge_Types charge ON ih.Charge_ID = charge.Charge_ID
+	LEFT JOIN
+	Contact_Methods con ON ih.Contact_Method_ID= con.Contact_Method_ID
+    LEFT JOIN
+	I_Status stat ON ih.Status_ID= stat.Status_ID
+	LEFT JOIN
+	Incident_Types Typeinci ON ih.Inc_Type_ID= Typeinci.Inc_Type_ID
+    LEFT JOIN 
+    LatestEvent le 
+    ON ih.I_Number = le.I_Number
+    AND le.rn = 1
+    ORDER BY 
+    ih.I_NUMBER DESC
+    """)
+
+    # Fetch all rows of the result set
+     rows = cur.fetchall()
+
+        # Convert the rows into a list of dictionaries
+     incidents = []
+     for row in rows:
+
+            incident = {
+                "Incident Date": row[0],
+                "Registration": row[5],
+                "Incident No": row[6],
+                "Status Desc": row[12],
+                "VOR":row[7],
+                "Category":row[8],
+                "Location":row[9],
+                "Charge":row[10],
+                "Type_Desc":row[13],
+                "Customer":row[1],
+                "Customer Depot":row[2],
+                "Locationn":row[4],
+                "Owner":row[14],
+                "Creator":row[15],
+                "Next_Event_Date":row[16],
+                "Fault_Desc":row[3],
+                "Status":row[11]
+                # Add other columns as needed
+            }
+            incidents.append(incident)
+
+     return incidents    
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+def retrieve_all_closed_incidentstest(filter_criteria=None):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    try:
+        base_query = """
+        WITH LatestEvent AS (
+            SELECT 
+                I_Number, 
+                Event_Owner, 
+                Next_Event_DT,
+                Created_By,
+                ROW_NUMBER() OVER (PARTITION BY I_Number ORDER BY E_Number DESC) as rn
+            FROM Incident_Events_Archive
+        )
+        SELECT TOP 1000
+        ih.Defect_occurred, ih.Customer_Name, ih.Customer_Depot, ih.Reported_Defect, 
+        ih.Depot_Name, ih.Registration_NO, ih.I_Number, ih.VOR_INFO, 
+        Cat_Description, Location_Description, Charge_Description, 
+        stat.Status_ID, Status_Description, Inc_Type_Description,
+        le.Event_Owner, le.Created_By, le.Next_Event_DT
+        FROM Incident_Headder_Archive ih
+        LEFT JOIN I_Defect_Cats cats ON ih.Cat_ID = cats.Cat_ID
+        LEFT JOIN I_Locations loc ON ih.Location_ID = loc.Location_ID
+        JOIN I_Charge_Types charge ON ih.Charge_ID = charge.Charge_ID
+        LEFT JOIN Contact_Methods con ON ih.Contact_Method_ID = con.Contact_Method_ID
+        LEFT JOIN I_Status stat ON ih.Status_ID = stat.Status_ID
+        LEFT JOIN Incident_Types Typeinci ON ih.Inc_Type_ID = Typeinci.Inc_Type_ID
+        LEFT JOIN LatestEvent le ON ih.I_Number = le.I_Number AND le.rn = 1
+        WHERE 1=1
+        """
+
+        # Add filter criteria dynamically
+        params = []
+        if filter_criteria:
+            if filter_criteria.get("Registration"):
+                base_query += " AND ih.Registration_NO LIKE ?"
+                params.append('%' + filter_criteria["Registration"] + '%')
+            if filter_criteria.get("Customer"):
+                base_query += " AND ih.Customer_Name LIKE ?"
+                params.append('%' + filter_criteria["Customer"] + '%')
+            if filter_criteria.get("Owner"):
+                base_query += " AND le.Event_Owner LIKE ?"
+                params.append('%' + filter_criteria["Owner"] + '%')
+            if filter_criteria.get("Creator"):
+                base_query += " AND le.Created_By LIKE ?"
+                params.append('%' + filter_criteria["Creator"] + '%')
+            if filter_criteria.get("Category"):
+                base_query += " AND cats.Cat_Description LIKE ?"
+                params.append('%' + filter_criteria["Category"] + '%')
+            if filter_criteria.get("Location"):
+                base_query += " AND loc.Location_Description LIKE ?"
+                params.append('%' + filter_criteria["Location"] + '%')
+            if filter_criteria.get("Charge"):
+                base_query += " AND charge.Charge_Description LIKE ?"
+                params.append('%' + filter_criteria["Charge"] + '%')
+            if filter_criteria.get("Incident Date"):
+                base_query += " AND CONVERT(DATE,ih.Defect_occurred) = ?"
+                params.append(filter_criteria["Incident Date"])  # Ensure date is in correct format
+            if filter_criteria.get("Status"):
+                base_query += " AND stat.Status_Description LIKE ?"
+                params.append('%' + filter_criteria["Status"] + '%')
+            if filter_criteria.get("I_Number"):
+                base_query += " AND ih.I_Number LIKE ?"
+                params.append('%' + filter_criteria["I_Number"] + '%')
+            if filter_criteria.get("VOR"):
+                base_query += " AND ih.VOR_INFO LIKE ?"
+                params.append('%' + filter_criteria["VOR"] + '%')
+
+        # Append the ORDER BY and LIMIT clauses
+        base_query += " ORDER BY ih.I_Number DESC"
+
+        cur.execute(base_query, params)
+
+        # Fetch all rows
+        rows = cur.fetchall()
+
+        # Convert the rows into a list of dictionaries
+        incidents = []
+        for row in rows:
+            incident = {
+                "Incident Date": row[0],
+                "Registration": row[5],
+                "Incident No": row[6],
+                "Status Desc": row[12],
+                "VOR": row[7],
+                "Category": row[8],
+                "Location": row[9],
+                "Charge": row[10],
+                "Type_Desc": row[13],
+                "Customer": row[1],
+                "Customer Depot": row[2],
+                "Locationn": row[4],
+                "Owner": row[14],
+                "Creator": row[15],
+                "Next_Event_Date": row[16],
+                "Fault_Desc": row[3],
+                "Status": row[11]
+            }
+            incidents.append(incident)
+
+        return incidents
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        cur.close()
+        conn.close()
+
+def retrieve_last_incident():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    conn2=pyodbc.connect(conn_str2)
+    cur2=conn2.cursor()
+
+    try:
+        cur.execute("""WITH LatestEvent AS (
+    SELECT 
+        I_Number, 
+        Event_Owner, 
+        Next_Event_DT,
+		Created_By,
+        ROW_NUMBER() OVER (PARTITION BY I_Number ORDER BY E_Number DESC) as rn
+    FROM Incident_Events
+    )
+    SELECT 
+	TOP 1
+    ih.*, 
+    le.Event_Owner, 
+    le.Next_Event_DT,
+	le.Created_By
+    FROM 
+    Incident_Headder ih
+    LEFT JOIN 
+    LatestEvent le 
+    ON ih.I_Number = le.I_Number
+    AND le.rn = 1
+    ORDER BY 
+    ih.I_NUMBER DESC""")
+        # Fetch the last row of the result set
+        row = cur.fetchone()
+
+        if row:
+    
+            incidents = {
+                "Incident Date": row[3],
+                "Incident_Created":row[1],
+                "Registration": row[22],
+                "Incident No": row[0],
+                "Status": row[21],
+                "Category":row[12],
+                "Location":row[13],
+                "Charge":row[14],
+                "Customer":row[30],
+                "Locationn":row[31],
+                "Owner":row[-3],
+                "Next_Event_DT":row[-2],
+                "Creator": row[-1]
+            }
+            return [incidents]  # Return as a list of dictionaries
+
+        else:
+            print("No incidents found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+
+#conn=pyodbc.connect(conn_str2)
+#cur = conn.cursor()
+#cur.execute("Select TOP 1 * FROM dbo.PARC")
+#rows=cur.fetchall()
+#for row in rows:
+    print(row)
+#cur.close()
+#conn.close()
+
+def fetch_details_from_database(reg_no):
+    conn = pyodbc.connect(conn_str2)
+    cur = conn.cursor()
+        # Define the SQL query to fetch details based on the registration number
+    query = """SELECT DISTINCT
+	TOP 1
+    IMMAT as REG,
+    PARC_CGRISE.PARC_ID as FLEET_NO,
+    PARC.MARQUE + ' ' + CODE_MODELE + ' ' + CODE_TYPEMODELE as MAKE_MOD,
+    POSITION_COURANTE.MISSION_NO_CONTRAT AS CONTRACT_NO,
+    CONTRAT_VAR.ID_FICHE AS CUSTOMER_NO,
+	VERSION_CONTRAT,
+	CONTRAT_VAR.DTE_FIN,
+    dbo.CLIENT_FICHE.NOM_SOC AS CUSTOMER_NAME,
+    dbo.POSITION_COURANTE.CODE_AGENCE_LOCAL AS PF_DEPOT,
+    dbo.CLIENT_ADRESSE.VILLE as CUSTOMER_DEPOT
+FROM dbo.PARC_CGRISE
+LEFT OUTER JOIN PARC ON PARC.PARC_ID = PARC_CGRISE.PARC_ID
+LEFT OUTER JOIN dbo.POSITION_COURANTE ON PARC_CGRISE.PARC_ID = POSITION_COURANTE.PARC_ID
+LEFT OUTER JOIN CONTRAT_VAR ON
+    CONTRAT_VAR.NO_CONTRAT = POSITION_COURANTE.MISSION_NO_CONTRAT
+    OR CONTRAT_VAR.NO_CONTRAT = POSITION_COURANTE.NO_CONTRAT
+    AND CONTRAT_VAR.PARC_ID = CASE
+        WHEN POSITION_COURANTE.CODE_MISSIONCNT = 'RELAIS'
+        THEN POSITION_COURANTE.PARC_ID_REMPLACE
+        ELSE PARC_CGRISE.PARC_ID
+    END
+LEFT OUTER JOIN CLIENT_FICHE ON CLIENT_FICHE.ID_FICHE = CONTRAT_VAR.ID_FICHE
+LEFT OUTER JOIN dbo.CLIENT_ADRESSE ON dbo.CONTRAT_VAR.ID_FICHE = dbo.CLIENT_ADRESSE.ID_FICHE AND dbo.CONTRAT_VAR.CLIENT_ADRFACT = dbo.CLIENT_ADRESSE.ID_ADRESSE
+WHERE IMMAT = ?
+ORDER BY CONTRAT_VAR.DTE_FIN"""
+    cur.execute(query, (reg_no,))
+    result = cur.fetchone()
+
+    # Close cursor and database connection
+    cur.close()
+
+    return result
+
+
+
+
+def fetch_locations_and_descriptions():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("""SELECT Depot_Code, Depot_Name FROM PF_Depot_Details""")
+    rows = cur.fetchall()
+    return rows
+
+def fetch_supplier_details():
+    conn = pyodbc.connect(conn_str2)
+    cur = conn.cursor()
+    cur.execute("""Select T_AUXILIAIRE as Supplier_NO,T_LIBELLE as Supplier_Name, T_TELEPHONE as Tel
+                FROM [S0SQL05\STAT].[C_MODEL_UK].[dbo].[TIERS]
+                WHERE T_AUXILIAIRE like 'SU%' 
+					AND T_TABLE7 <> 'INACTIVE'
+                ORDER BY T_LIBELLE""")
+    rows=cur.fetchall()
+    return rows
+    
+def retrieve_incident_details(registration_number,incident_number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+        # Execute a SELECT query to retrieve the last incident
+        cur.execute("""SELECT 
+    ih.*, 
+    Cat_Description,Location_Description,Charge_Description, Contact_Method_Description,Status_Description,Inc_Type_Description
+    FROM 
+    Incident_Headder ih
+    JOIN 
+    I_Defect_Cats cats ON ih.Cat_ID = cats.Cat_ID
+    JOIN 
+    I_Locations loc ON ih.Location_ID= loc.Location_ID
+	JOIN
+	I_Charge_Types charge ON ih.Charge_ID = charge.Charge_ID
+	JOIN
+	Contact_Methods con ON ih.Contact_Method_ID= con.Contact_Method_ID
+	JOIN
+	I_Status stat ON ih.Status_ID= stat.Status_ID
+	LEFT JOIN
+	Incident_Types Inctype on ih.Inc_Type_ID= Inctype.Inc_Type_ID
+    WHERE Registration_NO = ? AND I_Number= ?""", (registration_number,incident_number))      # Fetch the last row of the result set
+        row = cur.fetchone()
+
+        if row:
+            # Convert the row into a dictionary
+            incident_details = {
+              # "Incident Date": row[3],
+                "Registration": row[22],
+                "Depot No":row[24],
+                "Depot Name":row[31],
+                "Driver_name":row[10],
+                "Driver_phone":row[11],
+                "Cat":row[-6],
+                "Loca":row[-5],
+                "Charge":row[-4],
+                "Contact_id":row[-3],
+                "Contact_name":row[7],
+                "Contact_tel":row[8],
+                "Contact_Email":row[9],
+                "Defect_Address":row[15],
+                "Defectdesc": row[17],
+                "Cust_defect":row[20],
+                "Incident No": row[0],
+                "Date":row[3],
+                "Createdby":row[2],
+                "Odometer":row[27],
+                "Status": row[-2],
+                "Closed":row[26],
+                "Attendance":row[18],
+                "Deferred":row[19],
+                "Whatwords":row[25],
+                #"Category":row[12],
+                #"Location":row[13],
+                #"Charge":row[14],
+                "Customer":row[5],
+                "Supplier_No":row[28],
+                "Vehicle_loaded":row[29],
+                "Customer Id":row[5],
+                "Customer Name":row[30],
+                "Contract No":row[23],
+                "Inc_Type": row[-1],
+                "VOR":row[33],
+                "Customer_Depot":row[34],
+                "Customer_PO": row[36]
+                #"Locationn":row[24]
+                # Add other columns as needed
+            }
+            return incident_details  # Return as a list of dictionaries
+
+        else:
+            print("No incidents found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def retrieve_incident_details_closed(registration_number,incident_number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+        # Execute a SELECT query to retrieve the last incident
+        cur.execute("""SELECT 
+    ih.*, 
+    Cat_Description,Location_Description,Charge_Description, Contact_Method_Description,Status_Description,Inc_Type_Description
+    FROM 
+    Incident_Headder_Archive ih
+    JOIN 
+    I_Defect_Cats cats ON ih.Cat_ID = cats.Cat_ID
+    JOIN 
+    I_Locations loc ON ih.Location_ID= loc.Location_ID
+	JOIN
+	I_Charge_Types charge ON ih.Charge_ID = charge.Charge_ID
+	JOIN
+	Contact_Methods con ON ih.Contact_Method_ID= con.Contact_Method_ID
+	JOIN
+	I_Status stat ON ih.Status_ID= stat.Status_ID
+	LEFT JOIN
+	Incident_Types Inctype on ih.Inc_Type_ID= Inctype.Inc_Type_ID
+    WHERE Registration_NO = ? AND I_Number= ?""", (registration_number,incident_number))      # Fetch the last row of the result set
+        row = cur.fetchone()
+
+        if row:
+            # Convert the row into a dictionary
+            incident_details = {
+              # "Incident Date": row[3],
+                "Registration": row[22],
+                "Driver_name":row[10],
+                "Driver_phone":row[11],
+                "Cat":row[-6],
+                "Loca":row[-5],
+                "Charge":row[-4],
+                "Contact_id":row[-3],
+                "Contact_name":row[7],
+                "Contact_tel":row[8],
+                "Contact_Email":row[9],
+                "Defect_Address":row[15],
+                "Defectdesc": row[17],
+                "Cust_defect":row[20],
+                "Incident No": row[0],
+                "Date":row[3],
+                "Createdby":row[2],
+                "Odometer":row[27],
+                "Status": row[-2],
+                "Closed":row[26],
+                "Attendance":row[18],
+                "Deferred":row[19],
+                "Whatwords":row[25],
+                #"Category":row[12],
+                #"Location":row[13],
+                #"Charge":row[14],
+                "Customer":row[5],
+                "Supplier_No":row[28],
+                "Vehicle_loaded":row[29],
+                "Customer Id":row[5],
+                "Customer Name":row[30],
+                "Contract No":row[23],
+                "Inc_Type": row[-1],
+                "VOR":row[33],
+                "Customer_Depot":row[34]
+                #"Locationn":row[24]
+                # Add other columns as needed
+            }
+            return incident_details  # Return as a list of dictionaries
+
+        else:
+            print("No incidents found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetch_additional_details(registration_number):
+    conn = pyodbc.connect(conn_str2)
+    cur = conn.cursor()
+    try:
+        query = """SELECT DISTINCT
+	TOP 1
+    IMMAT as REG,
+    PARC_CGRISE.PARC_ID as FLEET_NO,
+    PARC.MARQUE + ' ' + CODE_MODELE + ' ' + CODE_TYPEMODELE as MAKE_MOD,
+    POSITION_COURANTE.MISSION_NO_CONTRAT AS CONTRACT_NO,
+    CONTRAT_VAR.ID_FICHE AS CUSTOMER_NO,
+	VERSION_CONTRAT,
+	CONTRAT_VAR.DTE_FIN,
+    dbo.CLIENT_FICHE.NOM_SOC AS CUSTOMER_NAME,
+    dbo.POSITION_COURANTE.CODE_AGENCE_LOCAL AS PF_DEPOT,
+    dbo.CLIENT_ADRESSE.VILLE as CUSTOMER_DEPOT
+FROM dbo.PARC_CGRISE
+LEFT OUTER JOIN PARC ON PARC.PARC_ID = PARC_CGRISE.PARC_ID
+LEFT OUTER JOIN dbo.POSITION_COURANTE ON PARC_CGRISE.PARC_ID = POSITION_COURANTE.PARC_ID
+LEFT OUTER JOIN CONTRAT_VAR ON
+    CONTRAT_VAR.NO_CONTRAT = POSITION_COURANTE.MISSION_NO_CONTRAT
+    OR CONTRAT_VAR.NO_CONTRAT = POSITION_COURANTE.NO_CONTRAT
+    AND CONTRAT_VAR.PARC_ID = CASE
+        WHEN POSITION_COURANTE.CODE_MISSIONCNT = 'RELAIS'
+        THEN POSITION_COURANTE.PARC_ID_REMPLACE
+        ELSE PARC_CGRISE.PARC_ID
+    END
+LEFT OUTER JOIN CLIENT_FICHE ON CLIENT_FICHE.ID_FICHE = CONTRAT_VAR.ID_FICHE
+LEFT OUTER JOIN dbo.CLIENT_ADRESSE ON dbo.CONTRAT_VAR.ID_FICHE = dbo.CLIENT_ADRESSE.ID_FICHE AND dbo.CONTRAT_VAR.CLIENT_ADRFACT = dbo.CLIENT_ADRESSE.ID_ADRESSE
+WHERE IMMAT = ?
+ORDER BY CONTRAT_VAR.DTE_FIN"""
+        cur.execute(query, (registration_number))
+        row= cur.fetchone()
+        if row:
+            # Convert the row into a dictionary
+         additional_details={
+            "fleet_no":row[1],
+            "Make_Mod":row[2],
+            "Contract_No":row[3],
+            "Customer_No":row[4],
+            "Customer_Name":row[7],
+            "PF_Depot":row[8],
+            "Customer_Depot":row[9]
+        }
+         return additional_details
+        else:
+            print("No details in the database.")
+            return None
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+    
+    
+def update_incident_Details(Driver_name,fleet_no,Driver_Phone,Customer_Id,Contract_No,
+                            Contact_Tel,Contact_Email,Contact_Name,Customer_defect_no,contact_methodd,
+                            Defect_Address,Incident_No,combined_datetime,created_by,Odometer,
+                            Depot_no,cat_value_to_store,lol_value_to_store,char_value_to_store,Faultdesc,stat_value_store,
+                            Attendance_def,combined_deferred, whatwords,registration_no,SupplierNo,Vehicle_loaded,customer_name,depot_name,InciType_value_to_store,VORinfo,Customer_Depot,Customer_PO):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+        # Check if a record with the same Registration_No already exists
+        cur.execute("""SELECT COUNT(*) FROM Incident_Headder WHERE Registration_No = ? AND 
+                    I_Number=?""", (registration_no,Incident_No))
+        record_count = cur.fetchone()[0]
+        if record_count > 0:
+            #If a record exists, update it
+            cur.execute("""Update Incident_Headder 
+                        SET 
+                        Driver_Name=?,
+                        Fleet_No=?,
+                        Driver_Tel=?,
+                        Customer_ID=?,
+                        Customer_Contract_NO=?,
+                        Contact_Tel=?,
+                        Contact_Email=?,
+                        Contact_Name=?,
+                        Customer_defect_no=?,
+                        Contact_Method_ID=?,
+                        Defect_Loc_Address=?,
+                        I_Number=?,
+                        Defect_occurred=?,
+                        Created_BY=?,
+                        Odometer=?,
+                        Depot_No=?,
+                        Cat_ID=?,
+                        Location_ID=?,
+                        Charge_ID=?,
+                        Reported_Defect=?,
+                        Status_ID=?,
+                        Attendance_Deferred=?,
+                        Deferred_To=?,
+                        Defect_loc_W3W=?,
+                        Supplier_No=?,
+                        Vehicle_loaded=?,
+                        Customer_Name=?,
+                        Depot_Name=?,
+                        Inc_Type_ID=?,
+                        VOR_INFO=?,
+                        Customer_Depot=?,
+                        Customer_PO=?
+                        WHERE Registration_No =? AND I_Number=?""",(Driver_name,fleet_no,Driver_Phone,Customer_Id
+                            ,Contract_No,Contact_Tel,Contact_Email,Contact_Name,Customer_defect_no,
+                             contact_methodd,Defect_Address,Incident_No,combined_datetime,created_by,Odometer,Depot_no,
+                             cat_value_to_store,lol_value_to_store,char_value_to_store,Faultdesc,stat_value_store,
+                             Attendance_def,combined_deferred,whatwords,SupplierNo,Vehicle_loaded,customer_name,depot_name,InciType_value_to_store,VORinfo,Customer_Depot,Customer_PO,registration_no,Incident_No))
+        conn.commit()
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+            
+def fetch_status_details():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("Select * From I_Status")
+    rows=cur.fetchall()
+    return rows
+def fetch_cat_details():
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("SELECT * FROM I_Defect_Cats")
+    rows=cur.fetchall()
+    return rows
+def fetch_Location_details():
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("SELECT * FROM I_Locations")
+    rows=cur.fetchall()
+    return rows
+def fetch_Incidenttype_details():
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("SELECT * FROM Incident_Types")
+    rows=cur.fetchall()
+    return rows
+def fetch_charge_details():
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("SELECT * FROM I_Charge_Types")
+    rows=cur.fetchall()
+    return rows
+def fetch_contact_detais():
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("Select * From Contact_Methods")
+    rows=cur.fetchall()
+    return rows
+def fetch_event_types():
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("Select * from Event_Types")
+    rows=cur.fetchall()
+    return rows
+
+def store_event_details(Incident_No,datetime_obj,First_event_tostore,Event_text,Second_event_tostore,
+                        datetime_objj,Created_by,Owner):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    
+    cur.execute("""Insert into Incident_Events(I_Number,E_Number,E_Created,Event_Type_ID,
+                Event_Text,Next_Event_ID,Next_Event_DT,Created_By,Event_Owner)
+                Values(?,?,?,?,?,?,?,?,?)""",(Incident_No,generate_event_number(Incident_No),datetime_obj
+                                ,First_event_tostore,Event_text,Second_event_tostore,datetime_objj,
+                                Created_by,Owner))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def store_event_detailstrial(Incident_No,datetime_obj,Current_user):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    
+    cur.execute("""Insert into EVENTS_FOR_TIME_AND_DATE(I_Number,Event_Number,Event_Created,
+                Next_Event_DT,Created_By,Owner_Event)
+                Values(?,?,?,?,?,?)""",(Incident_No,0,datetime_obj,datetime_obj,Current_user,Current_user))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def fetch_event_detailstrial(Incident_No):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""SELECT * FROM EVENTS_FOR_TIME_AND_DATE WHERE I_Number=?""",(Incident_No))
+     row=cur.fetchone()
+     if row:
+            # Convert the row into a dictionary
+            event_details = {
+               "Created": row[2],
+               "Next_Event":row[3],
+               "Created_By": row[4],
+               "Owner":row[5]
+            }
+            return [event_details]  # Return as a list of dictionaries
+
+     else:
+            print("No events found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetch_event_detailstrialtwo():
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""SELECT * FROM Incident_Headder
+	                JOIN 
+	                EVENTS_FOR_TIME_AND_DATE
+	                ON Incident_Headder.I_Number= EVENTS_FOR_TIME_AND_DATE.I_Number""")
+     rows=cur.fetchall()
+     event_details = []
+     for row in rows:
+            # Convert the row into a dictionary
+            event = {
+               "Created": row[-4],
+               "Next_Event":row[-3],
+               "Created_By": row[-2],
+               "Owner":row[-1]
+            }
+            event_details.append(event)# Return as a list of dictionaries
+     return event_details
+    except Exception as e:
+        print("Error:", e)
+        return None
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+    
+def store_event_detailstwo(Incident_No,datetime_obj,First_event_tostore,Event_Notes,Second_event_tostore,
+                        datetime_objj,Created_by,Ownerof):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    
+    cur.execute("""Insert into Incident_Events(I_Number,E_Number,E_Created,Event_Type_ID,
+                Event_Text,Next_Event_ID,Next_Event_DT,Created_By,Event_Owner)
+                Values(?,?,?,?,?,?,?,?,?)""",(Incident_No,generate_event_number(Incident_No),datetime_obj
+                                ,First_event_tostore,Event_Notes,Second_event_tostore,datetime_objj,
+                                Created_by,Ownerof))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def store_event_detailstwoo(Incident_No,datetime_obj,First_event_tostore,Event_Notes
+                                     ,Second_event_tostore,datetime_strr_plus_30,Created_by,Ownerof):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    
+    cur.execute("""Insert into Incident_Events(I_Number,E_Number,E_Created,Event_Type_ID,
+                Event_Text,Next_Event_ID,Next_Event_DT,Created_By,Event_Owner)
+                Values(?,?,?,?,?,?,?,?,?)""",(Incident_No,generate_event_number(Incident_No),datetime_obj
+                                ,First_event_tostore,Event_Notes,Second_event_tostore,datetime_strr_plus_30,
+                                Created_by,Ownerof))
+    conn.commit()
+    cur.close()
+    conn.close()
+ 
+
+def fetch_all_events(Incident_No):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH RankedEventTypes AS (
+    SELECT 
+        Event_Type_ID,
+        Event_Description,
+        ROW_NUMBER() OVER (ORDER BY Event_Type_ID) AS RowNum
+    FROM 
+        Event_Types
+    )
+    SELECT 
+    ie.I_Number,ie.E_Number,ie.E_Created,ie.Event_Type_ID,REPLACE(ie.Event_Text , '\n', ''),ie.Next_Event_ID,ie.Next_Event_DT,
+    ie.Created_By,ie.Event_Owner,
+    et_event.Event_Description AS event_description, 
+    et_next.Event_Description AS next_event_description
+    FROM 
+    Incident_Events ie
+    JOIN 
+    Event_Types et_event ON ie.Event_Type_ID = et_event.Event_Type_ID
+    JOIN 
+    RankedEventTypes et_next ON ie.Next_Event_ID = et_next.RowNum
+    WHERE ie.I_Number=?
+    ORDER BY E_Number """,(Incident_No))
+     row = cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            event_details = {
+               "Created": row[2],
+               "Notes":row[4],
+               "Last Updated":row[2],
+               "Follow up":row[6],
+               "Event_Description": row[-2],
+               "Next_Event_Description": row[-1],
+               "Created_By": row[7],
+               "Owner":row[8]
+            }
+            return [event_details]  # Return as a list of dictionaries
+
+     else:
+            print("No events found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetch_all_events_oncemore(Incident_No):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH RankedEventTypes AS (
+    SELECT 
+        Event_Type_ID,
+        Event_Description,
+        ROW_NUMBER() OVER (ORDER BY Event_Type_ID) AS RowNum
+    FROM 
+        Event_Types
+    )
+    SELECT 
+    ie.I_Number,ie.E_Number,ie.E_Created,ie.Event_Type_ID,REPLACE(ie.Event_Text , '\n', ''),ie.Next_Event_ID,ie.Next_Event_DT,
+    ie.Created_By,ie.Event_Owner,
+    et_event.Event_Description AS event_description, 
+    et_next.Event_Description AS next_event_description
+    FROM 
+    Incident_Events ie
+    JOIN 
+    Event_Types et_event ON ie.Event_Type_ID = et_event.Event_Type_ID
+    JOIN 
+    RankedEventTypes et_next ON ie.Next_Event_ID = et_next.RowNum
+    WHERE ie.I_Number=?
+    ORDER BY E_Number """,(Incident_No))
+     rows = cur.fetchall()
+     incidents=[]
+     for row in rows:     
+            # Convert the row into a dictionary
+            event_details = {
+               "Created": row[2],
+               "Notes":row[4],
+               "Last Updated":row[2],
+               "Follow up":row[6],
+               "Event_Description": row[-2],
+               "Next_Event_Description": row[-1],
+               "Created_By": row[7],
+               "Owner":row[8]
+            }
+            incidents.append(event_details)
+     return  incidents
+
+     
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetch_all_events_oncemoreclosed(Incident_No):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH RankedEventTypes AS (
+    SELECT 
+        Event_Type_ID,
+        Event_Description,
+        ROW_NUMBER() OVER (ORDER BY Event_Type_ID) AS RowNum
+    FROM 
+        Event_Types
+    )
+    SELECT 
+    ie.I_Number,ie.E_Number,ie.E_Created,ie.Event_Type_ID,REPLACE(ie.Event_Text , '\n', ''),ie.Next_Event_ID,ie.Next_Event_DT,
+    ie.Created_By,ie.Event_Owner,
+    et_event.Event_Description AS event_description, 
+    et_next.Event_Description AS next_event_description
+    FROM 
+    Incident_Events ie
+    JOIN 
+    Event_Types et_event ON ie.Event_Type_ID = et_event.Event_Type_ID
+    JOIN 
+    RankedEventTypes et_next ON ie.Next_Event_ID = et_next.RowNum
+    WHERE ie.I_Number=?
+    ORDER BY E_Number """,(Incident_No))
+     rows = cur.fetchall()
+     incidents=[]
+     for row in rows:     
+            # Convert the row into a dictionary
+            event_details = {
+               "Created": row[2],
+               "Notes":row[4],
+               "Last Updated":row[2],
+               "Follow up":row[6],
+               "Event_Description": row[-2],
+               "Next_Event_Description": row[-1],
+               "Created_By": row[7],
+               "Owner":row[8]
+            }
+            incidents.append(event_details)
+     return  incidents
+
+     
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+    
+def fetch_all_event_details(incident_number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+        # Execute a SELECT query to retrieve all incidents
+        sqlquery= """WITH RankedEventTypes AS (
+    SELECT 
+        Event_Type_ID,
+        Event_Description,
+        ROW_NUMBER() OVER (ORDER BY Event_Type_ID) AS RowNum
+    FROM 
+        Event_Types
+    )
+    SELECT 
+    ie.*, 
+    et_event.Event_Description AS event_description, 
+    et_next.Event_Description AS next_event_description
+    FROM 
+    Incident_Events ie
+    JOIN 
+    Event_Types et_event ON ie.Event_Type_ID = et_event.Event_Type_ID
+    JOIN 
+    RankedEventTypes et_next ON ie.Next_Event_ID = et_next.RowNum
+    WHERE ie.I_Number=?
+    ORDER BY E_Number"""
+        cur.execute(sqlquery, (incident_number,))
+        # Fetch all rows of the result set
+        rows = cur.fetchall()
+        # Convert the rows into a list of dictionaries
+        incident_events = []
+        for row in rows:
+            
+            events = {
+               "Created": row[2],
+               "Notes":row[4],
+               "Last Updated":row[2],
+               "Follow up":row[6],
+               "Event_Description": row[-2],
+               "Next_Event_Description": row[-1],
+               "Created_By": row[7],
+               "Owner":row[8]
+            }
+            incident_events.append(events)
+
+        return incident_events
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetch_all_event_detailsclosed(incident_number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+        # Execute a SELECT query to retrieve all incidents
+        sqlquery= """WITH RankedEventTypes AS (
+    SELECT 
+        Event_Type_ID,
+        Event_Description,
+        ROW_NUMBER() OVER (ORDER BY Event_Type_ID) AS RowNum
+    FROM 
+        Event_Types
+    )
+    SELECT 
+    ie.*, 
+    et_event.Event_Description AS event_description, 
+    et_next.Event_Description AS next_event_description
+    FROM 
+    Incident_Events_Archive ie
+    JOIN 
+    Event_Types et_event ON ie.Event_Type_ID = et_event.Event_Type_ID
+    JOIN 
+    RankedEventTypes et_next ON ie.Next_Event_ID = et_next.RowNum
+    WHERE ie.I_Number=?
+    ORDER BY E_Number"""
+        cur.execute(sqlquery, (incident_number,))
+        # Fetch all rows of the result set
+        rows = cur.fetchall()
+        # Convert the rows into a list of dictionaries
+        incident_events = []
+        for row in rows:
+            
+            events = {
+               "Created": row[2],
+               "Notes":row[4],
+               "Last Updated":row[2],
+               "Follow up":row[6],
+               "Event_Description": row[-2],
+               "Next_Event_Description": row[-1],
+               "Created_By": row[7],
+               "Owner":row[8]
+            }
+            incident_events.append(events)
+
+        return incident_events
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetch_data_for_event(incident_no,event_no):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH RankedEventTypes AS (
+    SELECT 
+        Event_Type_ID,
+        Event_Description,
+        ROW_NUMBER() OVER (ORDER BY Event_Type_ID) AS RowNum
+    FROM 
+        Event_Types
+    )
+    SELECT 
+    ie.*, 
+    et_event.Event_Description AS event_description, 
+    et_next.Event_Description AS next_event_description
+    FROM 
+    All_Events_data ie
+    JOIN 
+    Event_Types et_event ON ie.Event_Type_ID = et_event.Event_Type_ID
+    JOIN 
+    RankedEventTypes et_next ON ie.Next_Event_ID = et_next.RowNum
+    WHERE ie.I_Number=? AND E_Number=?""",(incident_no,event_no))
+     row=cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            event_details = {
+                "Event_Type":row[-2],
+                "Createdby":row[7],
+                "Owner":row[8],
+                "Createddate":row[2],
+                "Eventtext":row[4],
+                "Nexteventdate":row[6],
+                "Nexteventtype":row[-1],
+            }
+            return event_details  # Return as a list of dictionaries
+
+     else:
+            print("No incidents found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def generate_event_numbertwo(i_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM Incident_Events WHERE I_Number=?",(i_number,))
+    event_numbertwo = cur.fetchone()[0] or 0  # If there are no existing records, set max_i_number to 0
+    cur.close()
+    conn.close()
+    return event_numbertwo + 1
+
+def insert_more_events(i_number,datetime_obj,First_event_tostore,Event_text
+                                     ,Second_event_tostore,datetime_objj,Created_by,Owner):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    cur.execute("""INSERT INTO Incident_Events (I_Number,E_Number,E_Created,Event_Type_ID,
+                Event_Text,Next_Event_ID,Next_Event_DT,Created_By,Event_Owner) Values(?,?,?,?,?,?,?,?,?)
+                """,(i_number,generate_event_numbertwo(i_number),datetime_obj,First_event_tostore,Event_text
+                    ,Second_event_tostore,datetime_objj,Created_by,Owner)) 
+    conn.commit()
+    cur.close()
+    conn.close()                  
+
+def fetch_all_eventstwo(i_number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH RankedEventTypes AS (
+    SELECT 
+        Event_Type_ID,
+        Event_Description,
+        ROW_NUMBER() OVER (ORDER BY Event_Type_ID) AS RowNum
+    FROM 
+        Event_Types
+    )
+    SELECT 
+    ie.*, 
+    et_event.Event_Description AS event_description, 
+    et_next.Event_Description AS next_event_description
+    FROM 
+    Incident_Events ie
+    JOIN 
+    Event_Types et_event ON ie.Event_Type_ID = et_event.Event_Type_ID
+    JOIN 
+    RankedEventTypes et_next ON ie.Next_Event_ID = et_next.RowNum
+    WHERE ie.I_Number=?""",(i_number))
+     row = cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            event_details = {
+               "Created": row[2],
+               "Notes":row[4],
+               "Last Updated":row[2],
+               "Follow up":row[6],
+               "Event_Description": row[-2],
+               "Next_Event_Description": row[-1],
+               "Created_By": row[7],
+               "Owner":row[8]
+            }
+            return [event_details]  # Return as a list of dictionaries
+
+     else:
+            print("No events found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetch_data_for_eventthree(incident_no,event_no):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH RankedEventTypes AS (
+    SELECT 
+        Event_Type_ID,
+        Event_Description,
+        ROW_NUMBER() OVER (ORDER BY Event_Type_ID) AS RowNum
+    FROM 
+        Event_Types
+    )
+    SELECT 
+    ie.*, 
+    et_event.Event_Description AS event_description, 
+    et_next.Event_Description AS next_event_description
+    FROM 
+    Incident_Events ie
+    JOIN 
+    Event_Types et_event ON ie.Event_Type_ID = et_event.Event_Type_ID
+    JOIN 
+    RankedEventTypes et_next ON ie.Next_Event_ID = et_next.RowNum
+    WHERE ie.I_Number=? AND E_Number=?""",(incident_no,event_no))
+     row=cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            event_details = {
+                "Event_Type":row[-2],
+                "Createdby":row[7],
+                "Owner":row[8],
+                "Createddate":row[2],
+                "Eventtext":row[4],
+                "Nexteventdate":row[6],
+                "Nexteventtype":row[-1],
+                "Created_By": row[7],
+               "Owner":row[8]
+            }
+            return event_details  # Return as a list of dictionaries
+
+     else:
+            print("No incidents found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def retrieve_updated_incieve(Incident_No):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH LatestEvent AS (
+    SELECT 
+        I_Number, 
+        Event_Owner, 
+        Next_Event_DT,
+        ROW_NUMBER() OVER (PARTITION BY I_Number ORDER BY E_Number DESC) as rn
+    FROM Incident_Events
+    )
+    SELECT 
+
+    ih.*, 
+    le.Event_Owner, 
+    le.Next_Event_DT
+    FROM 
+    Incident_Headder ih
+    LEFT JOIN 
+    LatestEvent le 
+    ON ih.I_Number = le.I_Number
+    AND le.rn = 1
+	WHERE ih.I_Number=?""",(Incident_No))
+     row=cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            incidents = {
+               
+                "Incident Date": row[3],
+                "Registration": row[22],
+                "Incident No": row[0],
+                "Status": row[21],
+                "Category":row[12],
+                "Location":row[13],
+                "Charge":row[14],
+                "Customer":row[5],
+                "Locationn":row[24],
+                "Owner":row[-2],
+                "Next_Event_DT":row[-1]
+            }
+            return [incidents]  # Return as a list of dictionaries
+
+     else:
+            print("No incidents and Events found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def retrieve_updated_event(i_number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH LatestEvent AS (
+    SELECT 
+        I_Number, 
+        Event_Owner, 
+        Next_Event_DT,
+        ROW_NUMBER() OVER (PARTITION BY I_Number ORDER BY E_Number DESC) as rn
+    FROM Incident_Events
+    )
+    SELECT 
+
+    ih.*, 
+    le.Event_Owner, 
+    le.Next_Event_DT
+    FROM 
+    Incident_Headder ih
+    LEFT JOIN 
+    LatestEvent le 
+    ON ih.I_Number = le.I_Number
+    AND le.rn = 1
+	WHERE ih.I_Number=?""",(i_number))
+     row=cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            incidents = {
+               
+                "Incident Date": row[3],
+                "Registration": row[22],
+                "Incident No": row[0],
+                "Status": row[21],
+                "Category":row[12],
+                "Location":row[13],
+                "Charge":row[14],
+                "Customer":row[5],
+                "Locationn":row[24],
+                "Owner":row[-2],
+                "Next_Event_DT":row[-1]
+            }
+            return [incidents]  # Return as a list of dictionaries
+
+     else:
+            print("No incidents and Events found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def giving_i_no_to_events():
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+        cur.execute("""SELECT TOP 1 * FROM Incident_Headder ORDER BY I_Number DESC""")
+        row=cur.fetchone()
+        if row:
+            # Convert the row into a dictionary
+         incident_details={
+            "I_Number":row[0]
+        }
+         return [incident_details]
+        else:
+            print("No details in the database.")
+            return None
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def retrievevents(incident_no):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""WITH LatestEvent AS (
+    SELECT 
+        I_Number, 
+        Event_Owner, 
+        Next_Event_DT,
+        ROW_NUMBER() OVER (PARTITION BY I_Number ORDER BY E_Number DESC) as rn
+    FROM Incident_Events
+    )
+    SELECT 
+
+    ih.*, 
+    le.Event_Owner, 
+    le.Next_Event_DT
+    FROM 
+    Incident_Headder ih
+    LEFT JOIN 
+    LatestEvent le 
+    ON ih.I_Number = le.I_Number
+    AND le.rn = 1
+	WHERE ih.I_Number=?""",(incident_no))
+     row=cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            incidents = {
+               
+                "Incident Date": row[3],
+                "Registration": row[22],
+                "Incident No": row[0],
+                "Status": row[21],
+                "Category":row[12],
+                "Location":row[13],
+                "Charge":row[14],
+                "Customer":row[5],
+                "Locationn":row[24],
+                "Owner":row[-2],
+                "Next_Event_DT":row[-1]
+            }
+            return [incidents]  # Return as a list of dictionaries
+
+     else:
+            print("No incidents and Events found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def users_function(username, password):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute('SELECT * FROM Users WHERE Username COLLATE SQL_Latin1_General_CP1_CS_AS = ? AND User_password COLLATE SQL_Latin1_General_CP1_CS_AS =?', (username, password))
+    user=cur.fetchone()
+
+    cur.close()
+     # Close the database connection
+    conn.close()
+        # Return True if a user is found, False otherwise
+    if user:
+     messagebox.showinfo("Login Successful", "Welcome!")
+    else:
+            messagebox.showerror("Login Failed", "Username or password incorrect")
+    return user is not None
+    
+    
+
+def generate_user_id():
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("""Select MAX(id) FROM Users""")
+    max_user_id = cur.fetchone()[0] or 0  # If there are no existing records, set max_i_number to 0
+    cur.close()
+    conn.close()
+    return max_user_id + 1
+    
+
+def add_more_users(new_username,new_password):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute('SELECT * FROM Users WHERE Username = ?', (new_username,))
+    if cur.fetchone():
+     messagebox.showerror("Error", "Username already exists")
+     conn.close()
+     return
+
+    #cur.execute('SELECT * FROM Users WHERE User_password = ?', (new_password,))
+    #if cur.fetchone():
+     #messagebox.showerror("Error", "Password already exists")
+    # conn.close()
+     #return
+    try:
+     cur.execute("""INSERT INTO USERS (id,Username, User_password) VALUES (?,?,?)""", (generate_user_id(),new_username, new_password))
+     conn.commit()
+     messagebox.showinfo("Success", "User added successfully")
+    except pyodbc.IntegrityError:
+     messagebox.showerror("Error", "Username already exists")
+    finally:
+     conn.close()
+
+def reset_password_for_users(new_password,username):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor() 
+    cur.execute('UPDATE Users SET User_password = ? WHERE Username = ?', (new_password, username))
+    if cur.rowcount == 0:
+     messagebox.showerror("Error", "Username not found")
+    else:
+     conn.commit()
+     messagebox.showinfo("Success", "Password reset successfully")
+     conn.close()
+def delete_users(username):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute('SELECT * FROM Users WHERE Username = ?', (username,))
+    user = cur.fetchone()
+
+    if not user:
+     messagebox.showerror("Error", "Username not found")
+     cur.close()
+     conn.close()
+     return
+
+    try:
+     cur.execute('DELETE FROM Users WHERE Username = ?', (username,))
+     conn.commit()
+     messagebox.showinfo("Success", "User deleted successfully")
+                
+    except pyodbc.Error as e:
+     messagebox.showerror("Error", f"Failed to delete user: {str(e)}")
+    finally:
+     cur.close()
+     conn.close()
+
+def getmileage(fleetno):
+    conn = pyodbc.connect(conn_str2)
+    cur = conn.cursor()
+    
+    query = """SELECT TOP (1) [KM_CHASSIS]
+  FROM [IGLOO_UK].[dbo].[PARC_KM]
+  WHERE [PARC_ID] = ?
+  ORDER BY [DTE_EFFETRELEVE] DESC"""
+    cur.execute(query, (fleetno))
+    row= cur.fetchone()
+    cur.close()
+
+    return row
+
+def get_cust_name():
+    conn = pyodbc.connect(conn_str2)
+    cur = conn.cursor()
+    cur.execute("""SELECT [NOM_SOC],[ID_FICHE]
+                    FROM [IGLOO_UK].[dbo].[CLIENT_FICHE]""")
+    rows=cur.fetchall()
+    return rows
+
+#Purchase order details
+
+def generate_purchase_order_number():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("SELECT MAX(PO_Number) FROM Purchase_Order_Headder")
+    max_purchase_ordernumber = cur.fetchone()[0] or 0  # If there are no existing records, set max_i_number to 0
+    cur.close()
+    conn.close()
+    return max_purchase_ordernumber + 1
+
+def get_existing_approval_number(incident_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT PO_Number
+            FROM Purchase_Order_Headder
+            WHERE Incident_Link = ?
+        """, (incident_number,))
+
+        # Fetch the first row from the result
+        row = cur.fetchone()
+        if row:
+            return row.PO_Number  
+        else:
+            return None
+    except Exception as e:
+        print(f"Error fetching approval number: {e}")
+        return None
+    finally:
+        # Always close the database connection
+        cur.close()
+        conn.close()
+
+def generate_line_number(PO_Number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(PO_Number) FROM Order_Cost_Lines  WHERE PO_Number=?", (PO_Number))
+    line_number=cur.fetchone()[0]or 0
+    cur.close()
+    conn.close()
+    return line_number+1
+
+def generate_line_numbervor(Incident_Number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(I_Number) FROM VOR_Details  WHERE I_Number=?", (Incident_Number))
+    line_number=cur.fetchone()[0]or 0
+    cur.close()
+    conn.close()
+    return line_number+1
+
+def store_the_purchase_orderinfo(PO_Number,i_number,combined_datetime,Created_By,Supplier_No,
+                                              Order_Category,Fleet_No,Odometer,Customer_PO,Kofax_Scan,Igloo_invoice,
+                                              Supplier_Name,Repaired_Datetime,Registration):
+    
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    try:
+        # Check if a record with the same Registration_No already exists
+        cur.execute("""SELECT COUNT(*) FROM Purchase_Order_Headder WHERE PO_Number = ?"""
+                    , (PO_Number))
+
+        record_count = cur.fetchone()[0]
+
+        if record_count > 0:
+            # If a record exists, update it
+            cur.execute("""UPDATE Purchase_Order_Headder 
+                        SET 
+                        PO_Created=?,
+                        Created_BY=?,
+                        Supplier_No=?,
+                        Order_Cat=?,
+                        Fleet_No=?,
+                        Odometer=?,
+                        Customer_PO=?,
+                        Kofax_Scan_No=?,
+                        Igloo_Invoice_No=?,
+                        Supplier_Name=?,
+                        Repaired=?,
+                        Reg_No=?
+                        WHERE PO_Number = ? AND Incident_Link=?""", 
+                        (combined_datetime,Created_By,Supplier_No,
+                        Order_Category,Fleet_No,Odometer,Customer_PO,Kofax_Scan,Igloo_invoice,Supplier_Name,Repaired_Datetime,Registration,PO_Number,i_number))
+            print("Record updated successfully")
+        else:
+            cur.execute("""INSERT INTO Purchase_Order_Headder(PO_Number,Incident_Link,PO_Created,Created_BY,
+                        Supplier_No,Order_Cat,Fleet_No,Odometer,Customer_PO,Kofax_Scan_No,Igloo_Invoice_No,Supplier_Name,Repaired,Reg_No
+                        ) 
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", 
+                        (PO_Number,i_number,combined_datetime,Created_By,Supplier_No,
+                                              Order_Category,Fleet_No,Odometer,Customer_PO,Kofax_Scan,Igloo_invoice,Supplier_Name,Repaired_Datetime,Registration
+    ))
+            print("Record inserted successfully")
+
+        # Commit the transaction
+        conn.commit()
+
+    except Exception as e:
+        print("Error:", e)
+        conn.rollback()  # Rollback the transaction in case of error
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def store_cost_lines(PO_Number,bothdateandtime,Added_By,PF_Depot,Parts_Cost,Labour_Hours,Labour_Rate,
+                            Labour_cost,Parts_Uplift,Labour_Uplift,Recharge_parts,Recharge_cost,
+                                 Notes,Recharge_text,type_id,Category_id,Product_id,Supplier_Name,Product_description,Combined_value):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    
+    cur.execute("""Insert into Order_Cost_Lines(PO_Number,Line_Number,Line_Added,Added_By,PF_Depot,Parts_Cost,Labour_Hours,Labour_Rate,Labour_Cost,Parts_Uplift,
+                Labour_Uplift,Recharge_parts,Recharge_labour,Notes,Recharge_Text,PO_Type_ID,PO_Category_ID,PO_Product_ID,Supplier_Name,PO_Product_Description,RTS_Description)
+                Values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(PO_Number,generate_line_number(PO_Number),bothdateandtime,Added_By,PF_Depot,Parts_Cost,Labour_Hours,
+                                Labour_Rate,Labour_cost,Parts_Uplift,Labour_Uplift,Recharge_parts,Recharge_cost,
+                                 Notes,Recharge_text,type_id,Category_id,Product_id,Supplier_Name,Product_description,Combined_value))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def retrieve_all_purchase_and_populate(Reg_Number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    try:
+     cur.execute("""SELECT DISTINCT --*
+	POH.Repaired
+	,AIH.Odometer
+	,POH.Supplier_Name
+	,POH.Incident_Link
+	,POTV.Total_Cost
+	,POTV.Total_Recharge
+	,POH.PO_Number
+FROM Purchase_Order_Headder POH
+	JOIN Order_Cost_Lines POCL ON POH.PO_Number = POCL.PO_Number
+	JOIN All_Inicident_Headders AIH ON AIH.I_Number = POH.Incident_Link
+	JOIN PO_Total_Values POTV ON POH.PO_Number = POTV.PO_Number
+WHERE AIH.Registration_NO = ?
+ORDER BY POH.PO_Number DESC""",(Reg_Number))
+
+    # Fetch all rows of the result set
+     rows = cur.fetchall()
+
+        # Convert the rows into a list of dictionaries
+     incidents = []
+     for row in rows:
+            incident = {
+                "Repaired": row[0],
+                "Odometer": row[1],
+                "Supplier": row[2],
+                "Incident_Link": row[3],
+                "Total_parts":row[4],
+                "Total_labours":row[5],
+                "Recharge_parts":row[-5],
+                "Recharge_labours":row[-4],
+                "Approval":row[6],
+            }
+            incidents.append(incident)
+
+     return incidents    
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def retrieve_last_purchase_and_populate(Approval_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    try:
+     cur.execute("""SELECT DISTINCT TOP 1--*
+	POH.Repaired
+	,AIH.Odometer
+	,POH.Supplier_Name
+	,POH.Incident_Link
+	,POTV.Total_Cost
+	,POTV.Total_Recharge
+	,POH.PO_Number
+FROM Purchase_Order_Headder POH
+	JOIN Order_Cost_Lines POCL ON POH.PO_Number = POCL.PO_Number
+	JOIN All_Inicident_Headders AIH ON AIH.I_Number = POH.Incident_Link
+	JOIN PO_Total_Values POTV ON POH.PO_Number = POTV.PO_Number
+WHERE AIH.Registration_NO = ?
+ORDER BY POH.PO_Number DESC""",(Approval_number))
+
+    # Fetch all rows of the result set
+     row = cur.fetchone()
+     if row:
+            Purchase = {
+                "Repaired": row[0],
+                "Odometer": row[1],
+                "Supplier": row[2],
+                "Incident_Link": row[3],
+                "Total_parts":row[4],
+                "Total_labours":row[5], 
+                "Approval":row[6],
+            }
+            return[Purchase]  
+     else : 
+        print("No information found")
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def populate_costlines(Approval_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    try:
+     cur.execute("""SELECT TOP 1 * FROM Order_Cost_Lines
+                    LEFT JOIN PO_Types
+                    ON Order_Cost_Lines.PO_Type_ID=PO_Types.PO_Type_ID
+                    LEFT JOIN PO_Category 
+                    ON Order_Cost_Lines.PO_Category_ID= PO_Category.PO_Category_ID
+                    LEFT JOIN PO_Products
+                    ON Order_Cost_Lines.PO_Product_ID= PO_Products.PO_Product_ID
+                    AND Order_Cost_Lines.PO_Category_ID = PO_Products.PO_Category_ID 
+		            WHERE PO_Number= ?
+		            ORDER BY Line_Number DESC""",(Approval_number))
+
+    # Fetch all rows of the result set
+     row = cur.fetchone()
+     if row:
+            incident = {
+                "RTS_code": row[-8],
+                "RTS_Desc": row[-4],
+                "Product_Desc":row[-1],
+                "Parts_Cost": row[7],
+                "Labour_Cost": row[8],
+                "Recharge_parts":row[9],
+                "Recharge_labour":row[10]
+            }
+            return[incident]  
+     else : 
+        print("No information found")
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+def populate_all_the_cost_lines(Approval_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+     cur.execute("""SELECT * FROM Order_Cost_Lines
+                LEFT JOIN PO_Types
+                ON Order_Cost_Lines.PO_Type_ID=PO_Types.PO_Type_ID
+                LEFT JOIN PO_Category 
+                ON Order_Cost_Lines.PO_Category_ID= PO_Category.PO_Category_ID
+                LEFT JOIN PO_Products
+                ON Order_Cost_Lines.PO_Product_ID= PO_Products.PO_Product_ID
+                AND Order_Cost_Lines.PO_Category_ID = PO_Products.PO_Category_ID 
+		        WHERE PO_Number= ?
+		        ORDER BY Line_Number """,(Approval_number))
+
+    # Fetch all rows of the result set
+     rows = cur.fetchall()
+     incidents = []
+     for row in rows:
+            incident = {
+                "RTS_code": row[-8],
+                "RTS_Desc": row[-4],
+                "Product_Desc":row[-1],
+                "Parts_Cost": row[7],
+                "Labour_Cost": row[8],
+                "Recharge_parts":row[9],
+                "Recharge_labour":row[10]
+            }
+            incidents.append(incident) 
+     return incidents 
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def insert_purchase_details(Reg_Number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+     cur.execute("""SELECT TOP 1 Pu.*,PO_Recharge_Status_Description
+                    FROM
+                    Purchase_Order_Headder Pu
+                    JOIN 
+                    All_Inicident_Headders Incident ON Pu.Incident_Link= Incident.I_Number
+                    LEFT JOIN PO_Recharge_Status ON PU.PO_Recharge_Status_ID= PO_Recharge_Status.PO_Recharge_Status_ID
+                    WHERE Registration_NO = ?
+                    ORDER BY PO_Number DESC""",(Reg_Number))
+
+    # Fetch all rows of the result set
+     row = cur.fetchone()
+     if row:
+            incident = {
+                "PO_Number": row[0],
+                "Incident_Link": row[1],
+                "PO_Created": row[2],
+                "Created_By": row[3],
+                "Supplier_No":row[4],
+                "Order_Category":row[5],
+                "Fleet_No":row[6],
+                "Odometer":row[7],
+                "Customer_PO": row[8],
+                "Kofax_Scan_No": row[9],
+                "Igloo_Invoice_No":row[10],
+                "Supplier_Name":row[11],
+                "Repaired": row[12],
+                "Final_Costed":row[14],
+                "Recharge_Status":row[16]
+            }
+            return incident
+    except Exception as e:
+        print("Error:", e)
+        return None
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def populate_all_the_cost_lines_two(Approval_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+     cur.execute("""SELECT * FROM Order_Cost_Lines
+                    LEFT JOIN PO_Types
+                    ON Order_Cost_Lines.PO_Type_ID=PO_Types.PO_Type_ID
+                    LEFT JOIN PO_Category 
+                    ON Order_Cost_Lines.PO_Category_ID= PO_Category.PO_Category_ID
+                    LEFT JOIN PO_Products
+                    ON Order_Cost_Lines.PO_Product_ID= PO_Products.PO_Product_ID
+                    AND Order_Cost_Lines.PO_Category_ID = PO_Products.PO_Category_ID 
+		            WHERE PO_Number= ?
+		            ORDER BY Line_Number """,(Approval_number))
+
+    # Fetch all rows of the result set
+     rows = cur.fetchall()
+     incidents = []
+     for row in rows:
+            incident = {
+                "RTS_code": row[-8],
+                "RTS_Desc": row[-4],
+                "Product_Desc":row[-1],
+                "Parts_Cost": row[7],
+                "Labour_Cost": row[8],
+                "Recharge_parts":row[9],
+                "Recharge_labour":row[10]
+            }
+            incidents.append(incident) 
+     return incidents 
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def update_the_purchase_orderinfo(PO_Number,i_number,combined_datetime,Created_By,Supplier_No,
+                                              Order_Category,Fleet_No,Odometer,Customer_PO,Kofax_Scan,Igloo_invoice,Supplier_Name,Repaired_Datetime,Registration):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    try:
+            # If a record exists, update it
+        cur.execute("""UPDATE Purchase_Order_Headder 
+                        SET 
+                        PO_Created=?,
+                        Created_BY=?,
+                        Supplier_No=?,
+                        Order_Cat=?,
+                        Fleet_No=?,
+                        Odometer=?,
+                        Customer_PO=?,
+                        Kofax_Scan_No=?,
+                        Igloo_Invoice_No=?,
+                        Supplier_Name=?,
+                        Repaired=?,
+                        Reg_No=?
+                        WHERE PO_Number = ? AND Incident_Link=?""", 
+                        (combined_datetime,Created_By,Supplier_No,
+                        Order_Category,Fleet_No,Odometer,Customer_PO,Kofax_Scan,Igloo_invoice,Supplier_Name,Repaired_Datetime,Registration,PO_Number,i_number))
+        print("Record updated successfully")
+
+        # Check if any rows were affected
+         # if cur.rowcount == 0:
+        # If no rows were updated, insert a new record
+          # cur.execute("""INSERT INTO Purchase_Order_Headder 
+                        # (PO_Created, Created_BY, Supplier_No, Order_Cat, Fleet_No, Odometer, Customer_PO, Kofax_Scan_No, Igloo_Invoice_No, Supplier_Name, Repaired, PO_Number, Incident_Link,Reg_No)
+                        # VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)""", 
+                        # (combined_datetime, Created_By, Supplier_No, Order_Category, Fleet_No, Odometer, Customer_PO, Kofax_Scan, Igloo_invoice, Supplier_Name, Repaired_Datetime, generate_purchase_order_number(), i_number,Registration))
+          # print("Record inserted successfully")
+         # else:
+          # print("Record updated successfully")
+        
+
+        # Commit the transaction
+        conn.commit()
+
+    except Exception as e:
+        print("Error:", e)
+        conn.rollback()  # Rollback the transaction in case of error
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def store_cost_lines_two(PO_Number,bothdateandtime,Added_By,PF_Depot,Parts_Cost,Labour_Hours,
+                                 Labour_Rate,Labour_cost,Parts_Uplift,Labour_Uplift,Recharge_parts,Recharge_cost,
+                                 Notes,Recharge_text,type_id,Category_id,Product_id,Supplier_Name, Product_Descriptiom,combined_value):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    
+    cur.execute("""Insert into Order_Cost_Lines(PO_Number,Line_Number,Line_Added,Added_By,PF_Depot,Parts_Cost,Labour_Hours,Labour_Rate,
+                Labour_Cost,Parts_Uplift,Labour_Uplift,Recharge_parts,Recharge_labour,
+                Notes,Recharge_Text,PO_Type_ID,PO_Category_ID,PO_Product_ID,Supplier_Name,PO_Product_Description,RTS_Description)
+                Values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(PO_Number,generate_line_number(PO_Number),bothdateandtime,Added_By,PF_Depot,Parts_Cost,Labour_Hours,Labour_Rate,
+                                 Labour_cost,Parts_Uplift,Labour_Uplift,Recharge_parts,Recharge_cost,
+                                 Notes,Recharge_text,type_id,Category_id,Product_id,Supplier_Name,Product_Descriptiom,combined_value))
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+def open_costlines_page(PO_Number,Line_added):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""SELECT * FROM Order_Cost_Lines
+                    LEFT JOIN PO_Types
+                    ON Order_Cost_Lines.PO_Type_ID=PO_Types.PO_Type_ID
+                    LEFT JOIN PO_Category 
+                    ON Order_Cost_Lines.PO_Category_ID= PO_Category.PO_Category_ID
+                    LEFT JOIN PO_Products
+                    ON Order_Cost_Lines.PO_Product_ID= PO_Products.PO_Product_ID
+                    AND Order_Cost_Lines.PO_Category_ID = PO_Products.PO_Category_ID 
+                    WHERE PO_Number= ? AND Line_Number=?""",(PO_Number,Line_added))
+
+    # Fetch all rows of the result set
+     row = cur.fetchone()
+     if row:
+            incident = {
+                "PO_Number": row[0],
+                "Line_Number": row[1],
+                "Line_Added": row[2],
+                "Added_By": row[3],
+                "Rts_code":row[4],
+                "Rts_description":row[5],
+                "Pf_depot":row[6],
+                "Parts_cost":row[7],
+                "labour_cost": row[8],
+                "Recharge_parts": row[9],
+                "Recharge_labour":row[10],
+                "Recharge_invoiced":row[11],
+                "Recharge_posted": row[12],
+                "Notes":row[13],
+                "Recharge_text": row[14],
+                "Labour_Hours":row[18],
+                "Labour_Rate": row[19],
+                "Parts_Uplift":row[20],
+                "Labour_Uplift":row[21],
+                "Type_ID":row[-9],
+                "Type_Desc":row[-8],
+                "Category_ID":row[-5],
+                "Cat_Desc":row[-4],
+                "Product_ID":row[-2],
+                "Product_Desc":row[-1]
+
+
+            }
+            return incident
+    except Exception as e:
+        print("Error:", e)
+        return None
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def get_combined_data():
+    engine = create_engine("mssql+pyodbc://", creator=lambda: conn)
+
+    query = """
+    SELECT ih.*, ie.*, ipur.*,icos.*
+    FROM Incident_Headder ih
+    JOIN Incident_Events ie ON ih.I_Number = ie.I_Number
+    JOIN Purchase_Order_Headder ipur ON ie.I_Number = ipur.Incident_Link
+    JOIN Order_Cost_Lines icos ON ipur.PO_Number= icos.PO_Number
+    """
+    df = pd.read_sql_query(query, engine)
+    conn.close()
+    return df
+def get_combined_incident_data():
+    engine = create_engine("mssql+pyodbc://", creator=lambda: conn)
+
+    query = """
+    SELECT *
+    FROM Incident_Headder 
+    WHERE I_Created is NOT NULL
+    """
+    df = pd.read_sql_query(query, engine)
+    return df
+def get_combined_events_data():
+    engine = create_engine("mssql+pyodbc://", creator=lambda: conn)
+
+    query = """
+    SELECT *
+    FROM Incident_Events
+    """
+    df = pd.read_sql_query(query, engine)
+    return df
+def get_combined_purchase_data():
+    engine = create_engine("mssql+pyodbc://", creator=lambda: conn)
+
+    query = """
+    SELECT *
+    FROM Purchase_Order_Headder
+    """
+    df = pd.read_sql_query(query, engine)
+    return df
+def get_combined_cost_data():
+    engine = create_engine("mssql+pyodbc://", creator=lambda: conn)
+
+    query = """
+    SELECT *
+    FROM Order_Cost_Lines
+    """
+    df = pd.read_sql_query(query, engine)
+    return df
+def store_the_postincident_reports(Incident_Number,combined_datetime,Created_By,Incident_cat,
+                                               Final_costed,Comments,category_post_value_to_store
+                                               ,verdict_post_value_to_store):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+
+    try:
+        # Check if a record with the same Registration_No already exists
+        cur.execute("SELECT COUNT(*) FROM Post_Incident_Reports WHERE I_number=?", (Incident_Number))
+        record_count = cur.fetchone()[0]
+
+        if record_count > 0:
+            # If a record exists, update it
+            cur.execute("""UPDATE Post_Incident_Reports
+                        SET 
+                        Report_Created = ? ,
+                        Created_By=?,
+                        Inc_Category_ID=?,
+                        Linked_Orders_Final_Costed=?,
+                        Comments=?,
+                        Cat_ID=?,
+                        Verdict_ID=?
+                        WHERE I_Number=?""", 
+                        (combined_datetime,Created_By,Incident_cat,
+                        Final_costed,Comments,category_post_value_to_store,verdict_post_value_to_store,Incident_Number))
+            print("Record updated successfully")
+
+    
+        else:
+            cur.execute("""INSERT INTO Post_Incident_Reports(I_Number,Report_Created,Created_By,Inc_Category_ID,
+                Linked_Orders_Final_Costed ,Comments,Cat_ID,Verdict_ID
+                        ) 
+                        VALUES (?,?,?,?,?,?,?,?)""", 
+                        (Incident_Number,combined_datetime,Created_By,Incident_cat,
+                                               Final_costed,Comments,category_post_value_to_store,verdict_post_value_to_store))
+            print("Record inserted successfully")
+
+           # Commit the transaction
+        conn.commit()
+    except Exception as e:
+        print("Error:", e)
+        conn.rollback()  # Rollback the transaction in case of error
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+def fetch_postreports(Incident_Number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("""SELECT * FROM Post_Incident_Reports WHERE I_Number=?""",(Incident_Number))
+    result = cur.fetchone()
+
+    # Close cursor and database connection
+    cur.close()
+
+    return result
+def fetch_postreportsnew(Inci_number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("""SELECT * FROM Post_Incident_Reports WHERE I_Number=?""",(Inci_number))
+    result = cur.fetchone()
+
+    # Close cursor and database connection
+    cur.close()
+
+    return result
+def fetch_lastpost_reports_and_insert(Incident_Number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""SELECT * FROM Post_Incident_Reports WHERE I_Number=?""",(Incident_Number))
+     row=cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            post_details = {
+                "I_Number":row[0],
+                "Report_Created":row[1],
+                "Created_By":row[2],
+                "Inc_Category_ID":row[3],
+                "Linked_Orders":row[4],
+                "Comments":row[5],
+            }
+            return [post_details] # Return as a list of dictionaries
+
+     else:
+            print("No post reports found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetch_lastpost_reports_and_inserttwo(Incident_Number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""SELECT * FROM Post_Incident_Reports 
+                    LEFT JOIN I_Defect_Cats
+                    ON Post_Incident_Reports.Cat_ID= I_Defect_Cats.Cat_ID 
+                    LEFT JOIN PIR_Verdict 
+                    ON Post_Incident_Reports.Verdict_ID= PIR_Verdict.Verdict_ID
+                    WHERE I_Number=?""",(Incident_Number))
+     row=cur.fetchone()
+
+     if row:
+            # Convert the row into a dictionary
+            post_details = {
+                "I_Number":row[0],
+                "Report_Created":row[1],
+                "Created_By":row[2],
+                "Inc_Category_ID":row[3],
+                "Linked_Orders":row[4],
+                "Comments":row[5],
+                "Category":row[-3],
+                "Verdict":row[-1]
+            }
+            return post_details # Return as a list of dictionaries
+
+     else:
+            print("No post reports found in the database.")
+            return None
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+def retrieve_costlines_for_approvalnumber(approval_number):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""SELECT * FROM Order_Cost_Lines
+                    LEFT JOIN PO_Types
+                    ON Order_Cost_Lines.PO_Type_ID=PO_Types.PO_Type_ID
+                    LEFT JOIN PO_Category 
+                    ON Order_Cost_Lines.PO_Category_ID= PO_Category.PO_Category_ID
+                    LEFT JOIN PO_Products
+                    ON Order_Cost_Lines.PO_Product_ID= PO_Products.PO_Product_ID
+                    AND Order_Cost_Lines.PO_Category_ID = PO_Products.PO_Category_ID   
+                    WHERE PO_Number=?""",(approval_number))
+     rows = cur.fetchall()
+     incidents = []
+     for row in rows:
+            incident = {
+                "RTS_code": row[-8],
+                "RTS_Desc": row[-4],
+                "Product_Desc":row[-1],
+                "Parts_Cost": row[7],
+                "Labour_Cost": row[8],
+                "Recharge_parts":row[9],
+                "Recharge_labour":row[10]
+            }
+            incidents.append(incident) 
+     return incidents 
+    except Exception as e:
+        print("Error:", e)
+        return None
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+def fetch_verdict_details():
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("SELECT * FROM PIR_VERDICT")
+    rows=cur.fetchall()
+    return rows
+def adduser_or_justleave(current_user):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    # Check if the user exists
+    cur.execute("SELECT * FROM Users WHERE Username = ?", (current_user,))
+    user = cur.fetchone()
+    Version_Used='IMPO 1.7'
+    if user:
+        cur.execute("""UPDATE Users
+                    SET Last_Used=?,
+                        Version_Used=?
+                    WHERE Username=? """,(datetime.datetime.now(),Version_Used,current_user))
+        print("User already exists, no changes made.")
+        conn.commit()
+    else:
+        # Add the user
+        cur.execute(
+            "INSERT INTO Users (Username, First_Used, Authority_Level) VALUES (?, ?, ?)",
+            (current_user, datetime.datetime.now(), 0)
+        )
+        conn.commit()
+        print("New user added to the database.")
+
+    cur.close()
+    conn.close()
+def check_the_user_policy(current_user):
+    pass
+def retrieve_the_user_Details(username):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("""SELECT Igloo_GUID FROM users WHERE username = ?""", (username,))
+    result= cur.fetchone()
+    cur.close()
+    conn.close()
+    return result
+
+def is_authority_level_sufficient(username):
+ conn=pyodbc.connect(conn_str1)
+ cur=conn.cursor()
+
+ # Check the user's authority level
+ cur.execute("SELECT Authority_level FROM users WHERE username = ?", (username,))
+ user = cur.fetchone()
+
+ if user:
+        authority_level = user[0]
+        if authority_level >= 8:
+            print(f"User {username} has sufficient authority level ({authority_level}).")
+            return True
+        else:
+            print(f"User {username} does not have sufficient authority level ({authority_level}).")
+            return False
+ 
+ cur.close()
+ conn.close()    
+
+def is_authority_level_sufficienttwo(username):
+ conn=pyodbc.connect(conn_str1)
+ cur=conn.cursor()
+
+ # Check the user's authority level
+ cur.execute("SELECT Authority_level FROM users WHERE username = ?", (username,))
+ user = cur.fetchone()
+
+ if user:
+        authority_level = user[0]
+        if authority_level >= 6:
+            print(f"User {username} has sufficient authority level ({authority_level}).")
+            return True
+        else:
+            print(f"User {username} does not have sufficient authority level ({authority_level}).")
+            return False
+ 
+ cur.close()
+ conn.close()    
+ 
+def Fetch_PO_Types():
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("SELECT * FROM PO_Types WHERE Incident_Linked='Yes'")
+    rows=cur.fetchall()
+    return rows
+def Fetch_PO_Types_noinci():
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("SELECT * FROM PO_Types WHERE Incident_Linked='No'")
+    rows=cur.fetchall()
+    return rows
+def Fetch_Categories_By_Type(type_id):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("SELECT * FROM PO_Category WHERE PO_Type_ID=?",(type_id))
+    rows=cur.fetchall()
+    return rows
+def Fetch_Products_By_Category(category_id):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("SELECT * FROM PO_Products WHERE PO_Category_ID=?",(category_id))
+    rows=cur.fetchall()
+    return rows
+def store_the_costlines_withoutinci(SupplierName_withoutinci,PO_Number,SupplierNo,
+                                                combined_datetime,Created_By,type_id,Category_id,
+                                                Product_id,Pf_Depot,Parts,Notes,Product_Description,fleet_value_to_store,reg_value_to_store,combined_value):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    try:
+     cur.execute("""UPDATE Purchase_Order_Headder 
+                    SET Supplier_No=?,
+                        Supplier_Name=?,
+                        Fleet_No=?,
+                        Reg_No=?
+                        WHERE PO_Number=? AND Incident_Link=?""",(SupplierNo,SupplierName_withoutinci,fleet_value_to_store,reg_value_to_store,PO_Number,1) )
+     cur.execute("""INSERT INTO Order_Cost_Lines(PO_Number,Line_Number,Line_Added,Added_By,PO_Type_ID,
+                 PO_Category_ID,PO_Product_ID,PF_Depot,Parts_Cost,Notes,PO_Product_Description,RTS_Description)
+                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""",(PO_Number,generate_line_number(PO_Number),combined_datetime,
+                                                Created_By,type_id,Category_id,Product_id,Pf_Depot,Parts
+                                                ,Notes,Product_Description,combined_value))
+     print("Record Inserted Successfully")
+     conn.commit()
+    except Exception as e:
+        print("Error:", e)
+        conn.rollback()  # Rollback the transaction in case of error
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetch_uplift_forparts(Depot_Name):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("""SELECT Parts_Uplift FROM PF_Depot_Details WHERE Depot_Name=?""",(Depot_Name))
+    result=cur.fetchone()
+    return result[0] if result else 0
+
+def fetch_labourrate_forlabours(Depot_Name):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("""SELECT Internal_Labour_Rate FROM PF_Depot_Details WHERE Depot_Name=?""",(Depot_Name))
+    result=cur.fetchone()
+    return result[0] if result else 0
+
+def fetch_labouruplift_forlabours(Depot_Name):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("""SELECT Ext_Labour_Uplift FROM PF_Depot_Details WHERE Depot_Name=?""",(Depot_Name))
+    result=cur.fetchone()
+    return result[0] if result else 0
+
+def check_customer_specific(cust_id):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    cur.execute("""SELECT Customer_Notes FROM Customer_Specifics WHERE Customer_Number=?""",(cust_id))
+    result=cur.fetchone()
+    return result
+def fetch_approval_numbers(incident_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    
+    try:
+        cur.execute("""
+            SELECT PO_Number
+            FROM Purchase_Order_Headder
+            WHERE Incident_Link = ?
+        """, (incident_number,))
+        approval_numbers = [row.PO_Number for row in cur.fetchall()]
+        return approval_numbers
+    except Exception as e:
+        print(f"Error fetching approval numbers: {e}")
+        return []
+    finally:
+        cur.close()
+        conn.close()
+def fetching_selected_approvaldetails(approval_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+     cur.execute("""SELECT * FROM Purchase_Order_Headder
+                WHERE PO_Number= ?""",(approval_number))
+
+    # Fetch all rows of the result set
+     row = cur.fetchone()
+     if row:
+            incident = {
+                "PO_Number": row[0],
+                "Incident_Link": row[1],
+                "PO_Created": row[2],
+                "Created_By": row[3],
+                "Supplier_No":row[4],
+                "Order_Category":row[5],
+                "Fleet_No":row[6],
+                "Odometer":row[7],
+                "Customer_PO": row[8],
+                "Kofax_Scan_No": row[9],
+                "Igloo_Invoice_No":row[10],
+                "Supplier_Name":row[11],
+                "Repaired": row[12]
+            }
+            return incident
+    except Exception as e:
+        print("Error:", e)
+        return None
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetching_the_last_approval(Reg_Number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+     cur.execute("""SELECT TOP 1 Pu.*,PO_Recharge_Status_Description
+                    FROM
+                    Purchase_Order_Headder Pu
+                    JOIN 
+                    All_Inicident_Headders Incident ON Pu.Incident_Link= Incident.I_Number
+                    LEFT JOIN PO_Recharge_Status ON PU.PO_Recharge_Status_ID= PO_Recharge_Status.PO_Recharge_Status_ID
+                    WHERE Registration_NO = ?
+                    ORDER BY PO_Number DESC""",(Reg_Number))
+     row = cur.fetchone()
+     if row:
+            incident = {
+                "PO_Number": row[0],
+                "Incident_Link": row[1],
+                "PO_Created": row[2],
+                "Created_By": row[3],
+                "Supplier_No":row[4],
+                "Order_Category":row[5],
+                "Fleet_No":row[6],
+                "Odometer":row[7],
+                "Customer_PO": row[8],
+                "Kofax_Scan_No": row[9],
+                "Igloo_Invoice_No":row[10],
+                "Supplier_Name":row[11],
+                "Repaired": row[12],
+                "Final_Costed":row[14],
+                "Recharge_Status":row[16]
+            }
+            return incident
+    except Exception as e:
+        print("Error:", e)
+        return None
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+def get_the_userdetails():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("""SELECT * FROM Users""")
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+def check_events(I_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    # Fetch all rows based on the I_number
+    cur.execute("SELECT * FROM Incident_Events WHERE I_Number=?", (I_number,))
+    rows = cur.fetchall()  # Fetch all rows
+
+    # Close the cursor and connection
+    cur.close()
+    conn.close()
+
+    # Check if no rows are found
+    if not rows:
+        return None
+
+    # Iterate over all rows and check for conditions
+    for row in rows:
+        # If the 4th column contains "Incident not deferred", return that row
+        if row[3] == 7:
+            return row  # Return the entire row
+
+    # If no row meets the condition, return None
+    return None
+def check_eventstwo(I_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    # Fetch all rows based on the I_number
+    cur.execute("SELECT * FROM Incident_Events WHERE I_Number=?", (I_number,))
+    rows = cur.fetchall()  # Fetch all rows
+
+    # Close the cursor and connection
+    cur.close()
+    conn.close()
+
+    # Check if no rows are found
+    if not rows:
+        return None
+
+    # Iterate over all rows and check for conditions
+    for row in rows:
+        # If the 4th column contains "Incident not deferred", return that row
+        if row[3]==12:
+            return row  # Return the entire row
+
+    # If no row meets the condition, return None
+    return None
+def check_eventsforVor(I_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    # Fetch all rows based on the I_number
+    cur.execute("SELECT * FROM Incident_Events WHERE I_Number=?", (I_number,))
+    rows = cur.fetchall()  # Fetch all rows
+
+    # Close the cursor and connection
+    cur.close()
+    conn.close()
+
+    # Check if no rows are found
+    if not rows:
+        return None
+
+    # Iterate over all rows and check for conditions
+    for row in rows:
+        # If the 4th column contains "Incident not deferred", return that row
+        if row[3]==13:
+            return row  # Return the entire row
+
+    # If no row meets the condition, return None
+    return None
+
+
+def retrieving_the_history_data(filter_criteria=None):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    
+    try:
+        # Start building the query
+        base_query = """
+        WITH CombinedIncidents AS (
+            SELECT 
+                I_Number,
+                Odometer    
+            FROM 
+                dbo.Incident_Headder
+            UNION ALL
+            SELECT 
+                I_Number,
+                Odometer
+            FROM 
+                dbo.Incident_Headder_Archive
+        )
+
+        SELECT TOP 1000
+            poh.Reg_No,
+            ci.I_Number,
+            ci.Odometer, 
+            ocl.RTS_Description, 
+            ocl.Parts_Cost + ocl.Labour_Cost AS Net_Value, 
+            ocl.Recharge_parts + ocl.Recharge_labour AS Recharge, 
+            poh.PO_Number, 
+            poh.Supplier_No, 
+            poh.Supplier_Name, 
+            ocl.PF_Depot, 
+            ocl.Line_Added
+        FROM        
+            dbo.Purchase_Order_Headder AS poh
+        INNER JOIN 
+            dbo.Order_Cost_Lines AS ocl ON poh.PO_Number = ocl.PO_Number 
+        INNER JOIN 
+            CombinedIncidents AS ci ON poh.Incident_Link = ci.I_Number
+        WHERE 1=1
+        """
+
+        # Add filtering logic based on filter_criteria
+        #filters = []
+        #params = []
+
+        #if filter_criteria:
+            #if filter_criteria["Registration"]:
+                #filters.append("poh.Reg_No LIKE ?")
+                #params.append(f"%{filter_criteria['Registration']}%")
+            #if filter_criteria["Supplier_No"]:
+                #filters.append("poh.Supplier_No LIKE ?")
+                #params.append(f"%{filter_criteria['Supplier_No']}%")
+            #if filter_criteria["Rts"]:
+                #filters.append("ocl.RTS_Description LIKE ?")
+                #params.append(f"%{filter_criteria['Rts']}%")
+            #if filter_criteria["Date From"]:
+                #filters.append("ocl.Line_Added >= ?")  # Assuming oc.Date is the correct date column
+                #params.append(filter_criteria["Date From"])
+            #if filter_criteria["Date To"]:
+                #filters.append("ocl.Line_Added <= ?")  # Assuming oc.Date is the correct date column
+                #params.append(filter_criteria["Date To"])
+# Add filtering logic based on filter_criteria
+        #filters = []
+        params = []
+
+        if filter_criteria:
+            if filter_criteria.get("Registration"):
+                base_query += " AND poh.Reg_No LIKE ?"
+                params.append('%' +filter_criteria["Registration"]+ '%')
+            if filter_criteria.get("I_Number"):
+                base_query += " AND ci.I_Number=?"  # Assuming approval_number is the column for the approval
+                params.append(filter_criteria["I_Number"])
+            if filter_criteria.get("Supplier_No"):
+                base_query += " AND poh.Supplier_Name LIKE ?"
+                params.append('%'+ filter_criteria["Supplier_No"] + '%')
+            if filter_criteria.get("Rts"):
+                base_query += " AND ocl.RTS_Description LIKE ?"
+                params.append('%' +filter_criteria["Rts"]+ '%')
+            if filter_criteria.get("Date From"):
+                base_query += " AND ocl.Line_Added>= ?"  # Assuming oc.Date is the correct date column
+                params.append(filter_criteria["Date From"])
+            if filter_criteria.get("Date To"):
+                base_query += " AND ocl.Line_Added <= ?"  # Assuming oc.Date is the correct date column
+                params.append(filter_criteria["Date To"])
+            # Handle Approval From filter
+            if filter_criteria.get("Approval From"):
+                base_query += " AND poh.PO_Number >= ?"  # Assuming approval_number is the column for the approval
+                params.append(filter_criteria["Approval From"])
+                # Handle Approval To filter
+            if filter_criteria.get("Approval To"):
+                base_query += " AND poh.PO_Number <= ?"
+                params.append(filter_criteria["Approval To"])
+            if filter_criteria.get("PF Depot"):
+                base_query += " AND ocl.PF_Depot LIKE ?"
+                params.append(filter_criteria["PF Depot"])
+        #if filters:
+
+        base_query +=" ORDER BY poh.PO_Number DESC,ocl.Line_Added DESC"
+
+        cur.execute(base_query, params)
+        rows = cur.fetchall()
+        
+        incidents = []
+        for row in rows:     
+            # Convert the row into a dictionary
+            history = {
+                "Reg": row[0],
+                "I_Number":row[1],
+                "Date": row[10],
+                "Odo": row[2],
+                "Rts": row[3],
+                "Net value": row[4],
+                "Rech": row[5],
+                "Approval": row[6],
+                "Supplier": row[7],
+                "Supplier Name": row[8],
+                "PF DEPOT": row[9]
+            }
+            incidents.append(history)
+        return incidents
+
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+
+def retrieving_the_data_registration_and_fleet():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+   
+    cur.execute("""SELECT  [PO_Type_Description]
+      ,[Depot_Name]
+      ,[Fleet_No_To_Store]
+      ,[Registration_To_Store]
+  FROM [IMPO].[dbo].[PO_Without_Inc_Reg_Fleet]""")
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+def fetch_registration_number_for_first_page():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    cur.execute("""SELECT DISTINCT Registration_NO FROM Incident_Headder WHERE Registration_NO is NOT NULL 
+                AND Status_Id!='X'
+                ORDER BY Registration_No""")
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+def fetch_customer_number_for_first_page():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    cur.execute("""SELECT DISTINCT Customer_Name FROM Incident_Headder WHERE Customer_Name is NOT NULL 
+                ORDER BY Customer_Name""")
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+
+def fetch_incident_number_for_firstpage():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    cur.execute("""SELECT I_Number FROM Incident_Headder WHERE I_Number is NOT NULL 
+                ORDER BY I_Number""")
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+def fetch_incident_number_for_firstpage_closed():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    cur.execute("""SELECT I_Number FROM Incident_Headder_Archive WHERE I_Number is NOT NULL 
+                ORDER BY I_Number""")
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+
+
+
+def fetch_registration_and_approval_for_search():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    cur.execute("""SELECT DISTINCT Reg_No,PO_Number FROM [IMPO].[dbo].[PO_Search_Data]  WHERE Reg_No is NOT NULL """)
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+def fetch_all_the_cust_details():
+    conn=pyodbc.connect(conn_str2)
+    cur=conn.cursor()
+    cur.execute("""SELECT [ID_FICHE] AS Customer_Number
+      ,[NOM_SOC] as Customer_Name
+     FROM [S0SQL05\STAT].[IGLOO_UK].[dbo].[CLIENT_FICHE]""")
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+
+def fetch_service_type_data(Fleet_No):
+    conn=pyodbc.connect(conn_str2)
+    cur=conn.cursor()
+    cur.execute("""SELECT 
+	CODE_ENTRETIEN as [Service Type]
+	,Format(DTE_NXTENTRETIEN,'dd-MM-yyyy') AS [Due Date] 
+	,DATEDIFF(Day,GETDATE(),DTE_NXTENTRETIEN) AS [Days Remaining]
+FROM [S0SQL05\STAT].[IGLOO_UK].[dbo].[ENTRETIEN]
+JOIN 
+	(SELECT MAX(S_Tbl.ID_ENTRETIEN) AS L_ID_SERVICE
+	FROM [S0SQL05\STAT].[IGLOO_UK].[dbo].[ENTRETIEN] S_Tbl
+	WHERE S_Tbl.PARC_ID = ? AND S_Tbl.CONCERNE = 1
+	GROUP BY S_Tbl.CODE_ENTRETIEN) t 
+	ON t.L_ID_SERVICE = ID_ENTRETIEN
+	ORDER BY DTE_NXTENTRETIEN""",(Fleet_No))
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+
+def fetch_recall_data(Fleet_No):
+    conn=pyodbc.connect(conn_str2)
+    cur=conn.cursor()
+    cur.execute("""SELECT 
+	REFOTS_CODE AS [Recall Number]
+	,OTS_REF_DATA.REFOTS_LIBELLE AS [Recall Description]
+  FROM [S0SQL05\STAT].[IGLOO_UK].[dbo].[OTS] OTS_DATA
+  JOIN (SELECT * 
+		FROM [S0SQL05\STAT].[IGLOO_UK].[dbo].[REF_OTS]
+		) AS OTS_REF_DATA 
+		ON OTS_REF_DATA.REFOTS_ID = OTS_DATA.REFOTS_ID
+  WHERE STATUT = 0 AND PARC_ID = ?
+  ORDER BY OTS_ID DESC""",(Fleet_No))
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+
+def fetch_compliance_data(Fleet_No):
+    conn=pyodbc.connect(conn_str2)
+    cur=conn.cursor()
+    cur.execute("""SELECT 
+	CODE_CONTROLE AS [Compliance Type]
+	, FORMAT(DTE_NXTCONTROLE,'dd-MM-yyyy') AS [Due Date]
+	,Datediff(DAY,GETDATE(),DTE_NXTCONTROLE) AS [Days Remaining]
+FROM [S0SQL05\STAT].[IGLOO_UK].[dbo].[CONTROLE]
+JOIN 
+	(SELECT	MAX(C_Tbl.ID_CONTROLE) as L_ID_CONTROL
+	FROM [S0SQL05\STAT].[IGLOO_UK].[dbo].[CONTROLE] C_Tbl
+	WHERE C_Tbl.PARC_ID = ? AND C_Tbl.CONCERNE = 1
+	GROUP BY C_Tbl.CODE_CONTROLE) t ON t.L_ID_CONTROL = ID_CONTROLE
+	ORDER BY DTE_NXTCONTROLE""",(Fleet_No))
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+
+def fetch_chassis_data(fleet_no):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    query=("""SELECT FORMAT(DTE_DEBUT,'dd-MM-yyyy') as Date, FORMAT(Full_Cover,'dd-MM-yyyy') as Full_Cover,FORMAT(Extended_Cover,'dd-MM-yyyy'),Extended_Cover_Comment,Road_Side_Cover,
+Road_Side_Assistance_Comment,exclusion,mi_km_Limit,goodwill,LOU_agreements,LOU_comment
+FROM dbo.Get_Chassis_Warranty(?)""")
+    cur.execute(query, (fleet_no,))
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+
+def fetch_equipment_data(fleet_no):
+    conn=pyodbc.connect(conn_str1)
+    cur=conn.cursor()
+    query=("""SELECT CODE_ARTICLE, FORMAT(Full_Cover_Years,'dd-MM-yyyy'), FORMAT([Extended Cover Years],'dd-MM-yyyy'), Comments FROM dbo.Get_Equipment_Warranty(?)""")
+    cur.execute(query, (fleet_no,))
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+
+
+
+def retrieve_last_incident_pks():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    cur.execute("""SELECT TOP 1 Contact_Method_ID, Cat_ID, Location_ID, Charge_ID,Status_ID,Inc_Type_ID FROM All_Inicident_Headders 
+                ORDER BY I_Number DESC""")
+    rows=cur.fetchone()
+    cur.close()
+    conn.close()
+    return rows
+
+
+
+def check_the_status_of_the_last_incident(Incident_Number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("""SELECT * FROM Incident_Headder WHERE I_Number=?""",(Incident_Number))
+    result=cur.fetchone()
+    if result and result[21]=='X':
+        insert_query=("""INSERT INTO Incident_Headder_Archive(I_Number,I_Created,Created_BY,Defect_occurred,Fleet_No,Customer_ID,Contact_Method_ID,
+                    Contact_Name,Contact_Tel,Contact_Email,Driver_Name,Driver_Tel,Cat_ID,Location_ID,Charge_ID,Defect_Loc_Address,Defect_Loc_PostCode,
+                    Reported_Defect,Attendance_Deferred,Deferred_To,Customer_Defect_NO,Status_ID,Registration_NO,Customer_Contract_NO,
+                    Depot_No,Defect_loc_W3W,CLOSED,Odometer,Supplier_No,Vehicle_loaded,Customer_Name,Depot_Name,Inc_Type_ID,VOR_INFO,
+                    Customer_Depot,Customer_Contract_Var
+                    )VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""")
+        cur.execute(insert_query,result[0],result[1],result[2],result[3],result[4],result[5],result[6],result[7],
+                    result[8],result[9],result[10],result[11],result[12],result[13],result[14],result[15],
+                    result[16],result[17],result[18],result[19],result[20],result[21],result[22],result[23]
+                    ,result[24],result[25],result[26],result[27],result[28],result[29],result[30],result[31],result[32]
+                    ,result[33],result[34],result[35])
+        I_Number= result[0]
+        
+        cur.execute("""SELECT * FROM Incident_Events WHERE I_Number=?""",(I_Number))
+
+        events=cur.fetchall()
+
+        Insert_into_archive_table= ("""INSERT INTO Incident_Events_Archive(I_Number,E_Number,E_Created,Event_Type_ID,
+                                    Event_Text,Next_Event_ID,Next_Event_DT,Created_By,Event_Owner
+                                    ) VALUES(?,?,?,?,?,?,?,?,?)""")
+        for event in events:
+            cur.execute(Insert_into_archive_table,event[0],event[1],event[2],event[3],event[4],event[5],event[6],event[7],event[8])
+        
+        conn.commit()
+
+        
+        cur.execute("DELETE FROM Incident_Events WHERE I_Number=?", (I_Number,))
+        
+
+        # Delete the incident from Incident_Headder
+        cur.execute("DELETE FROM Incident_Headder WHERE I_Number=?", (I_Number,))
+
+        conn.commit()
+
+        print("The last saved incident is closed")
+    else:
+        print("The last saved incident is not closed")
+    cur.close()
+    conn.close()
+
+def check_the_status_ifclosed_messagebox(Incident_Number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("""SELECT Status_Description FROM All_Inicident_Headders
+                JOIN I_Status ON All_Inicident_Headders.Status_ID= I_Status.Status_ID WHERE I_Number=?""",(Incident_Number))
+    result=cur.fetchone()
+    cur.close()
+    conn.close()
+    return result
+def check_the_status_ifclosed_messageboxclosed(Incident_Number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("""SELECT Status_Description FROM Incident_Headder_Archive
+                JOIN I_Status ON Incident_Headder_Archive.Status_ID= I_Status.Status_ID WHERE I_Number=?""",(Incident_Number))
+    result=cur.fetchone()
+    cur.close()
+    conn.close()
+    return result
+
+def retrieve_last_incident_pksusinginci(incident_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+
+    cur.execute("""SELECT TOP 1 Contact_Method_ID, Cat_ID, Location_ID, Charge_ID,Status_ID,Inc_Type_ID FROM All_Inicident_Headders
+                WHERE I_Number=?""",(incident_number))
+    rows=cur.fetchone()
+    cur.close()
+    conn.close()
+    return rows
+
+def store_in_vor_table(Incident_Number,current_datetime,Vehicleatpf,Blocker,combined_datetime):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+     cur.execute("""INSERT INTO VOR_Details(I_Number,Line_Added,Line_Number,Vehicle_at_PF,Blocker,
+                                    Next_VOR) VALUES(?,?,?,?,?,?)""",(Incident_Number,current_datetime,generate_line_numbervor(Incident_Number),Vehicleatpf,
+                                                                    Blocker,combined_datetime))
+    
+     cur.commit()
+     return True
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def pull_the_last_vor_info(Incident_No):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    
+    cur.execute("""SELECT TOP 1 * FROM VOR_Details WHERE I_Number=? ORDER BY Line_Number DESC""",(Incident_No))
+
+    result=cur.fetchone()
+
+    cur.close()
+    conn.close()
+    return result
+
+def INSERT_CUSTOMER_UPDATE_VOR(Incident_Number,current_datetime,Customerreturn):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+     cur.execute("""INSERT INTO VOR_Details(I_Number,Line_Added,Line_Number,Returned_To_Customer) VALUES(?,?,?,?)""",(Incident_Number,current_datetime,generate_line_numbervor(Incident_Number),Customerreturn))
+     cur.commit()
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+def store_in_vorelse_table(Incident_Number,current_datetime,customerdet,Vehicleatpf,Blocker,combined_datetime):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    try:
+     cur.execute("""INSERT INTO VOR_Details(I_Number,Line_Added,Line_Number,Returned_To_Customer,Vehicle_at_PF,Blocker,
+                                    Next_VOR) VALUES(?,?,?,?,?,?,?)""",(Incident_Number,current_datetime,generate_line_numbervor(Incident_Number),customerdet,Vehicleatpf,
+                                                                    Blocker,combined_datetime))
+    
+     cur.commit()
+     return True
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+    finally:
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+
+def fetch_incident_header(incident_number):
+    # Replace this with actual database query logic
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    
+    # Query Incident_Headder table based on Incident_Number
+    cur.execute("SELECT * FROM Incident_Headder WHERE I_Number=?", (incident_number,))
+    result = cur.fetchone()
+    
+    conn.close()
+    return result
+
+def fetch_costlines_forgraph(incident_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("SELECT PO_Number FROM Purchase_Order_Headder WHERE Incident_Link=?", (incident_number,))
+    result = cur.fetchone()
+
+    # Check if a result was found
+    if result is None:
+        return []  # Return an empty list if no PO_Number found
+
+    PO_Number = result[0]  # Get the PO_Number
+
+    # Fetch cost lines associated with the PO_Number
+    cur.execute("""
+        SELECT 
+            Parts_Cost, 
+            Labour_Cost, 
+            Recharge_parts, 
+            Recharge_labour 
+        FROM 
+            Order_Cost_Lines
+        WHERE 
+            PO_Number = ?
+    """, (PO_Number,))
+
+    cost_data = cur.fetchall()  # Fetch all rows
+
+    # Close the cursor and connection
+    cur.close()
+    conn.close()
+
+    # Return all cost data as a list of tuples
+    return cost_data  # This will be a list of tuples
+def fetch_recharge_data(Customer_Name):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+     # Query Incident_Headder table based on Incident_Number
+    cur.execute("""SELECT *
+                FROM [IMPO].[dbo].[Recharge_Report_Updated]
+                WHERE Customer_Name=?""", (Customer_Name,))
+    rows = cur.fetchall()
+    
+    cur.close()
+    conn.close() 
+
+    return rows
+def fetch_recharge_data_per_depot(PF_Depot):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+     # Query Incident_Headder table based on Incident_Number
+    cur.execute("""SELECT *
+                FROM [IMPO].[dbo].[Recharge_Report_Updated]
+                WHERE Depot_Name=?""", (PF_Depot))
+    rows = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    return rows
+def fetch_recharge_data_per_PFdepot(PF_Depot):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+     # Query Incident_Headder table based on Incident_Number
+    query="""SELECT *
+                FROM [IMPO].[dbo].[Recharge_Report_Updated]
+                WHERE Depot_Name=?"""
+    params = (PF_Depot)
+    cur.execute(query, params)
+    
+    rows = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    return rows
+
+def fetch_VOR_data(Customer_Name):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+     # Query Incident_Headder table based on Incident_Number
+    cur.execute("""SELECT  DISTINCT    TOP (100) PERCENT dbo.All_Inicident_Headders.I_Number,FORMAT(dbo.All_Inicident_Headders.Defect_occurred,'dd-MM-yyyy') as Incident_Date, dbo.All_Inicident_Headders.Registration_NO, dbo.All_Inicident_Headders.Customer_Name, dbo.All_Inicident_Headders.Customer_Depot, dbo.VOR_Details.Blocker, FORMAT(dbo.VOR_Details.Next_VOR, 'dd-MM-yyyy') 
+                  AS FormattedDate, dbo.Incident_Types.Inc_Type_Description,
+                dbo.I_Status.Status_Description,dbo.All_Inicident_Headders.Reported_Defect, dbo.I_Defect_Cats.Cat_Description, dbo.VOR_Details.Line_Number, dbo.All_Inicident_Headders.VOR_INFO,
+				  dbo.All_Inicident_Headders.Customer_Defect_NO,
+                 CONVERT(DATE, dbo.All_Events_data.E_Created) AS E_CreatedDate, 
+				  DATEDIFF(DAY, CONVERT(DATE, dbo.All_Events_data.E_Created), GETDATE()) AS DaysDifference
+FROM        dbo.All_Inicident_Headders INNER JOIN
+                  dbo.VOR_Details ON dbo.All_Inicident_Headders.I_Number = dbo.VOR_Details.I_Number INNER JOIN
+                  dbo.Incident_Types ON dbo.All_Inicident_Headders.Inc_Type_ID = dbo.Incident_Types.Inc_Type_ID INNER JOIN
+                  dbo.I_Status ON dbo.All_Inicident_Headders.Status_ID = dbo.I_Status.Status_ID INNER JOIN
+                  dbo.I_Defect_Cats ON dbo.All_Inicident_Headders.Cat_ID = dbo.I_Defect_Cats.Cat_ID INNER JOIN 
+				  dbo.All_Events_data ON dbo.All_Inicident_Headders.I_Number= dbo.All_Events_data.I_Number
+WHERE dbo.All_Inicident_Headders.Customer_Name=? AND dbo.All_Inicident_Headders.VOR_INFO='Y' AND Event_Text LIKE 'VEHICLE VOR%'
+ORDER BY dbo.VOR_Details.Line_Number DESC""", (Customer_Name,))
+    rows = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    return rows
+
+#def fetch_VOR_data_lastnotes(Customer_Name):
+    #conn = pyodbc.connect(conn_str1)
+    #cur = conn.cursor()
+     # Query Incident_Headder table based on Incident_Number
+    #cur.execute("""SELECT TOP 1 FORMAT(E_Created,'dd-MM-yyyy') AS Formatted_Date, Event_Text FROM All_Events_data
+#WHERE I_Number IN (SELECT I_Number FROM [dbo].[VOR REPORT VIEW] WHERE Customer_Name=? )
+#ORDER BY E_Number DESC""", (Customer_Name,))
+    #rows = cur.fetchall()
+    
+    #cur.close()
+    #conn.close()
+    #return rows
+
+def fetch_VOR_data_lastnotes(incident_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    # Query Incident_Header table based on Incident_Number
+    cur.execute("""
+        SELECT TOP 1 FORMAT(E_Created, 'dd-MM-yyyy') AS Formatted_Date, Event_Text
+        FROM All_Events_data
+        WHERE I_Number = ?
+        ORDER BY E_Number DESC
+    """, (incident_number,))
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+
+def fetch_VOR_data_per_depot(Customer_Name):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+     # Query Incident_Headder table based on Incident_Number
+    cur.execute("""SELECT  DISTINCT dbo.All_Inicident_Headders.I_Number,FORMAT(dbo.All_Inicident_Headders.Defect_occurred,'dd-MM-yyyy') as Incident_Date, dbo.All_Inicident_Headders.Registration_NO, dbo.All_Inicident_Headders.Customer_Name, dbo.All_Inicident_Headders.Customer_Depot, dbo.VOR_Details.Blocker, FORMAT(dbo.VOR_Details.Next_VOR, 'dd-MM-yyyy') 
+                  AS FormattedDate, dbo.Incident_Types.Inc_Type_Description,
+                  dbo.I_Status.Status_Description,dbo.All_Inicident_Headders.Reported_Defect, dbo.I_Defect_Cats.Cat_Description, dbo.VOR_Details.Line_Number, dbo.All_Inicident_Headders.VOR_INFO,
+				  dbo.All_Inicident_Headders.Customer_Defect_NO,
+                  CONVERT(DATE, dbo.All_Events_data.E_Created) AS E_CreatedDate, 
+				  DATEDIFF(DAY, CONVERT(DATE, dbo.All_Events_data.E_Created), GETDATE()) AS DaysDifference
+FROM        dbo.All_Inicident_Headders INNER JOIN
+                  dbo.VOR_Details ON dbo.All_Inicident_Headders.I_Number = dbo.VOR_Details.I_Number INNER JOIN
+                  dbo.Incident_Types ON dbo.All_Inicident_Headders.Inc_Type_ID = dbo.Incident_Types.Inc_Type_ID INNER JOIN
+                  dbo.I_Status ON dbo.All_Inicident_Headders.Status_ID = dbo.I_Status.Status_ID INNER JOIN
+                  dbo.I_Defect_Cats ON dbo.All_Inicident_Headders.Cat_ID = dbo.I_Defect_Cats.Cat_ID INNER JOIN 
+				  dbo.All_Events_data ON dbo.All_Inicident_Headders.I_Number= dbo.All_Events_data.I_Number
+WHERE dbo.All_Inicident_Headders.Customer_Name=? AND Customer_Depot IN (SELECT Customer_Depot FROM [dbo].[VOR REPORT VIEW] WHERE Customer_Name=? )  
+                AND dbo.All_Inicident_Headders.VOR_INFO='Y' AND Event_Text LIKE 'VEHICLE VOR%'
+ORDER BY dbo.VOR_Details.Line_Number DESC""", (Customer_Name,Customer_Name))
+    rows = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    return rows
+
+def fetch_VOR_data_per_PFdepot(incident_number, Customer_Name):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+     # Query Incident_Headder table based on Incident_Number
+    cur.execute("""SELECT  DISTINCT dbo.All_Inicident_Headders.I_Number,FORMAT(dbo.All_Inicident_Headders.Defect_occurred,'dd-MM-yyyy') as Incident_Date, dbo.All_Inicident_Headders.Registration_NO, dbo.All_Inicident_Headders.Customer_Name, dbo.All_Inicident_Headders.Customer_Depot, dbo.VOR_Details.Blocker, FORMAT(dbo.VOR_Details.Next_VOR, 'dd-MM-yyyy') 
+                  AS FormattedDate, dbo.Incident_Types.Inc_Type_Description,
+                  dbo.I_Status.Status_Description,dbo.All_Inicident_Headders.Reported_Defect, dbo.I_Defect_Cats.Cat_Description, dbo.VOR_Details.Line_Number, dbo.All_Inicident_Headders.VOR_INFO,
+				  dbo.All_Inicident_Headders.Customer_Defect_NO,
+                  CONVERT(DATE, dbo.All_Events_data.E_Created) AS E_CreatedDate, 
+				  DATEDIFF(DAY, CONVERT(DATE, dbo.All_Events_data.E_Created), GETDATE()) AS DaysDifference
+            FROM        dbo.All_Inicident_Headders INNER JOIN
+                  dbo.VOR_Details ON dbo.All_Inicident_Headders.I_Number = dbo.VOR_Details.I_Number INNER JOIN
+                  dbo.Incident_Types ON dbo.All_Inicident_Headders.Inc_Type_ID = dbo.Incident_Types.Inc_Type_ID INNER JOIN
+                  dbo.I_Status ON dbo.All_Inicident_Headders.Status_ID = dbo.I_Status.Status_ID INNER JOIN
+                  dbo.I_Defect_Cats ON dbo.All_Inicident_Headders.Cat_ID = dbo.I_Defect_Cats.Cat_ID INNER JOIN 
+				  dbo.All_Events_data ON dbo.All_Inicident_Headders.I_Number= dbo.All_Events_data.I_Number
+            WHERE dbo.All_Inicident_Headders.I_Number=? AND Customer_Name=? AND dbo.All_Inicident_Headders.VOR_INFO='Y' AND Event_Text LIKE 'VEHICLE VOR%'
+            ORDER BY dbo.VOR_Details.Line_Number DESC""", (incident_number,Customer_Name))
+    rows = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    return rows
+
+def fetch_VOR_data_two(PF_DEPOT):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+     # Query Incident_Headder table based on Incident_Number
+    cur.execute("""SELECT  DISTINCT    TOP (100) PERCENT dbo.All_Inicident_Headders.I_Number,FORMAT(dbo.All_Inicident_Headders.Defect_occurred,'dd-MM-yyyy') as Incident_Date, dbo.All_Inicident_Headders.Registration_NO, dbo.All_Inicident_Headders.Customer_Name, dbo.All_Inicident_Headders.Customer_Depot, dbo.VOR_Details.Blocker, FORMAT(dbo.VOR_Details.Next_VOR, 'dd-MM-yyyy') 
+                  AS FormattedDate, dbo.Incident_Types.Inc_Type_Description,
+                dbo.I_Status.Status_Description,dbo.All_Inicident_Headders.Reported_Defect, dbo.I_Defect_Cats.Cat_Description, dbo.VOR_Details.Line_Number, dbo.All_Inicident_Headders.VOR_INFO,
+				  dbo.All_Inicident_Headders.Customer_Defect_NO,
+                 CONVERT(DATE, dbo.All_Events_data.E_Created) AS E_CreatedDate, 
+				  DATEDIFF(DAY, CONVERT(DATE, dbo.All_Events_data.E_Created), GETDATE()) AS DaysDifference
+FROM        dbo.All_Inicident_Headders INNER JOIN
+                  dbo.VOR_Details ON dbo.All_Inicident_Headders.I_Number = dbo.VOR_Details.I_Number INNER JOIN
+                  dbo.Incident_Types ON dbo.All_Inicident_Headders.Inc_Type_ID = dbo.Incident_Types.Inc_Type_ID INNER JOIN
+                  dbo.I_Status ON dbo.All_Inicident_Headders.Status_ID = dbo.I_Status.Status_ID INNER JOIN
+                  dbo.I_Defect_Cats ON dbo.All_Inicident_Headders.Cat_ID = dbo.I_Defect_Cats.Cat_ID INNER JOIN 
+				  dbo.All_Events_data ON dbo.All_Inicident_Headders.I_Number= dbo.All_Events_data.I_Number
+WHERE dbo.All_Inicident_Headders.Depot_Name=? AND dbo.All_Inicident_Headders.VOR_INFO='Y' AND Event_Text LIKE 'VEHICLE VOR%'
+ORDER BY dbo.VOR_Details.Line_Number DESC""", (PF_DEPOT,))
+    rows = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    return rows
+
+def fetch_VOR_data_lastnotes_two(PF_DEPOT):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+     # Query Incident_Headder table based on Incident_Number
+    cur.execute("""SELECT TOP 1 (E_Created,'dd-MM-yyyy') AS Formatted_Date, Event_Text FROM All_Events_data
+WHERE I_Number IN (SELECT I_Number FROM [dbo].[VOR REPORT VIEW] WHERE Depot_Name=? )
+ORDER BY E_Number DESC""", (PF_DEPOT,))
+    rows = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    return rows
+
+def fetch_VOR_data_per_PFdepot_two(PF_DEPOT):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+     # Query Incident_Headder table based on Incident_Number
+    cur.execute("""SELECT  DISTINCT dbo.All_Inicident_Headders.I_Number,FORMAT(dbo.All_Inicident_Headders.Defect_occurred,'dd-MM-yyyy') as Incident_Date, dbo.All_Inicident_Headders.Registration_NO, dbo.All_Inicident_Headders.Customer_Name, dbo.All_Inicident_Headders.Customer_Depot, dbo.VOR_Details.Blocker, FORMAT(dbo.VOR_Details.Next_VOR, 'dd-MM-yyyy') 
+                  AS FormattedDate, dbo.Incident_Types.Inc_Type_Description,
+                  dbo.I_Status.Status_Description,dbo.All_Inicident_Headders.Reported_Defect, dbo.I_Defect_Cats.Cat_Description, dbo.VOR_Details.Line_Number, dbo.All_Inicident_Headders.VOR_INFO,
+				  dbo.All_Inicident_Headders.Customer_Defect_NO,
+                  CONVERT(DATE, dbo.All_Events_data.E_Created) AS E_CreatedDate, 
+				  DATEDIFF(DAY, CONVERT(DATE, dbo.All_Events_data.E_Created), GETDATE()) AS DaysDifference
+FROM        dbo.All_Inicident_Headders INNER JOIN
+                  dbo.VOR_Details ON dbo.All_Inicident_Headders.I_Number = dbo.VOR_Details.I_Number INNER JOIN
+                  dbo.Incident_Types ON dbo.All_Inicident_Headders.Inc_Type_ID = dbo.Incident_Types.Inc_Type_ID INNER JOIN
+                  dbo.I_Status ON dbo.All_Inicident_Headders.Status_ID = dbo.I_Status.Status_ID INNER JOIN
+                  dbo.I_Defect_Cats ON dbo.All_Inicident_Headders.Cat_ID = dbo.I_Defect_Cats.Cat_ID INNER JOIN 
+				  dbo.All_Events_data ON dbo.All_Inicident_Headders.I_Number= dbo.All_Events_data.I_Number
+WHERE dbo.All_Inicident_Headders.Depot_Name=? AND Customer_Name IN (SELECT Customer_Name FROM [dbo].[VOR REPORT VIEW] WHERE Depot_Name=? )  
+                AND dbo.All_Inicident_Headders.VOR_INFO='Y' AND Event_Text LIKE 'VEHICLE VOR%'
+ORDER BY dbo.VOR_Details.Line_Number DESC""", (PF_DEPOT,PF_DEPOT))
+    rows = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    return rows
+
+
+
+def fetch_the_recharge_status_description():
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("""SELECT * FROM PO_Recharge_Status""" )
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+
+def check_for_Customer_PO(incident_number):
+    conn = pyodbc.connect(conn_str1)
+    cur = conn.cursor()
+    cur.execute("""SELECT PO_Recharge_Status_ID FROM Purchase_Order_Headder WHERE Incident_Link=?""",(incident_number) )
+    rows=cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
+
+
+
+
+
+
+
+
+
+
+
+   
+
+        
+     
+     
+
+
+    
+    
+
+
+    
+     
+    
+
+
+
+    
+
+
+
+
+
+
+
+        
+
+
+
+    
+
+            
+
+
+
+
+
+
+
+     
+     
+    
+    
+
+    
+
+
+
+
+     
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+    
+    
+    
+
+    
+
+
+
+    
+
+
+
+  
+    
